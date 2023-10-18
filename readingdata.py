@@ -4,12 +4,17 @@ import pandas as pd
 import glob
 import time
 
-base_dat_file_name = input("What file would you like to analyze? ")
+base_dat_file_name = input("What file would you like to analyze (spectr)? ")
+pref_dat_file_name = input("What file PREFIX would you like (TEST)? ")
 
 program_start_time = time.time()
 
+
+list_MH_v_Lambda = list()
+list_MH_v_Lambda.append(("MH","MA","Lambda"))
+
 for ITER in range(1,11):
-	dat_file_name = "TEST"+base_dat_file_name[:-4]+"{}".format(ITER)+".dat"
+	dat_file_name = "TEST"+base_dat_file_name+"{}".format(ITER)+".dat"
 
 	# open specified file: dat_file_name as f
 	f = open('/home/wolf/NMSSMTools_6.0.0/calculations/{}'.format(dat_file_name),"r")
@@ -18,14 +23,16 @@ for ITER in range(1,11):
 	rec_H = False    # should I be recording NMHMIX right now?
 	rec_A = False    #   .    .  .    .      NMAMIX .      . ?
 	rec_coup = False #   .    .  .    . EFFECTIVE  COUPLINGS . .?
+	rec_extpar = False
 
 	# want to pull from: BLOCK MASS, BLOCK NMHMIX, BLOCK NMAMIX, BLOCK  EFFECTIVE_COUPLINGS
 	BLOCK_M = list()
 	BLOCK_H = list()
 	BLOCK_A = list()
 	BLOCK_COUP = list()
+	BLOCK_EXTPAR = list()
 	for row in f:
-		if not rec_H and not rec_A and not rec_coup and not rec_M:
+		if not rec_H and not rec_A and not rec_coup and not rec_M and not rec_extpar:
 			if "BLOCK NMHMIX" in row: 
 				#print(row)
 				BLOCK_H.append(row)
@@ -41,6 +48,9 @@ for ITER in range(1,11):
 			elif "BLOCK MASS" in row:
 				BLOCK_M.append(row)
 				rec_M = True
+			elif "BLOCK EXTPAR" in row:
+				BLOCK_EXTPAR.append(row)
+				rec_extpar = True
 		else:
 			if rec_H:
 				if row == "# \n": rec_H = False
@@ -54,16 +64,35 @@ for ITER in range(1,11):
 			elif rec_M:
 				if row == "# \n": rec_M = False
 				else: BLOCK_M.append(row)
+			elif rec_extpar:
+				if row == "# \n": rec_extpar = False
+				else: BLOCK_EXTPAR.append(row)
 
 	print("\n{}".format(dat_file_name))
-	for i in BLOCK_H: print(i,end="")
-	for j in BLOCK_A: print(j,end="")
-	for k in BLOCK_COUP: print(k,end="")
-	for l in BLOCK_M: print(l,end="")
+	for i in BLOCK_H: 
+		#print(i,end="")
+		pass
+	for j in BLOCK_A: 
+		#print(j,end="")
+		pass
+	for k in BLOCK_COUP: 
+		#print(k,end="")
+		pass
+	for l in BLOCK_M: 
+		print(l,end="")
+		if "# lightest neutral scalar" in l:
+			MH = l[15:-29]
+		elif "# lightest pseudoscalar" in l:
+			MA = l[15:-27]
+	for r in BLOCK_EXTPAR:
+		if "# LAMBDA" in r:
+			Lambda = float(r[11:-12])
 
+	list_MH_v_Lambda.append((MH,MA, Lambda))
 	f.close()
-
-
+for i in list_MH_v_Lambda:
+	print(i)
+	
 
 
 
@@ -92,7 +121,7 @@ for ITER in range(1,11):
 #
 #		print(eval(block_name))
 
-#
+
 print("\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
 program_fin_time = time.time()
 print("Runtime (s):\t", program_fin_time - program_start_time)

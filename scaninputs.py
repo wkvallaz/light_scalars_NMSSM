@@ -58,7 +58,7 @@ for ITER in range(1,11):
 	#		lines.append("#	48	{}		# MD2 = MD1 (If =/= MD3) modified\n".format("0d0"))
 		if "# LAMBDA" in row: 
 	#		lines.append("	61	{}	# LAMBDA modified\n".format("0.499793E+00"))
-			lines.append("\t61\t{}\t#LAMBDA modified\n".format(.3 + .04*ITER))
+			lines.append("\t61\t{}\t#LAMBDA modified\n".format(.3 + .02*ITER))
 	#	elif "# KAPPA" in row: 
 	#		lines.append("	62	{}		# KAPPA (If =/= 0) modified\n".format("0d0"))
 	#	elif "# ALAMBDA" in row: 
