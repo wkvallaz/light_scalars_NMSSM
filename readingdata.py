@@ -4,61 +4,64 @@ import pandas as pd
 import glob
 import time
 
-dat_file_name = input("What file would you like to analyze? ")
+base_dat_file_name = input("What file would you like to analyze? ")
 
 program_start_time = time.time()
 
+for ITER in range(1,11):
+	dat_file_name = "TEST"+base_dat_file_name[:-4]+"{}".format(ITER)+".dat"
 
-# open specified file: dat_file_name as f
-f = open('/home/wolf/NMSSMTools_6.0.0/calculations/{}'.format(dat_file_name),"r")
+	# open specified file: dat_file_name as f
+	f = open('/home/wolf/NMSSMTools_6.0.0/calculations/{}'.format(dat_file_name),"r")
 
-rec_M = False
-rec_H = False    # should I be recording NMHMIX right now?
-rec_A = False    #   .    .  .    .      NMAMIX .      . ?
-rec_coup = False #   .    .  .    . EFFECTIVE  COUPLINGS . .?
+	rec_M = False
+	rec_H = False    # should I be recording NMHMIX right now?
+	rec_A = False    #   .    .  .    .      NMAMIX .      . ?
+	rec_coup = False #   .    .  .    . EFFECTIVE  COUPLINGS . .?
 
-# want to pull from: BLOCK MASS, BLOCK NMHMIX, BLOCK NMAMIX, BLOCK  EFFECTIVE_COUPLINGS
-BLOCK_M = list()
-BLOCK_H = list()
-BLOCK_A = list()
-BLOCK_COUP = list()
-for row in f:
-	if not rec_H and not rec_A and not rec_coup and not rec_M:
-		if "BLOCK NMHMIX" in row: 
-			#print(row)
-			BLOCK_H.append(row)
-			rec_H = True
-		elif "BLOCK NMAMIX" in row:
-			#print(row)
-			BLOCK_A.append(row)
-			rec_A = True
-		elif "BLOCK  EFFECTIVE_COUPLINGS" in row:
-			#print(row)
-			BLOCK_COUP.append(row)
-			rec_coup = True
-		elif "BLOCK MASS" in row:
-			BLOCK_M.append(row)
-			rec_M = True
-	else:
-		if rec_H:
-			if row == "# \n": rec_H = False
-			else: BLOCK_H.append(row)
-		elif rec_A:
-			if row == "# \n": rec_A = False
-			else: BLOCK_A.append(row)
-		elif rec_coup:
-			if row == "# \n": rec_coup = False
-			else: BLOCK_COUP.append(row)
-		elif rec_M:
-			if row == "# \n": rec_M = False
-			else: BLOCK_M.append(row)
+	# want to pull from: BLOCK MASS, BLOCK NMHMIX, BLOCK NMAMIX, BLOCK  EFFECTIVE_COUPLINGS
+	BLOCK_M = list()
+	BLOCK_H = list()
+	BLOCK_A = list()
+	BLOCK_COUP = list()
+	for row in f:
+		if not rec_H and not rec_A and not rec_coup and not rec_M:
+			if "BLOCK NMHMIX" in row: 
+				#print(row)
+				BLOCK_H.append(row)
+				rec_H = True
+			elif "BLOCK NMAMIX" in row:
+				#print(row)
+				BLOCK_A.append(row)
+				rec_A = True
+			elif "BLOCK  EFFECTIVE_COUPLINGS" in row:
+				#print(row)
+				BLOCK_COUP.append(row)
+				rec_coup = True
+			elif "BLOCK MASS" in row:
+				BLOCK_M.append(row)
+				rec_M = True
+		else:
+			if rec_H:
+				if row == "# \n": rec_H = False
+				else: BLOCK_H.append(row)
+			elif rec_A:
+				if row == "# \n": rec_A = False
+				else: BLOCK_A.append(row)
+			elif rec_coup:
+				if row == "# \n": rec_coup = False
+				else: BLOCK_COUP.append(row)
+			elif rec_M:
+				if row == "# \n": rec_M = False
+				else: BLOCK_M.append(row)
 
-for i in BLOCK_H: print(i)
-for j in BLOCK_A: print(j)
-for k in BLOCK_COUP: print(k)
-for l in BLOCK_M: print(l)
+	print("\n{}".format(dat_file_name))
+	for i in BLOCK_H: print(i,end="")
+	for j in BLOCK_A: print(j,end="")
+	for k in BLOCK_COUP: print(k,end="")
+	for l in BLOCK_M: print(l,end="")
 
-f.close()
+	f.close()
 
 
 
