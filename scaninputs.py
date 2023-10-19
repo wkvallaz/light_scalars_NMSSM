@@ -5,7 +5,7 @@ import shutil # utilities for copying files
 
 start_time = time.time()
 
-### THIS FILE TO BE WHAT CREATES CUSTOM PREFIXinpSUFFIX.dat files to be ran with ./run PREFIXinpSUFFIX.dat
+### THIS FILE IS WHAT CREATES CUSTOM PREFIXinpSUFFIX.dat files to be ran with ./run PREFIXinpSUFFIX.dat
 
 PREFIX = "TEST"
 SUFFIX = "ITER"
