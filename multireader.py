@@ -172,6 +172,7 @@ plt.scatter([r[30] for r in out_file_matrix], [r[1] for r in out_file_matrix],
 plt.title("tanB v P1MASS : {}".format(out_file_name))
 plt.ylabel("tanB")
 plt.xlabel("Lightest pseudoscalar Higgs mass")
+plt.legend()
 plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/{}_{}_tanB_v_p1mass.png".format(out_file_name,
 										out_file_name,base_file_name))
 
@@ -199,14 +200,37 @@ plt.scatter([r[28] for r in out_file_matrix], [r[1] for r in out_file_matrix],
 plt.title("tanB v S3MASS : {}".format(out_file_name))
 plt.ylabel("tanB")
 plt.xlabel("Heaviest scalar Higgs mass")
+plt.legend()
 plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/{}_{}_tanB_v_s3mass.png".format(out_file_name,
 										out_file_name,base_file_name))
 
+plt.figure(10) # ALAMBDA VS AKAPPA - CMAP MUEFF
+plt.scatter([r[21] for r in base_file_matrix], [r[22] for r in base_file_matrix],
+		alpha=0.4, c='lightgray', s=2, label='base')
+plt.scatter([r[21] for r in out_file_matrix], [r[22] for r in out_file_matrix],
+		alpha=0.4, c=[r[23] for r in out_file_matrix], cmap='magma', s=2, label='con.')
+plt.title("Akappa v Alambda : {}".format(out_file_name))
+plt.ylabel("Akappa")
+plt.xlabel("Alambda")
+cbar = plt.colorbar()
+cbar.ax.set_ylabel("mueff")
+plt.legend()
+plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/{}_{}_Akappa_v_Alambda_1.png".format(out_file_name,
+									out_file_name,base_file_name))
 
-
-
-
-
+plt.figure(11) # ALAMBDA VS AKAPPA - CMAP TANB
+plt.scatter([r[21] for r in base_file_matrix], [r[22] for r in base_file_matrix],
+		alpha=0.4, c='lightgray',s=2,label='base')
+plt.scatter([r[21] for r in out_file_matrix], [r[22] for r in out_file_matrix],
+		alpha=0.4, c=[r[1] for r in out_file_matrix],cmap='viridis',s=2,label='con.')
+plt.title("Akappa v Alambda : {}".format(out_file_name))
+plt.ylabel("Akappa")
+plt.xlabel("Alambda")
+cbar = plt.colorbar()
+cbar.ax.set_ylabel("tanB")
+plt.legend()
+plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/{}_{}_Akappa_v_Alambda_2.png".format(out_file_name,
+										out_file_name,base_file_name))
 
 
 
