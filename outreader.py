@@ -14,7 +14,7 @@ try:   # IF IT DOESN'T ALREADY EXIST, CREATE A DIR WITH NAME OF FILE (minus .dat
 except OSError as error:
 	print(error)
 
-threshold_lighthiggs = 50 #GeV
+threshold_lighthiggs = 20 #GeV
 
 out_file_matrix = list()
 events_lighthiggs = list()
@@ -35,7 +35,7 @@ with open("/home/wolf/NMSSMTools_6.0.0/calculations/{}.dat".format(out_file_name
 			ctr_lighthiggs += 1
 #			print("Light Higgs in event {}:".format(indexrow))
 #			print(params)
-#			print(shiggs)
+			print(shiggs)
 #			print(phiggs)
 #			print()
 #	print(out_file_matrix)		
@@ -155,15 +155,14 @@ cbar = plt.colorbar()
 cbar.ax.set_ylabel("tanB")
 plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/{}_Akappa_v_Alambda_2.png".format(out_file_name,
 												out_file_name))
-
-
-
-
-
-
-
-
-
+plt.figure(12) # S2MASS VS TANB
+plt.scatter([r[26] for r in out_file_matrix], [r[1] for r in out_file_matrix],
+		alpha=0.2, c='g', s=2)
+plt.title("tanB v S2MASS : {}".format(out_file_name))
+plt.ylabel("tanB")
+plt.xlabel("Second scalar Higgs mass")
+plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/{}_tanB_v_s2mass.png".format(out_file_name,
+												out_file_name))
 
 
 
