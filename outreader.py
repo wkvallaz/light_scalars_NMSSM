@@ -18,7 +18,7 @@ except OSError as error:
 	print(error)
 	overwrite_req = input("Continuing will overwrite existing files, are you sure? (y/ye/yea/yes): ").lower()
 	if overwrite_req not in ["y", "ye", "yea", "yes"]: sys.exit("Execution halted.")
-file_names = ["widerandout","widecon1randout","widecon3randout","widecon2randout"]
+file_names = ["wide3randout","wide3con1randout","wide3con3randout","wide3con2randout"]
 
 threshold_lighthiggs = 20 #GeV
 
@@ -28,7 +28,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	#Color = ['darkgray', 'cyan', 'yellow', 'magenta']		#CYM COLORING
 	Color = ['black', 'b', 'g', 'r']			#RGB COLORING
 	Alpha = [1,1,1,1]   
-	Size = [20,20,10,2] #CONCENTRIC SIZING
+	Size = [5,5,2,.5] #CONCENTRIC SIZING
 	#Size = [0,6,5,4] #ALPHA-STACK SIZING
 	DPI = 480
 	#CURRENT CONSIDERATIONS ARE TO PLOT A SINGULAR TIME FROM THE UNCONSTRAINED SET, AND TAG EACH POINT WITH
@@ -395,7 +395,7 @@ mh_1n2 = [0,0,0,0]
 mh_is3 = [0,0,0,0]
 
 def NearSM(mass): #temp fnc that checks if mass is near sm higgs mass
-	return ((mass > 115) and (mass < 135))
+	return ((mass > 120) and (mass < 130))
 
 file_matrices = [list(),list(),list(),list()] # for storing "out_file_matrix" of each out file
 #constraints_survived = list()# for each element of unconstrained set, note which points survive later constraints
@@ -426,17 +426,17 @@ for file_index,out_file_name in enumerate(file_names):
 			# tracking which events have NearSM higgs in s1, s2, both, s3, or none
 			if (NearSM(shiggs[0]) and NearSM(shiggs[2])): 
 				mh_1n2[file_index]+=1
-		#		print("Wait, really?{}:event{}:s1@{}:s2@{}".format(
-		#			out_file_name,indexrow,shiggs[0],shiggs[2]))
+				print("Wait, really?{}:event{}:s1@{}:s2@{}".format(
+					out_file_name,indexrow,shiggs[0],shiggs[2]))
 			elif (NearSM(shiggs[0])):
 				mh_is1[file_index]+=1
 			elif (NearSM(shiggs[2])):
 				mh_is2[file_index]+=1
-		#		print("{}event#{}:\ts1@{}\s2@{}".format(out_file_name,indexrow,shiggs[0],shiggs[2]))
+				print("{}event#{}:\ts1@{}\s2@{}".format(out_file_name,indexrow,shiggs[0],shiggs[2]))
 			elif (NearSM(shiggs[4])):
 				mh_is3[file_index]+=1
-		#		print("No shot...{}:event{}:s3@{}".format(
-		#			out_file_name,indexrow,shiggs[4]))
+				print("No shot...{}:event{}:s3@{}".format(
+					out_file_name,indexrow,shiggs[4]))
 			else: mh_dne[file_index]+=1
 
 
@@ -462,7 +462,7 @@ print("\ncon2 min/max s1m:\t",mins1m,"\t",maxs1m)
 
 print("\nFILE_NAME\tmh_is1\tmh_is2\tmh_dne\tmh_1&2\tmh_is3")
 for file_index,out_file_name in enumerate(file_names):
-	print("{}\t{}\t{}\t{}\t{}\t{}".format(out_file_name, 
+	print("{}\t{}\t{}\t{}\t{}\t{}".format(out_file_name[:-3], 
 	mh_is1[file_index],mh_is2[file_index],mh_dne[file_index],mh_1n2[file_index],mh_is3[file_index]))
 
 print("\n# Light Higgs:\t", ctr_lighthiggs)
