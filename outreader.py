@@ -19,478 +19,142 @@ except OSError as error:
 	overwrite_req = input("Continuing will overwrite existing files, are you sure? (y/ye/yea/yes): ").lower()
 	if overwrite_req not in ["y", "ye", "yea", "yes"]: sys.exit("Execution halted.")
 file_names = ["wide3randout","wide3con1randout","wide3con3randout","wide3con2randout"]
-
+num_files = len(file_names)
 threshold_lighthiggs = 20 #GeV
+
+def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  
+		Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI): 
+# args ^      (   int,  str,  int,  int,  int,  str,  int,  int,  int, 
+#		  arr,  arr,    arr,  arr, str,            arr, int):
+	#needs to accept a list of args:
+	#	pltctr		# plot count for figuure - considering subplots/axs?
+	#	xmin, xmax 	# if xmin!=xmax do zoomed plot also
+	#	ymin, ymax	#    ^ analogous
+	# 	xpar		# x parameter
+	#	ypar		# y parameter 
+	#	xind		# x par corresponding column number
+	#	yind		# y par corresponding column number
+	#	Color 		# Color array
+	#	Alpha		# Alpha array
+	#	Size		# Size array
+	#	Label		# Label array
+	#	LOC		# Legend location
+	#	BBOX_TO_ANCHOR	# Legend offset from location
+	#	DPI		# Figure dpi
+	
+	DIR = "/home/wolf/NMSSMTools_6.0.0/calculations/"+save_dir_name+"/"
+	print("Plotting #{} ...".format(pltctr))
+
+	def Col(index,matrix): #array generator statement which pulls column 'index' from  ea row of 'matrix'
+		return [r[index] for r in matrix]
+
+	#fig,ax = plt.subplots
+	plt.figure(pltctr)
+	for fx,out_file_matrix in enumerate(file_matrices): #will still need workaround for con_surv.d idea
+		plt.scatter(Col(xind,out_file_matrix), Col(yind,out_file_matrix),
+			alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], marker='.')
+	plt.title(ypar+" v "+xpar)
+	plt.ylabel(ypar)
+	plt.xlabel(xpar)
+	plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=num_files)
+	
+	
+	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
+		if xpar in ["lambda","kappa"]: plt.xlim(0,0.8)			#  let first plot be 
+		if ypar in ["lambda","kappa"]: plt.ylim(0,0.8)			#  confined to (0,0.8)
+		plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	#  for the L&/or K axi/es
+	else: plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	# Otherwise just use DEF.
+	
+	if xmin==xmax and ymin == ymax: plt.close()				# If didn't specify to zoom
+	else:									#  just close the plot,
+		if xmin!=xmax: plt.xlim(xmin,xmax)				# Otherwise enforce chosen
+		if ymin!=ymax: plt.ylim(ymin,ymax)				#  x/y windows
+		plt.savefig("{}{}_v_{}_zoom.png".format(DIR, ypar, xpar), dpi=DPI)
+		plt.close()
+	return
+
 
 def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A LOOP AROUND EACH PLOT SO IT CAN BE DELETED ONCE SAVEFIG'D
 	
-	Label = file_names
+	Label = [x[:-7] for x in file_names]
 	#Color = ['darkgray', 'cyan', 'yellow', 'magenta']		#CYM COLORING
 	Color = ['black', 'b', 'g', 'r']			#RGB COLORING
 	Alpha = [1,1,1,1]   
 	Size = [5,5,2,.5] #CONCENTRIC SIZING
 	#Size = [0,6,5,4] #ALPHA-STACK SIZING
+	LOC = "center"
+	BBOX_TO_ANCHOR = [0.5,1.1125]
 	DPI = 480
 	#CURRENT CONSIDERATIONS ARE TO PLOT A SINGULAR TIME FROM THE UNCONSTRAINED SET, AND TAG EACH POINT WITH
 	# A CERTAIN COLOR BASED ON WHICH CONSTRAINTS IT SURVIVES	
 	#color_list = constraints_survived #alias list of colors survived	
 
+# DIMENSIONLESS
 	pltctr = 1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) #TANB VS LAMBDA
-	out_file_matrix = file_matrices[0]
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[19] for r in out_file_matrix], [r[1] for r in out_file_matrix], 
-			alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], marker='.') 
-	plt.title("tanB v lambda")
-	plt.ylabel("tanB")
-	plt.xlabel("lambda")
-	plt.xlim(0,.8)
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
-	plt.savefig("{}{}/tanB_v_lambda.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
+	SinglePlot(pltctr, "lambda", 19, 0, 0,
+                        "tanB", 1, 0, 0,	
+			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)			
 
 	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # TANB VS KAPPA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[20] for r in out_file_matrix], [r[1] for r in out_file_matrix], 
-			alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], marker='.')	 
-	plt.title("tanB v kappa")
-	plt.ylabel("tanB")
-	plt.xlabel("kappa")
-	plt.xlim(0,.8)
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
-	plt.savefig("{}{}/tanB_v_kappa.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
+	SinglePlot(pltctr, "kappa", 20, 0, 0,
+			"tanB", 1, 0, 0,
+			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
+	pltctr+=1
+	SinglePlot(pltctr, "lambda", 19, 0, 0,
+			"kappa", 20, 0, 0,
+			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
+# LESS-FUL
+	pltctr+=1
+	SinglePlot(pltctr, "Alambda", 21, 0, 0,
+			"tanB", 1, 0, 0,
+			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
 
 	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # KAPPA VERSUS LAMBDA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[19] for r in out_file_matrix], [r[20] for r in out_file_matrix],
-			alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-#			alpha=0.3, c=[r[1] for r in out_file_matrix], cmap="viridis", s=2)
-	plt.title("lambda v kappa")
-	plt.xlabel("lambda")
-	plt.ylabel("kappa")
-#	cbar = plt.colorbar()
-#	cbar.ax.set_ylabel("tanB")
-	plt.ylim(0,.8)
-	plt.xlim(0,.8)
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
-	plt.savefig("{}{}/lambda_v_kappa.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-	
-	pltctr+=1 
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # TANB VERSUS ALAMBDA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[21] for r in out_file_matrix], [r[1] for r in out_file_matrix],
-			alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("tanB v Alambda")
-	plt.ylabel("tanB")
-	plt.xlabel("Alambda")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
-	plt.savefig("{}{}/tanB_v_Alambda.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
+	SinglePlot(pltctr, "Akappa", 22, 0, 0,
+			"tanB", 1, 0, 0,
+			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
 
 	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # TANB VERSUS AKAPPA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[22] for r in out_file_matrix], [r[1] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("tanB v Akappa")
-	plt.ylabel("tanB")
-	plt.xlabel("Akappa")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
-	plt.savefig("{}{}/tanB_v_Akappa.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
+	SinglePlot(pltctr, "mueff", 23, 0, 0,
+			"tanB", 1, 0, 0,
+			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
+# DIMENSIONFUL
+	pltctr+=1
+	SinglePlot(pltctr, "Alambda", 21, 0, 0,
+			"Akappa", 22, 0, 0,
+			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
 
 	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # TANB VERSUS MUEFF
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[23] for r in out_file_matrix], [r[1] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("tanB v mueff")
-	plt.ylabel("tanB")
-	plt.xlabel("mueff")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
-	plt.savefig("{}{}/tanB_v_mueff.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
+	SinglePlot(pltctr, "Alambda", 21, 0, 0,
+			"mueff", 23, 0, 0,
+			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
 
 	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # MUEFF VERSUS ALAMBDA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[21] for r in out_file_matrix], [r[23] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	
-	plt.title("mueff v Alambda")
-	plt.ylabel("mueff")
-	plt.xlabel("Alambda")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
-	plt.savefig("{}{}/mueff_v_Alambda.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-	
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # MUEFF VERSUS AKAPPA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[22] for r in out_file_matrix], [r[23] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
+	SinglePlot(pltctr, "mueff", 23, 0, 0,
+			"Akappa", 22, 0, 0,
+			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
+# END OF PARAM-PARAM PLOTS
+##	> this is just a copy-paste empty template
+#	pltctr+=1
+#	SinglePlot(pltctr, "", 0, 0, 0,
+#			"", 0, 0, 0,
+#			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
 
-	plt.title("mueff v Akappa")
-	plt.ylabel("mueff")
-	plt.xlabel("Akappa")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
-	plt.savefig("{}{}/mueff_v_Akappa.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-	
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # ALAMBDA VS AKAPPA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[21] for r in out_file_matrix], [r[22] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("Akappa v Alambda")
-	plt.ylabel("Akappa")
-	plt.xlabel("Alambda")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
-	plt.savefig("{}{}/Akappa_v_Alambda.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-	
-
-	print("Beginning mass plots...\ns1")
-	
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # S1MASS VS TANB
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[24] for r in out_file_matrix], [r[1] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("tanB v S1MASS")
-	plt.ylabel("tanB")
-	plt.xlabel("Lightest scalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
-	plt.savefig("{}{}/tanB_v_s1mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(112.5,132.5)
-	plt.savefig("{}{}/tanB_v_s1mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()	
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # S1MASS vs AKAPPA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[24] for r in out_file_matrix], [r[22] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("Akappa v S1MASS")
-	plt.ylabel("Akappa")
-	plt.xlabel("Lightest scalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
-	plt.savefig("{}{}/Akappa_v_s1mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(112.5,132.5)
-	plt.savefig("{}{}/Akappa_v_s1mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # S1MASS vs ALAMBDA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[24] for r in out_file_matrix], [r[21] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("Alambda v S1MASS")
-	plt.ylabel("Alambda")
-	plt.xlabel("Lightest scalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/Alambda_v_s1mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(112.5,132.5)
-	plt.savefig("{}{}/Alambda_v_s1mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-	
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # S1MASS vs S1COMP
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[24] for r in out_file_matrix], [r[25] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("S1COMP v S1MASS")
-	plt.ylabel("S1COMP")
-	plt.xlabel("Lightest scalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/s1comp_v_s1mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(112.5,132.5)
-	plt.savefig("{}{}/s1comp_v_s1mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-
-
-
-
-
-
-
-
-	print("s2")
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # S2MASS VS TANB
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[26] for r in out_file_matrix], [r[1] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("tanB v S2MASS")
-	plt.ylabel("tanB")
-	plt.xlabel("Second scalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/tanB_v_s2mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # S2MASS VS AKAPPA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[26] for r in out_file_matrix], [r[22] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("Akappa v S2MASS")
-	plt.ylabel("Akappa")
-	plt.xlabel("Second scalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/Akappa_v_s2mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-	
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # S2MASS VS ALAMBDA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[26] for r in out_file_matrix], [r[21] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("Alambda v S2MASS")
-	plt.ylabel("Alambda")
-	plt.xlabel("Second scalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/Alambda_v_s2mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # S2MASS VS S2COMP
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[26] for r in out_file_matrix], [r[27] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("S2COMP v S2MASS")
-	plt.ylabel("S2COMP")
-	plt.xlabel("Second scalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/s2comp_v_s2mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-
-
-
-
-
-	print("s3")
-	
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # S3MASS VS TANB
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[28] for r in out_file_matrix], [r[1] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("tanB v S3MASS")
-	plt.ylabel("tanB")
-	plt.xlabel("Heaviest scalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/tanB_v_s3mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(0,35000)
-	plt.savefig("{}{}/tanB_v_s3mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-	
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # S3MASS VS AKAPPA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[28] for r in out_file_matrix], [r[22] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("Akappa v S3MASS")
-	plt.ylabel("Akappa")
-	plt.xlabel("Heaviest scalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/Akappa_v_s3mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(0,35000)
-	plt.savefig("{}{}/Akappa_v_s3mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-	
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # S3MASS VS ALAMBDA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[28] for r in out_file_matrix], [r[21] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("Alambda v S3MASS")
-	plt.ylabel("Alambda")
-	plt.xlabel("Heaviest scalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/Alambda_v_s3mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(0,35000)
-	plt.savefig("{}{}/Alambda_v_s3mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # S3MASS VS S3COMP
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[28] for r in out_file_matrix], [r[29] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
-	plt.title("S3COMP v S3MASS")
-	plt.ylabel("S3COMP")
-	plt.xlabel("Heaviest scalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/s3comp_v_s3mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(0,35000)
-	plt.savefig("{}{}/s3comp_v_s3mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-
-
-
-
-	print("p1")
-	
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # P1MASS VS TANB
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[30] for r in out_file_matrix], [r[1] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')	
-	plt.ylabel("tanB")
-	plt.title("tanB v P1MASS")
-	plt.xlabel("Lightest pseudoscalar Higgs mass")	
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/tanB_v_p1mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(0,10000)
-	plt.savefig("{}{}/tanB_v_p1mass_zoom".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # P1MASS VS ALAMBDA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[30] for r in out_file_matrix], [r[21] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')	
-	plt.ylabel("Alambda")
-	plt.title("Alambda v P1MASS")
-	plt.xlabel("Lightest pseudoscalar Higgs mass")	
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/Alambda_v_p1mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(0,10000)
-	plt.savefig("{}{}/Alambda_v_p1mass_zoom".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # P1MASS VS AKAPPA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[30] for r in out_file_matrix], [r[22] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')	
-	plt.ylabel("Akappa")
-	plt.title("Akappa v P1MASS")
-	plt.xlabel("Lightest pseudoscalar Higgs mass")	
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/Akappa_v_p1mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(0,10000)
-	plt.savefig("{}{}/Akappa_v_p1mass_zoom".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-	
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # P1MASS VS P1COMP
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[30] for r in out_file_matrix], [r[31] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')	
-	plt.ylabel("P1COMP")
-	plt.title("P1COMP v P1MASS")
-	plt.xlabel("Lightest pseudoscalar Higgs mass")	
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/p1comp_v_p1mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(0,10000)
-	plt.savefig("{}{}/p1comp_v_p1mass_zoom".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-
-
-
-	print("p2")
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # P2MASS VS ALAMBDA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[32] for r in out_file_matrix], [r[21] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')	
-	plt.ylabel("Alambda")
-	plt.title("Alambda v P2MASS")
-	plt.xlabel("Heaviest pseudoscalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/Alambda_v_p2mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(0,31000)
-	plt.savefig("{}{}/Alambda_v_p2mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # P2MASS VS AKAPPA
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[32] for r in out_file_matrix], [r[22] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')	
-	plt.ylabel("Akappa")
-	plt.title("Akappa v P2MASS")
-	plt.xlabel("Heaviest pseudoscalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/Akappa_v_p2mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(0,31000)
-	plt.savefig("{}{}/Akappa_v_p2mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # P2MASS VS TANB
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[32] for r in out_file_matrix], [r[1] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')		
-	plt.ylabel("tanB")
-	plt.title("tanB v P2MASS")
-	plt.xlabel("Heaviest pseudoscalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/tanB_v_p2mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(0,31000)
-	plt.savefig("{}{}/tanB_v_p2mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-	pltctr+=1
-	print("Plotting #{}".format(pltctr))
-	plt.figure(pltctr) # P2MASS VS p2COMP
-	for fx,out_file_matrix in enumerate(file_matrices):
-		plt.scatter([r[32] for r in out_file_matrix], [r[33] for r in out_file_matrix],
-			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')		
-	plt.ylabel("P2COMP")
-	plt.title("P2COMP v P2MASS")
-	plt.xlabel("Heaviest pseudoscalar Higgs mass")
-	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
-	plt.savefig("{}{}/p2comp_v_p2mass.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.xlim(0,31000)
-	plt.savefig("{}{}/p2comp_v_p2mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
-	plt.close()
-
-###########
-###########
+	print("Beginning mass plots")	
+	for (higgs,hix) in [("s1",24),("s2",26),("s3",28),("p1",30),("p2",32)]:
+		print("{}:".format(higgs))
+		for (param,pix) in [("tanB",1), ("Alambda",21), ("Akappa",22), ("{}comp".format(higgs), hix+1)]:
+			pltctr+=1
+			if higgs == "s1": (mmin, mmax) = (112.5,132.5)
+			elif higgs == "s2": (mmin, mmax) = (0, 0)
+			elif higgs == "s3": (mmin, mmax) = (0, 37500)
+			elif higgs == "p1": (mmin, mmax) = (0, 10000)
+			elif higgs == "p2": (mmin, mmax) = (0, 35000)
+			SinglePlot(pltctr,"{}mass".format(higgs), hix, mmin, mmax,
+					param, pix, 0, 0,
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)	
 	print("Finished plots.")
-
+	return
 # FOR MIN,MAX MASS FILTERED BY con2
 (mins1m,maxs1m) = (140,100) # declared as such so 1st data point forces min/max to resolve
 mh_is1 = [0,0,0,0] # elem corresp to file_index from enumerating file_names 
@@ -504,7 +168,7 @@ def NearSM(mass): #temp fnc that checks if mass is near sm higgs mass
 	return (mass > 125-buffer) and (mass < 125+buffer)
 
 file_matrices = [list(),list(),list(),list()] # for storing "out_file_matrix" of each out file
-#constraints_survived = list()# for each element of unconstrained set, note which points survive later constraints
+constraints_survived = list()# for each element of unconstrained set, note which points survive later constraints
 
 for file_index,out_file_name in enumerate(file_names):
 	with open("{}{}.dat".format(DIR, out_file_name)) as f:
@@ -551,21 +215,29 @@ for file_index,out_file_name in enumerate(file_names):
 				(mins1m,maxs1m) = (min(mins1m,shiggs[0]),max(maxs1m,shiggs[0]))
 
 	f.close()
-#for index,event in enumerate(file_matrices[0]):	#each event in the unconstrained set...
-#	event_1 = 0
-#	event_2 = 0
-#	event_3 = 0
-#	if event in file_matrices[1]: event_3 = 200/255
-#	if event in file_matrices[2]: event_2 = 200/255
-#	if event in file_matrices[3]: event_1 = 200/255
-#	constraints_survived.append([event_1,event_2,event_3])
+
+
+
+
+print("So it begins...")
+then=time()
+for index,event in enumerate(file_matrices[0]):	#each event in the unconstrained set...
+	if ( index  % 1000 == 0):
+		print(index, "@",time()-then)
+	event_r = 0
+	event_g = 0
+	event_b = 0
+	if event in file_matrices[1]: event_b = 200/255
+	if event in file_matrices[2]: event_g = 200/255
+	if event in file_matrices[3]: event_r = 200/255
+	constraints_survived.append([event_r,event_g,event_b])
+print("That part took\t", time()-then)
 
 
 
 
 
-
-GeneratePlots() 
+# GeneratePlots() 
 
 
 
@@ -610,6 +282,12 @@ print("\nFILE_NAME\tmh_is1\tmh_is2\tmh_dne\tmh_1&2\tmh_is3")
 for file_index,out_file_name in enumerate(file_names):
 	print("{}\t{}\t{}\t{}\t{}\t{}".format(out_file_name[:-3], 
 	mh_is1[file_index],mh_is2[file_index],mh_dne[file_index],mh_1n2[file_index],mh_is3[file_index]))
+
+
+
+
+
+
 
 print("\n# Light Higgs:\t", ctr_lighthiggs)
 print("Runtime(s):\t",time()-start_time)
