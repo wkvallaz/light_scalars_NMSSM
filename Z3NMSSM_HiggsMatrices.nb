@@ -61,7 +61,7 @@ Cell[BoxData[{
      RowBox[{
       RowBox[{"(", 
        RowBox[{"Beff", "+", 
-        RowBox[{"\[Kappa]", "*", "s"}]}], ")"}], "/", "s"}]}], "-", 
+        RowBox[{"3","*","\[Kappa]", "*", "s"}]}], ")"}], "/", "s"}]}], "-", 
     RowBox[{"3", "\[Kappa]", "*", "A\[Kappa]", "*", "s"}]}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
