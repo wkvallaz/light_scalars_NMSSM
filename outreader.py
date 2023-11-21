@@ -46,7 +46,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.ylabel("tanB")
 	plt.xlabel("lambda")
 	plt.xlim(0,.8)
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
 	plt.savefig("{}{}/tanB_v_lambda.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
 
@@ -60,7 +60,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.ylabel("tanB")
 	plt.xlabel("kappa")
 	plt.xlim(0,.8)
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
 	plt.savefig("{}{}/tanB_v_kappa.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
 
@@ -78,7 +78,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 #	cbar.ax.set_ylabel("tanB")
 	plt.ylim(0,.8)
 	plt.xlim(0,.8)
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
 	plt.savefig("{}{}/lambda_v_kappa.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
 	
@@ -91,7 +91,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("tanB v Alambda")
 	plt.ylabel("tanB")
 	plt.xlabel("Alambda")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
 	plt.savefig("{}{}/tanB_v_Alambda.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
 
@@ -104,7 +104,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("tanB v Akappa")
 	plt.ylabel("tanB")
 	plt.xlabel("Akappa")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
 	plt.savefig("{}{}/tanB_v_Akappa.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
 
@@ -117,7 +117,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("tanB v mueff")
 	plt.ylabel("tanB")
 	plt.xlabel("mueff")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
 	plt.savefig("{}{}/tanB_v_mueff.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
 
@@ -131,7 +131,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("mueff v Alambda")
 	plt.ylabel("mueff")
 	plt.xlabel("Alambda")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
 	plt.savefig("{}{}/mueff_v_Alambda.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
 	
@@ -145,7 +145,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("mueff v Akappa")
 	plt.ylabel("mueff")
 	plt.xlabel("Akappa")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
 	plt.savefig("{}{}/mueff_v_Akappa.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
 	
@@ -158,10 +158,15 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("Akappa v Alambda")
 	plt.ylabel("Akappa")
 	plt.xlabel("Alambda")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
 	plt.savefig("{}{}/Akappa_v_Alambda.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
+
 	
+
+	print("Beginning mass plots...\ns1")
+	
+
 	pltctr+=1
 	print("Plotting #{}".format(pltctr))
 	plt.figure(pltctr) # S1MASS VS TANB
@@ -171,7 +176,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("tanB v S1MASS")
 	plt.ylabel("tanB")
 	plt.xlabel("Lightest scalar Higgs mass")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
 	plt.savefig("{}{}/tanB_v_s1mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.xlim(112.5,132.5)
 	plt.savefig("{}{}/tanB_v_s1mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
@@ -186,7 +191,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("Akappa v S1MASS")
 	plt.ylabel("Akappa")
 	plt.xlabel("Lightest scalar Higgs mass")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])
 	plt.savefig("{}{}/Akappa_v_s1mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.xlim(112.5,132.5)
 	plt.savefig("{}{}/Akappa_v_s1mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
@@ -201,11 +206,36 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("Alambda v S1MASS")
 	plt.ylabel("Alambda")
 	plt.xlabel("Lightest scalar Higgs mass")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/Alambda_v_s1mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.xlim(112.5,132.5)
 	plt.savefig("{}{}/Alambda_v_s1mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
+	
+	pltctr+=1
+	print("Plotting #{}".format(pltctr))
+	plt.figure(pltctr) # S1MASS vs S1COMP
+	for fx,out_file_matrix in enumerate(file_matrices):
+		plt.scatter([r[24] for r in out_file_matrix], [r[25] for r in out_file_matrix],
+			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
+	plt.title("S1COMP v S1MASS")
+	plt.ylabel("S1COMP")
+	plt.xlabel("Lightest scalar Higgs mass")
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
+	plt.savefig("{}{}/s1comp_v_s1mass.png".format(DIR, save_dir_name), dpi=DPI)
+	plt.xlim(112.5,132.5)
+	plt.savefig("{}{}/s1comp_v_s1mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
+	plt.close()
+
+
+
+
+
+
+
+
+
+	print("s2")
 
 	pltctr+=1
 	print("Plotting #{}".format(pltctr))
@@ -216,7 +246,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("tanB v S2MASS")
 	plt.ylabel("tanB")
 	plt.xlabel("Second scalar Higgs mass")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/tanB_v_s2mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
 
@@ -229,7 +259,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("Akappa v S2MASS")
 	plt.ylabel("Akappa")
 	plt.xlabel("Second scalar Higgs mass")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/Akappa_v_s2mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
 	
@@ -242,9 +272,29 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("Alambda v S2MASS")
 	plt.ylabel("Alambda")
 	plt.xlabel("Second scalar Higgs mass")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/Alambda_v_s2mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
+
+	pltctr+=1
+	print("Plotting #{}".format(pltctr))
+	plt.figure(pltctr) # S2MASS VS S2COMP
+	for fx,out_file_matrix in enumerate(file_matrices):
+		plt.scatter([r[26] for r in out_file_matrix], [r[27] for r in out_file_matrix],
+			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
+	plt.title("S2COMP v S2MASS")
+	plt.ylabel("S2COMP")
+	plt.xlabel("Second scalar Higgs mass")
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
+	plt.savefig("{}{}/s2comp_v_s2mass.png".format(DIR, save_dir_name), dpi=DPI)
+	plt.close()
+
+
+
+
+
+
+	print("s3")
 	
 	pltctr+=1
 	print("Plotting #{}".format(pltctr))
@@ -255,7 +305,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("tanB v S3MASS")
 	plt.ylabel("tanB")
 	plt.xlabel("Heaviest scalar Higgs mass")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/tanB_v_s3mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.xlim(0,35000)
 	plt.savefig("{}{}/tanB_v_s3mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
@@ -270,7 +320,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("Akappa v S3MASS")
 	plt.ylabel("Akappa")
 	plt.xlabel("Heaviest scalar Higgs mass")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/Akappa_v_s3mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.xlim(0,35000)
 	plt.savefig("{}{}/Akappa_v_s3mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
@@ -285,11 +335,32 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.title("Alambda v S3MASS")
 	plt.ylabel("Alambda")
 	plt.xlabel("Heaviest scalar Higgs mass")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/Alambda_v_s3mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.xlim(0,35000)
 	plt.savefig("{}{}/Alambda_v_s3mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
+
+	pltctr+=1
+	print("Plotting #{}".format(pltctr))
+	plt.figure(pltctr) # S3MASS VS S3COMP
+	for fx,out_file_matrix in enumerate(file_matrices):
+		plt.scatter([r[28] for r in out_file_matrix], [r[29] for r in out_file_matrix],
+			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')
+	plt.title("S3COMP v S3MASS")
+	plt.ylabel("S3COMP")
+	plt.xlabel("Heaviest scalar Higgs mass")
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
+	plt.savefig("{}{}/s3comp_v_s3mass.png".format(DIR, save_dir_name), dpi=DPI)
+	plt.xlim(0,35000)
+	plt.savefig("{}{}/s3comp_v_s3mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
+	plt.close()
+
+
+
+
+
+	print("p1")
 	
 	pltctr+=1
 	print("Plotting #{}".format(pltctr))
@@ -300,7 +371,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.ylabel("tanB")
 	plt.title("tanB v P1MASS")
 	plt.xlabel("Lightest pseudoscalar Higgs mass")	
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/tanB_v_p1mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.xlim(0,10000)
 	plt.savefig("{}{}/tanB_v_p1mass_zoom".format(DIR, save_dir_name), dpi=DPI)
@@ -315,7 +386,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.ylabel("Alambda")
 	plt.title("Alambda v P1MASS")
 	plt.xlabel("Lightest pseudoscalar Higgs mass")	
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/Alambda_v_p1mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.xlim(0,10000)
 	plt.savefig("{}{}/Alambda_v_p1mass_zoom".format(DIR, save_dir_name), dpi=DPI)
@@ -330,11 +401,31 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.ylabel("Akappa")
 	plt.title("Akappa v P1MASS")
 	plt.xlabel("Lightest pseudoscalar Higgs mass")	
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/Akappa_v_p1mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.xlim(0,10000)
 	plt.savefig("{}{}/Akappa_v_p1mass_zoom".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
+	
+	pltctr+=1
+	print("Plotting #{}".format(pltctr))
+	plt.figure(pltctr) # P1MASS VS P1COMP
+	for fx,out_file_matrix in enumerate(file_matrices):
+		plt.scatter([r[30] for r in out_file_matrix], [r[31] for r in out_file_matrix],
+			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')	
+	plt.ylabel("P1COMP")
+	plt.title("P1COMP v P1MASS")
+	plt.xlabel("Lightest pseudoscalar Higgs mass")	
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
+	plt.savefig("{}{}/p1comp_v_p1mass.png".format(DIR, save_dir_name), dpi=DPI)
+	plt.xlim(0,10000)
+	plt.savefig("{}{}/p1comp_v_p1mass_zoom".format(DIR, save_dir_name), dpi=DPI)
+	plt.close()
+
+
+
+
+	print("p2")
 
 	pltctr+=1
 	print("Plotting #{}".format(pltctr))
@@ -345,7 +436,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.ylabel("Alambda")
 	plt.title("Alambda v P2MASS")
 	plt.xlabel("Heaviest pseudoscalar Higgs mass")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/Alambda_v_p2mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.xlim(0,31000)
 	plt.savefig("{}{}/Alambda_v_p2mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
@@ -360,7 +451,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.ylabel("Akappa")
 	plt.title("Akappa v P2MASS")
 	plt.xlabel("Heaviest pseudoscalar Higgs mass")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/Akappa_v_p2mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.xlim(0,31000)
 	plt.savefig("{}{}/Akappa_v_p2mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
@@ -375,15 +466,29 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	plt.ylabel("tanB")
 	plt.title("tanB v P2MASS")
 	plt.xlabel("Heaviest pseudoscalar Higgs mass")
-	plt.legend()
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
 	plt.savefig("{}{}/tanB_v_p2mass.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.xlim(0,31000)
 	plt.savefig("{}{}/tanB_v_p2mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
 	plt.close()
-	
 
+	pltctr+=1
+	print("Plotting #{}".format(pltctr))
+	plt.figure(pltctr) # P2MASS VS p2COMP
+	for fx,out_file_matrix in enumerate(file_matrices):
+		plt.scatter([r[32] for r in out_file_matrix], [r[33] for r in out_file_matrix],
+			alpha=Alpha[fx], c=Color[fx], s=Size[fx], label=Label[fx], marker='.')		
+	plt.ylabel("P2COMP")
+	plt.title("P2COMP v P2MASS")
+	plt.xlabel("Heaviest pseudoscalar Higgs mass")
+	plt.legend(loc='center',bbox_to_anchor=[0.94,1.03])		
+	plt.savefig("{}{}/p2comp_v_p2mass.png".format(DIR, save_dir_name), dpi=DPI)
+	plt.xlim(0,31000)
+	plt.savefig("{}{}/p2comp_v_p2mass_zoom.png".format(DIR, save_dir_name), dpi=DPI)
+	plt.close()
 
-
+###########
+###########
 	print("Finished plots.")
 
 # FOR MIN,MAX MASS FILTERED BY con2
@@ -395,7 +500,8 @@ mh_1n2 = [0,0,0,0]
 mh_is3 = [0,0,0,0]
 
 def NearSM(mass): #temp fnc that checks if mass is near sm higgs mass
-	return ((mass > 120) and (mass < 130))
+	buffer = 3 #buffer in GeV around central SM Higgs mass 
+	return (mass > 125-buffer) and (mass < 125+buffer)
 
 file_matrices = [list(),list(),list(),list()] # for storing "out_file_matrix" of each out file
 #constraints_survived = list()# for each element of unconstrained set, note which points survive later constraints
@@ -426,16 +532,16 @@ for file_index,out_file_name in enumerate(file_names):
 			# tracking which events have NearSM higgs in s1, s2, both, s3, or none
 			if (NearSM(shiggs[0]) and NearSM(shiggs[2])): 
 				mh_1n2[file_index]+=1
-				print("Wait, really?{}:event{}:s1@{}:s2@{}".format(
+				print("{}:event{}:s1@{}:s2@{}\t*** 1&2".format(
 					out_file_name,indexrow,shiggs[0],shiggs[2]))
 			elif (NearSM(shiggs[0])):
 				mh_is1[file_index]+=1
 			elif (NearSM(shiggs[2])):
 				mh_is2[file_index]+=1
-				print("{}event#{}:\ts1@{}\s2@{}".format(out_file_name,indexrow,shiggs[0],shiggs[2]))
+				print("{}event#{}:\ts1@{}\s2@{}\t********** 2".format(out_file_name,indexrow,shiggs[0],shiggs[2]))
 			elif (NearSM(shiggs[4])):
 				mh_is3[file_index]+=1
-				print("No shot...{}:event{}:s3@{}".format(
+				print("{}:event{}:s3@{}\t*************** 3".format(
 					out_file_name,indexrow,shiggs[4]))
 			else: mh_dne[file_index]+=1
 
@@ -453,12 +559,52 @@ for file_index,out_file_name in enumerate(file_names):
 #	if event in file_matrices[2]: event_2 = 200/255
 #	if event in file_matrices[3]: event_1 = 200/255
 #	constraints_survived.append([event_1,event_2,event_3])
+
+
+
+
+
+
 GeneratePlots() 
 
-#sortedbys1mass = sorted(out_file_matrix, key = lambda x: x[24])
-#sortedbyp1mass = sorted(out_file_matrix, key = lambda x: x[30])
 
-print("\ncon2 min/max s1m:\t",mins1m,"\t",maxs1m)
+
+
+
+
+print("Sorting by lightest SCALAR")
+for file_index,out_file_matrix in enumerate(file_matrices):
+	sortedbys1mass = sorted(out_file_matrix, key = lambda x: x[24])
+	print(file_names[file_index])
+	for event_index,event in enumerate(sortedbys1mass):
+		if event_index < 5:
+			print("{:.4f}\t".format(event[1]),end="")
+			print("{:.6f}\t".format(event[19]),end="")
+			print("{:.6f}\t".format(event[20]),end="")
+			print("{:.2f}\t".format(event[21]),end="")
+			print("{:.2f}\t".format(event[22]),end="")
+			print("{:.2f}\t".format(event[23]),end="")
+			print(event[24])
+	print()
+print("\nSorting by lightest PSEUDOSCALAR")
+for file_index,out_file_matrix in enumerate(file_matrices):
+	sortedbyp1mass = sorted(out_file_matrix, key = lambda x: x[30])
+	print(file_names[file_index])
+	for event_index,event in enumerate(sortedbyp1mass):
+		if event_index < 5:
+			print("{:.4f}\t".format(event[1]),end="")
+			print("{:.6f}\t".format(event[19]),end="")
+			print("{:.6f}\t".format(event[20]),end="")
+			print("{:.2f}\t".format(event[21]),end="")
+			print("{:.2f}\t".format(event[22]),end="")
+			print("{:.2f}\t".format(event[23]),end="")
+			print(event[30])
+	print()
+
+
+
+
+print("con2 min/max s1m:\t",mins1m,"\t",maxs1m)
 
 print("\nFILE_NAME\tmh_is1\tmh_is2\tmh_dne\tmh_1&2\tmh_is3")
 for file_index,out_file_name in enumerate(file_names):
