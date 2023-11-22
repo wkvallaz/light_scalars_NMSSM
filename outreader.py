@@ -12,12 +12,16 @@ import sys
 save_dir_name = input("Where would you like to store the scrape?: ")
 start_time = time()
 DIR = "/home/wolf/NMSSMTools_6.0.0/calculations/"
+YES = ["y","ye","yea","yes"]
 try:   # IF IT DOESN'T ALREADY EXIST, CREATE A DIR WITH NAME OF FILE (minus .dat) TO SAVE IMGS INTO
 	os.mkdir("{}{}/".format(DIR, save_dir_name))
 except OSError as error:
 	print(error)
 	overwrite_req = input("Continuing will overwrite existing files, are you sure? (y/ye/yea/yes): ").lower()
-	if overwrite_req not in ["y", "ye", "yea", "yes"]: sys.exit("Execution halted.")
+	if overwrite_req not in YES: sys.exit("Execution halted.")
+SAVEPLOTS = input("Do you want to save plots?").lower() in YES
+CMYK = input("CMYK mode?") in YES
+
 file_names = ["wide3randout","wide3con1randout","wide3con3randout","wide3con2randout"]
 num_files = len(file_names)
 threshold_lighthiggs = 20 #GeV
@@ -49,14 +53,17 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 		return [r[index] for r in matrix]
 
 	#fig,ax = plt.subplots
-	plt.figure(pltctr)
-	for fx,out_file_matrix in enumerate(file_matrices): #will still need workaround for con_surv.d idea
+	plt.figure(pltctr)		#   vvv used to be file_matrices, changed to master_list for m.ex.sets
+	if CMYK: relevant_matrix = master_list
+	else: relevant_matrix = file_matrices		
+	for fx,out_file_matrix in enumerate(relevant_matrix): # file_matrices for RGB, master_list for CMYK
 		plt.scatter(Col(xind,out_file_matrix), Col(yind,out_file_matrix),
-			alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], marker='.')
+			alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], 
+			marker=',')
 	plt.title(ypar+" v "+xpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
-	plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=num_files)
+	plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=num_files, frameon=False)
 	
 	
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
@@ -65,7 +72,7 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 		plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	#  for the L&/or K axi/es
 	else: plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	# Otherwise just use DEF.
 	
-	if xmin==xmax and ymin == ymax: plt.close()				# If didn't specify to zoom
+	if xmin==xmax and ymin==ymax: plt.close()				# If didn't specify to zoom
 	else:									#  just close the plot,
 		if xmin!=xmax: plt.xlim(xmin,xmax)				# Otherwise enforce chosen
 		if ymin!=ymax: plt.ylim(ymin,ymax)				#  x/y windows
@@ -73,86 +80,121 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 		plt.close()
 	return
 
+def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  # fxn reworked
+		Size, DPI): 								#  to plot a 2D with a heat map
+	
+	DIR = "/home/wolf/NMSSMTools_6.0.0/calculations/"+save_dir_name+"/"
+	print("Plotting #{} ...".format(pltctr))
+
+	def Col(index,matrix): #array generator statement which pulls column 'index' from  ea row of 'matrix'
+		return [r[index] for r in matrix]
+
+	#fig,ax = plt.subplots
+	plt.figure(pltctr)		#   vvv used to be file_matrices, changed to master_list for m.ex.sets
+	if CMYK: relevant_matrix = master_list[-1] #the fully surviving stuff
+	else: relevant_matrix = file_matrices[-1] #just LHC CON		
+	plt.scatter(Col(xind,relevant_matrix), Col(yind,relevant_matrix),
+		c=Col(cind,relevant_matrix), cmap=cmap_n, s=Size[-1], marker=',')
+	plt.title(ypar+" v "+xpar+" c "+cpar)
+	plt.ylabel(ypar)
+	plt.xlabel(xpar)
+	plt.colorbar(label=cpar)
+	#plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=num_files, frameon=False)
+	
+	
+	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
+		if xpar in ["lambda","kappa"]: plt.xlim(0,0.8)			#  let first plot be 
+		if ypar in ["lambda","kappa"]: plt.ylim(0,0.8)			#  confined to (0,0.8)
+		plt.savefig("{}{}_v_{}_c_{}.png".format(DIR, ypar, xpar, cpar), dpi=DPI)	#  for the L&/or K axi/es
+	else: plt.savefig("{}{}_v_{}_c_{}.png".format(DIR, ypar, xpar, cpar), dpi=DPI)	# Otherwise just use DEF.
+	
+	if xmin==xmax and ymin==ymax: plt.close()				# If didn't specify to zoom
+	else:									#  just close the plot,
+		if xmin!=xmax: plt.xlim(xmin,xmax)				# Otherwise enforce chosen
+		if ymin!=ymax: plt.ylim(ymin,ymax)				#  x/y windows
+		plt.savefig("{}{}_v_{}_c_{}_zoom.png".format(DIR, ypar, xpar, cpar), dpi=DPI)
+		plt.close()
+	return
+
+
+
 
 def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A LOOP AROUND EACH PLOT SO IT CAN BE DELETED ONCE SAVEFIG'D
 	
-	Label = [x[:-7] for x in file_names]
-	#Color = ['darkgray', 'cyan', 'yellow', 'magenta']		#CYM COLORING
-	Color = ['black', 'b', 'g', 'r']			#RGB COLORING
-	Alpha = [1,1,1,1]   
-	Size = [5,5,2,.5] #CONCENTRIC SIZING
-	#Size = [0,6,5,4] #ALPHA-STACK SIZING
-	LOC = "center"
-	BBOX_TO_ANCHOR = [0.5,1.1125]
-	DPI = 480
-	#CURRENT CONSIDERATIONS ARE TO PLOT A SINGULAR TIME FROM THE UNCONSTRAINED SET, AND TAG EACH POINT WITH
-	# A CERTAIN COLOR BASED ON WHICH CONSTRAINTS IT SURVIVES	
-	#color_list = constraints_survived #alias list of colors survived	
+	if not CMYK:
+		Label = [x[:-7] for x in file_names]
+		#Color = ['darkgray', 'cyan', 'yellow', 'magenta']		#CYM COLORING
+		Color = ['black', 'b', 'g', 'r']			#RGB COLORING
+		Alpha = [1,1,1,1]   
+		Size = [2,2,.8,.1] #CONCENTRIC SIZING
+		#Size = [0,6,5,4] #ALPHA-STACK SIZING
+		LOC = "center"
+		BBOX_TO_ANCHOR = [0.5,1.1]
+		DPI = 480
+	#above was for just working with looping over file_matrices and double/trip/quad counting points on plt
+	#below, have 8 nonintersecting sets in master_list
+	else: #this is== if CMYK
+		Label = ["0:None", "1:LEP", "2:LHC", "3:Flav", "12", "13", "23", "123"]
+		Color = ["lightgray", "cyan", "magenta", "yellow", "blue", "green","red", "black"]
+		Alpha = [1,1,1,1, 1,1,1,1]
+		Size = [.05,.05,.05,.05,.05,.05,.05,.05]
+		LOC = "center"
+		BBOX_TO_ANCHOR = [0.5,1.1]
+		DPI = 480
 
-# DIMENSIONLESS
-	pltctr = 1
-	SinglePlot(pltctr, "lambda", 19, 0, 0,
-                        "tanB", 1, 0, 0,	
-			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)			
+	par_list = [ ("lambda",19), ("kappa",20), ("Alambda",21), ("mueff",23), ("Akappa",22), ("tanB",1) ] 
+	mass_list = [ ("s1mass",24), ("s2mass",26), ("s3mass",28), ("p1mass",30), ("p2mass",32) ]
+	comp_list = [ ("s1comp",25), ("s2comp",27), ("s3comp",29), ("p1comp",31), ("p2comp",33) ]
 
-	pltctr+=1
-	SinglePlot(pltctr, "kappa", 20, 0, 0,
-			"tanB", 1, 0, 0,
-			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
-	pltctr+=1
-	SinglePlot(pltctr, "lambda", 19, 0, 0,
-			"kappa", 20, 0, 0,
-			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
-# LESS-FUL
-	pltctr+=1
-	SinglePlot(pltctr, "Alambda", 21, 0, 0,
-			"tanB", 1, 0, 0,
-			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
 
-	pltctr+=1
-	SinglePlot(pltctr, "Akappa", 22, 0, 0,
-			"tanB", 1, 0, 0,
-			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
+	pltctr = 0 #ALL PARAM V PARAM PLOTS
+	for i,(xpar,xind) in enumerate(par_list):
+		for j,(ypar,yind) in enumerate(par_list):
+			if j<=i: continue
+			pltctr+=1
+			SinglePlot(pltctr, xpar, xind, 0, 0, ypar, yind, 0, 0,
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
 
-	pltctr+=1
-	SinglePlot(pltctr, "mueff", 23, 0, 0,
-			"tanB", 1, 0, 0,
-			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
-# DIMENSIONFUL
-	pltctr+=1
-	SinglePlot(pltctr, "Alambda", 21, 0, 0,
-			"Akappa", 22, 0, 0,
-			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
+	print("Beginning mass plots") # PLOT each Higgs' mass against each parameter also its singlet comp	
+	for (h_mass,hix) in mass_list:
+		print("{}:".format(h_mass))
+		for (param,pix) in par_list+comp_list:	#possibly just do ...+comp_list[fix] cuz as is, does vs others too
+			pltctr+=1
+			if "s1" in h_mass: (mmin, mmax) = (112.5,132.5)
+			elif "s2" in h_mass: (mmin, mmax) = (0, 1250)
+			elif "s3" in h_mass: (mmin, mmax) = (0, 37500)
+			elif "p1" in h_mass: (mmin, mmax) = (0, 10000)
+			elif "p2" in h_mass: (mmin, mmax) = (0, 32000)
+			SinglePlot(pltctr,h_mass, hix, mmin, mmax,
+					param, pix, 0, 0,
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)	
 
-	pltctr+=1
-	SinglePlot(pltctr, "Alambda", 21, 0, 0,
-			"mueff", 23, 0, 0,
-			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
+	print("Beginning composition plots") # PLOT each Higgs' singlet comp against each parameter
+	for (h_comp,cix) in comp_list:
+		print("{}:".format(h_comp))
+		for (param,pix) in par_list:
+			pltctr+=1
+			SinglePlot(pltctr,param,pix,0,0,
+					h_comp, cix, 0,0,
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
 
-	pltctr+=1
-	SinglePlot(pltctr, "mueff", 23, 0, 0,
-			"Akappa", 22, 0, 0,
-			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
-# END OF PARAM-PARAM PLOTS
-##	> this is just a copy-paste empty template
+	print("Beginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
+	heatmap_list = ["viridis", "plasma", "inferno", "magma", "cividis"]
+	for n,(c_par,c_ix) in enumerate(par_list[:-1]):	# other params as heatmap choice, dont color wrt tanB, obviously
+		pltctr+=1
+		HeatPlot(pltctr, c_par, c_ix, heatmap_list[n], "s1mass", 24, 112.5, 132.5,
+						    	"tanB", 1, 0, 0, Size, DPI)
+
+
+
+# <empty copy paste template > 
 #	pltctr+=1
 #	SinglePlot(pltctr, "", 0, 0, 0,
 #			"", 0, 0, 0,
 #			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
-
-	print("Beginning mass plots")	
-	for (higgs,hix) in [("s1",24),("s2",26),("s3",28),("p1",30),("p2",32)]:
-		print("{}:".format(higgs))
-		for (param,pix) in [("tanB",1), ("Alambda",21), ("Akappa",22), ("{}comp".format(higgs), hix+1)]:
-			pltctr+=1
-			if higgs == "s1": (mmin, mmax) = (112.5,132.5)
-			elif higgs == "s2": (mmin, mmax) = (0, 0)
-			elif higgs == "s3": (mmin, mmax) = (0, 37500)
-			elif higgs == "p1": (mmin, mmax) = (0, 10000)
-			elif higgs == "p2": (mmin, mmax) = (0, 35000)
-			SinglePlot(pltctr,"{}mass".format(higgs), hix, mmin, mmax,
-					param, pix, 0, 0,
-					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)	
+#	pltctr+=1
+#	HeatPlot(pltctr, cpar, cind, cmap, xpar, xind, xmin, xmax,
+#						ypar, yind, ymin, ymax, Size, DPI)
 	print("Finished plots.")
 	return
 # FOR MIN,MAX MASS FILTERED BY con2
@@ -168,15 +210,15 @@ def NearSM(mass): #temp fnc that checks if mass is near sm higgs mass
 	return (mass > 125-buffer) and (mass < 125+buffer)
 
 file_matrices = [list(),list(),list(),list()] # for storing "out_file_matrix" of each out file
-constraints_survived = list()# for each element of unconstrained set, note which points survive later constraints
 
 for file_index,out_file_name in enumerate(file_names):
 	with open("{}{}.dat".format(DIR, out_file_name)) as f:
 		f_reader = csv.reader(f, delimiter=" ")
 		out_file_matrix = file_matrices[file_index]
 		ctr_lighthiggs = 0
+		print("Reading in\t",out_file_name)
 		for indexrow,fullrow in enumerate(f_reader):
-			row = [indexrow] # trim out strange spacing
+			row = [0] # trim out strange spacing ---> this used to be the event number
 			for val in fullrow:
 				if val != "": row.append(float(val))
 			out_file_matrix.append(row)
@@ -193,6 +235,8 @@ for file_index,out_file_name in enumerate(file_names):
 		#		print("phiggs:\t", phiggs)
 		#		print()
 		
+			# CONTINUE if don't want to count NearSM higgs events nor con2lims
+			continue 
 			# tracking which events have NearSM higgs in s1, s2, both, s3, or none
 			if (NearSM(shiggs[0]) and NearSM(shiggs[2])): 
 				mh_1n2[file_index]+=1
@@ -209,47 +253,48 @@ for file_index,out_file_name in enumerate(file_names):
 					out_file_name,indexrow,shiggs[4]))
 			else: mh_dne[file_index]+=1
 
-
 			# ALSO, JUST GET THE MAX AND MIN VALUES ALLOWED BY con2 FOR SM-mh
 			if ("con2" in out_file_name):
 				(mins1m,maxs1m) = (min(mins1m,shiggs[0]),max(maxs1m,shiggs[0]))
-
 	f.close()
 
 
+if CMYK:
+	print("Splitting into mutually exclusive sets...")
 
+	def Set(List): # fn is List to set of tuples conversion
+		return set(map(tuple, List))
+	def List(Set): # fn is Set to List conversion
+		return list(map(list, Set))
+	for i,e in enumerate(file_matrices[3]):	#BE WEARY THIS IS OVERWRITING ORIGINAL INFO
+		e[-2]=0				# ON THE PROD SIGMA THRU GGF / con3 has nonzero
 
-print("So it begins...")
-then=time()
-for index,event in enumerate(file_matrices[0]):	#each event in the unconstrained set...
-	if ( index  % 1000 == 0):
-		print(index, "@",time()-then)
-	event_r = 0
-	event_g = 0
-	event_b = 0
-	if event in file_matrices[1]: event_b = 200/255
-	if event in file_matrices[2]: event_g = 200/255
-	if event in file_matrices[3]: event_r = 200/255
-	constraints_survived.append([event_r,event_g,event_b])
-print("That part took\t", time()-then)
+	bset0 = Set(file_matrices[0]) 		# base unc. set
+	bset1 = Set(file_matrices[1])		# base con1 set
+	bset3 = Set(file_matrices[2])		# base con3 set
+	bset2 = Set(file_matrices[3])		# base con2 set
+	
+	set132 = bset1 & bset3 & bset2 	#union all cons
+	set13 = (bset1 & bset3).difference(set132)	#survd 1 and 3, but not 2
+	set12 = (bset1 & bset2).difference(set132)	#  .   1 and 2, but not 3
+	set23 = (bset2 & bset3).difference(set132)	# .    2 and 3, but not 1
+	
+	set1 = bset1.difference(bset2,bset3)		#survd 1, but not 2 and 3
+	set3 = bset3.difference(bset1,bset2)		#survd 3, but not 1 and 2
+	set2 = bset2.difference(bset3,bset1)		#survd 2, but not 1 and 3
+	set0 = bset0.difference(bset1,bset3,bset2)	#survd no constraints
 
+	master_list = [ List(set0), List(set1), List(set2), List(set3),
+		List(set12),List(set13),List(set23),List(set132) ]
 
-
-
-
-# GeneratePlots() 
-
-
-
-
-
+if SAVEPLOTS: GeneratePlots() 
 
 print("Sorting by lightest SCALAR")
 for file_index,out_file_matrix in enumerate(file_matrices):
 	sortedbys1mass = sorted(out_file_matrix, key = lambda x: x[24])
 	print(file_names[file_index])
 	for event_index,event in enumerate(sortedbys1mass):
-		if event_index < 5:
+		if event_index < 3:
 			print("{:.4f}\t".format(event[1]),end="")
 			print("{:.6f}\t".format(event[19]),end="")
 			print("{:.6f}\t".format(event[20]),end="")
@@ -263,7 +308,7 @@ for file_index,out_file_matrix in enumerate(file_matrices):
 	sortedbyp1mass = sorted(out_file_matrix, key = lambda x: x[30])
 	print(file_names[file_index])
 	for event_index,event in enumerate(sortedbyp1mass):
-		if event_index < 5:
+		if event_index < 3:
 			print("{:.4f}\t".format(event[1]),end="")
 			print("{:.6f}\t".format(event[19]),end="")
 			print("{:.6f}\t".format(event[20]),end="")
@@ -272,9 +317,6 @@ for file_index,out_file_matrix in enumerate(file_matrices):
 			print("{:.2f}\t".format(event[23]),end="")
 			print(event[30])
 	print()
-
-
-
 
 print("con2 min/max s1m:\t",mins1m,"\t",maxs1m)
 
