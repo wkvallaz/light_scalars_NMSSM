@@ -27,7 +27,7 @@ num_files = len(file_names)
 threshold_lighthiggs = 20 #GeV
 
 def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  
-		Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI): 
+		Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, folder): 
 # args ^      (   int,  str,  int,  int,  int,  str,  int,  int,  int, 
 #		  arr,  arr,    arr,  arr, str,            arr, int):
 	#needs to accept a list of args:
@@ -47,6 +47,12 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	#	DPI		# Figure dpi
 	
 	DIR = "/home/wolf/NMSSMTools_6.0.0/calculations/"+save_dir_name+"/"
+	if folder != "": DIR += folder+"/"
+	try:
+		os.mkdir(DIR)
+	except OSError as error:
+		print(error)
+
 	print("Plotting #{} ...".format(pltctr))
 
 	def Col(index,matrix): #array generator statement which pulls column 'index' from  ea row of 'matrix'
@@ -81,11 +87,17 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	return
 
 def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  # fxn reworked
-		Size, DPI): 								#  to plot a 2D with a heat map
+		Size, DPI, folder): 								#  to plot a 2D with a heat map
 	
 	DIR = "/home/wolf/NMSSMTools_6.0.0/calculations/"+save_dir_name+"/"
+	if folder != "": DIR += folder+"/"
+	try:
+		os.mkdir(DIR)
+	except OSError as error:
+		print(error)
+	
 	print("Plotting #{} ...".format(pltctr))
-
+	
 	def Col(index,matrix): #array generator statement which pulls column 'index' from  ea row of 'matrix'
 		return [r[index] for r in matrix]
 
@@ -116,9 +128,6 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 		plt.close()
 	return
 
-
-
-
 def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A LOOP AROUND EACH PLOT SO IT CAN BE DELETED ONCE SAVEFIG'D
 	
 	if not CMYK:
@@ -146,14 +155,13 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 	mass_list = [ ("s1mass",24), ("s2mass",26), ("s3mass",28), ("p1mass",30), ("p2mass",32) ]
 	comp_list = [ ("s1comp",25), ("s2comp",27), ("s3comp",29), ("p1comp",31), ("p2comp",33) ]
 
-
 	pltctr = 0 #ALL PARAM V PARAM PLOTS
 	for i,(xpar,xind) in enumerate(par_list):
 		for j,(ypar,yind) in enumerate(par_list):
 			if j<=i: continue
 			pltctr+=1
 			SinglePlot(pltctr, xpar, xind, 0, 0, ypar, yind, 0, 0,
-					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter")
 
 	print("Beginning mass plots") # PLOT each Higgs' mass against each parameter also its singlet comp	
 	for (h_mass,hix) in mass_list:
@@ -167,7 +175,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 			elif "p2" in h_mass: (mmin, mmax) = (0, 32000)
 			SinglePlot(pltctr,h_mass, hix, mmin, mmax,
 					param, pix, 0, 0,
-					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)	
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass")	
 
 	print("Beginning composition plots") # PLOT each Higgs' singlet comp against each parameter
 	for (h_comp,cix) in comp_list:
@@ -176,16 +184,14 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 			pltctr+=1
 			SinglePlot(pltctr,param,pix,0,0,
 					h_comp, cix, 0,0,
-					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp")
 
 	print("Beginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
 	heatmap_list = ["viridis", "plasma", "inferno", "magma", "cividis"]
 	for n,(c_par,c_ix) in enumerate(par_list[:-1]):	# other params as heatmap choice, dont color wrt tanB, obviously
 		pltctr+=1
 		HeatPlot(pltctr, c_par, c_ix, heatmap_list[n], "s1mass", 24, 112.5, 132.5,
-						    	"tanB", 1, 0, 0, Size, DPI)
-
-
+						    	"tanB", 1, 0, 0, Size, DPI, "Heatmap")
 
 # <empty copy paste template > 
 #	pltctr+=1
