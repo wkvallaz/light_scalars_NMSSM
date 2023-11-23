@@ -178,9 +178,9 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
 
 	print("Beginning mass plots") # PLOT each Higgs' mass against each parameter also its singlet comp	
-	for (h_mass,hix) in mass_list:
+	for h,(h_mass,hix) in enumerate(mass_list):
 		print("{}:".format(h_mass))
-		for (param,pix) in par_list+comp_list:	#possibly just do ...+comp_list[fix] cuz as is, does vs others too
+		for (param,pix) in par_list+comp_list: # c_l[h] does higgs vs own comp, just c_l =vs ea comps
 			pltctr+=1
 			if "s1" in h_mass: (mmin, mmax) = (112.5,132.5)
 			elif "s2" in h_mass: (mmin, mmax) = (0, 1250)
@@ -201,11 +201,13 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp", h_comp)
 
 	print("Beginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
-	heatmap_list = ["viridis", "plasma", "inferno", "magma", "cividis"]
+	heatmap_list = ["viridis", "plasma", "inferno", "magma", "cividis", "brg", "rainbow","jet","turbo"]
 	for n,(c_par,c_ix) in enumerate(par_list[:-1]):	# other params as heatmap choice, dont color wrt tanB, obviously
 		pltctr+=1
 		HeatPlot(pltctr, c_par, c_ix, heatmap_list[n], "s1mass", 24, 112.5, 132.5,
 						    	"tanB", 1, 0, 0, Size, DPI, "Heatmap","s1mass")
+
+
 
 # <empty copy paste template > 
 #	pltctr+=1
