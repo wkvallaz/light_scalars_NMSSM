@@ -27,7 +27,7 @@ num_files = len(file_names)
 threshold_lighthiggs = 20 #GeV
 
 def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  
-		Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, folder): 
+		Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, folder, subfolder): 
 # args ^      (   int,  str,  int,  int,  int,  str,  int,  int,  int, 
 #		  arr,  arr,    arr,  arr, str,            arr, int):
 	#needs to accept a list of args:
@@ -51,7 +51,14 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	try:
 		os.mkdir(DIR)
 	except OSError as error:
-		print(error)
+		pass
+		#print(error)
+	if subfolder != "":
+		DIR += subfolder+"/"
+		try:
+			os.mkdir(DIR)
+		except OSError as error:
+			pass
 
 	print("Plotting #{} ...".format(pltctr))
 
@@ -65,7 +72,7 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	for fx,out_file_matrix in enumerate(relevant_matrix): # file_matrices for RGB, master_list for CMYK
 		plt.scatter(Col(xind,out_file_matrix), Col(yind,out_file_matrix),
 			alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], 
-			marker=',')
+			marker=',', linewidths=0)
 	plt.title(ypar+" v "+xpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
@@ -87,14 +94,21 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	return
 
 def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  # fxn reworked
-		Size, DPI, folder): 								#  to plot a 2D with a heat map
+		Size, DPI, folder, subfolder): 								#  to plot a 2D with a heat map
 	
 	DIR = "/home/wolf/NMSSMTools_6.0.0/calculations/"+save_dir_name+"/"
 	if folder != "": DIR += folder+"/"
 	try:
 		os.mkdir(DIR)
 	except OSError as error:
-		print(error)
+		pass
+		#print(error)
+	if subfolder != "":
+		DIR += subfolder+"/"
+		try:
+			os.mkdir(DIR)
+		except OSError as error:
+			pass
 	
 	print("Plotting #{} ...".format(pltctr))
 	
@@ -106,7 +120,7 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	if CMYK: relevant_matrix = master_list[-1] #the fully surviving stuff
 	else: relevant_matrix = file_matrices[-1] #just LHC CON		
 	plt.scatter(Col(xind,relevant_matrix), Col(yind,relevant_matrix),
-		c=Col(cind,relevant_matrix), cmap=cmap_n, s=Size[-1], marker=',')
+		c=Col(cind,relevant_matrix), cmap=cmap_n, s=Size[-1], marker=',', linewidths=0)
 	plt.title(ypar+" v "+xpar+" c "+cpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
@@ -146,7 +160,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 		Label = ["0:None", "1:LEP", "2:LHC", "3:Flav", "12", "13", "23", "123"]
 		Color = ["lightgray", "cyan", "magenta", "yellow", "blue", "green","red", "black"]
 		Alpha = [1,1,1,1, 1,1,1,1]
-		Size = [.05,.05,.05,.05,.05,.05,.05,.05]
+		Size= [.25,.25,.25,.25,.25,.25,.25,.25]
 		LOC = "center"
 		BBOX_TO_ANCHOR = [0.5,1.1]
 		DPI = 480
@@ -161,7 +175,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 			if j<=i: continue
 			pltctr+=1
 			SinglePlot(pltctr, xpar, xind, 0, 0, ypar, yind, 0, 0,
-					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter")
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
 
 	print("Beginning mass plots") # PLOT each Higgs' mass against each parameter also its singlet comp	
 	for (h_mass,hix) in mass_list:
@@ -175,7 +189,7 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 			elif "p2" in h_mass: (mmin, mmax) = (0, 32000)
 			SinglePlot(pltctr,h_mass, hix, mmin, mmax,
 					param, pix, 0, 0,
-					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass")	
+				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)	
 
 	print("Beginning composition plots") # PLOT each Higgs' singlet comp against each parameter
 	for (h_comp,cix) in comp_list:
@@ -184,14 +198,14 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 			pltctr+=1
 			SinglePlot(pltctr,param,pix,0,0,
 					h_comp, cix, 0,0,
-					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp")
+				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp", h_comp)
 
 	print("Beginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
 	heatmap_list = ["viridis", "plasma", "inferno", "magma", "cividis"]
 	for n,(c_par,c_ix) in enumerate(par_list[:-1]):	# other params as heatmap choice, dont color wrt tanB, obviously
 		pltctr+=1
 		HeatPlot(pltctr, c_par, c_ix, heatmap_list[n], "s1mass", 24, 112.5, 132.5,
-						    	"tanB", 1, 0, 0, Size, DPI, "Heatmap")
+						    	"tanB", 1, 0, 0, Size, DPI, "Heatmap","s1mass")
 
 # <empty copy paste template > 
 #	pltctr+=1
