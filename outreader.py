@@ -22,7 +22,7 @@ except OSError as error:
 SAVEPLOTS = input("Do you want to save plots?").lower() in YES
 CMYK = input("CMYK mode?") in YES
 
-file_names = ["wide3randout","wide3con1randout","wide3con3randout","wide3con2randout"]
+file_names = ["spec2randout","spec2con1randout","spec2con3randout","spec2con2randout"]
 num_files = len(file_names)
 threshold_lighthiggs = 20 #GeV
 
@@ -70,18 +70,28 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	if CMYK: relevant_matrix = master_list
 	else: relevant_matrix = file_matrices		
 	for fx,out_file_matrix in enumerate(relevant_matrix): # file_matrices for RGB, master_list for CMYK
-		plt.scatter(Col(xind,out_file_matrix), Col(yind,out_file_matrix),
-			alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], 
-			marker=',', linewidths=0)
+		if ypar == "rt n 3 k Ak mueff div lambda":
+			if fx==0:
+				plt.plot([0, 35000], [0, 35000], color="gray", alpha=0.5, 
+					linestyle="--", linewidth=0.15, label = "y = x")
+			fn_arr = [ (-3*r[20]*r[22]*r[23]/r[19])**.5 for r in out_file_matrix]
+			plt.scatter(Col(xind,out_file_matrix), fn_arr,
+				alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], 
+				marker=',', linewidths=0)
+			
+		else:
+			plt.scatter(Col(xind,out_file_matrix), Col(yind,out_file_matrix),
+				alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], 
+				marker=',', linewidths=0)
 	plt.title(ypar+" v "+xpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
-	plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=num_files, frameon=False)
+	plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=num_files+1, frameon=False)
 	
 	
-	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
-		if xpar in ["lambda","kappa"]: plt.xlim(0,0.8)			#  let first plot be 
-		if ypar in ["lambda","kappa"]: plt.ylim(0,0.8)			#  confined to (0,0.8)
+	if xpar in ["'lambda","kappa"] or ypar in ["'lambda","kappa"]:		# If L or K is involved,
+		if xpar in ["'lambda","kappa"]: plt.xlim(0,0.1)			#  let first plot be 
+		if ypar in ["'lambda","kappa"]: plt.ylim(0,0.1)			#  confined to (0,0.8)
 		plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	#  for the L&/or K axi/es
 	else: plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	# Otherwise just use DEF.
 	
@@ -128,9 +138,9 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	#plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=num_files, frameon=False)
 	
 	
-	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
-		if xpar in ["lambda","kappa"]: plt.xlim(0,0.8)			#  let first plot be 
-		if ypar in ["lambda","kappa"]: plt.ylim(0,0.8)			#  confined to (0,0.8)
+	if xpar in ["'lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
+		if xpar in ["'lambda","kappa"]: plt.xlim(0,0.1)			#  let first plot be 
+		if ypar in ["'lambda","kappa"]: plt.ylim(0,0.1)			#  confined to (0,0.8)
 		plt.savefig("{}{}_v_{}_c_{}.png".format(DIR, ypar, xpar, cpar), dpi=DPI)	#  for the L&/or K axi/es
 	else: plt.savefig("{}{}_v_{}_c_{}.png".format(DIR, ypar, xpar, cpar), dpi=DPI)	# Otherwise just use DEF.
 	
@@ -201,11 +211,23 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp", h_comp)
 
 	print("Beginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
-	heatmap_list = ["viridis", "plasma", "inferno", "magma", "cividis", "brg", "rainbow","jet","turbo"]
-	for n,(c_par,c_ix) in enumerate(par_list[:-1]):	# other params as heatmap choice, dont color wrt tanB, obviously
-		pltctr+=1
-		HeatPlot(pltctr, c_par, c_ix, heatmap_list[n], "s1mass", 24, 112.5, 132.5,
+	heatmap_list = [#"viridis", "plasma", 
+			"inferno", "magma", #"cividis",
+			"brg", "rainbow","jet","turbo"]
+	for n,(c_par,c_ix) in enumerate(par_list[:-1]):	# params as heatmap choice
+		if "c_par" != "tanB": 	# heatmaps for s1mass @ lowish tanB region, LHC blob (exclude tanB)
+			pltctr+=1
+			HeatPlot(pltctr, c_par, c_ix, heatmap_list[n], "s1mass", 24, 112.5, 132.5,
 						    	"tanB", 1, 0, 0, Size, DPI, "Heatmap","s1mass")
+		pltctr+=1		# s1comp v s1mass, what drives survival
+		HeatPlot(pltctr, c_par, c_ix, heatmap_list[n], "s1mass", 24, 0, 50,
+							"s1comp", 25, 0, 0, Size, DPI, "Heatmap", "s1mass")	
+
+	print("Comparing LO p1mamss")
+	pltctr+=1
+	SinglePlot(pltctr, "p1mass", 30, 0,0,
+			"rt n 3 k Ak mueff div lambda", 0, 0,0,
+		Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
 
 
 
