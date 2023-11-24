@@ -152,8 +152,8 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 		plt.close()
 	return
 
-def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A LOOP AROUND EACH PLOT SO IT CAN BE DELETED ONCE SAVEFIG'D
-	
+def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
+	# w2: trigger each plot type w separate flag
 	if not CMYK:
 		Label = [x[:-7] for x in file_names]
 		#Color = ['darkgray', 'cyan', 'yellow', 'magenta']		#CYM COLORING
@@ -174,71 +174,72 @@ def GeneratePlots():#(out_file_name, file_index, SAVEFIGS):#####NEXT STEP, PUT A
 		LOC = "center"
 		BBOX_TO_ANCHOR = [0.5,1.1]
 		DPI = 480
-
+	pltctr = 0
 	par_list = [ ("lambda",19), ("kappa",20), ("Alambda",21), ("mueff",23), ("Akappa",22), ("tanB",1) ] 
 	mass_list = [ ("s1mass",24), ("s2mass",26), ("s3mass",28), ("p1mass",30), ("p2mass",32) ]
 	comp_list = [ ("s1comp",25), ("s2comp",27), ("s3comp",29), ("p1comp",31), ("p2comp",33) ]
-
-	pltctr = 0 #ALL PARAM V PARAM PLOTS
-	for i,(xpar,xind) in enumerate(par_list):
-		for j,(ypar,yind) in enumerate(par_list):
-			if j<=i: continue
-			pltctr+=1
-			SinglePlot(pltctr, xpar, xind, 0, 0, ypar, yind, 0, 0,
-					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
-
-	print("Beginning mass plots") # PLOT each Higgs' mass against each parameter also its singlet comp	
-	for h,(h_mass,hix) in enumerate(mass_list):
-		print("{}:".format(h_mass))
-		for (param,pix) in par_list+comp_list: # c_l[h] does higgs vs own comp, just c_l =vs ea comps
-			pltctr+=1
-			if "s1" in h_mass: (mmin, mmax) = (112.5,132.5)
-			elif "s2" in h_mass: (mmin, mmax) = (0, 1250)
-			elif "s3" in h_mass: (mmin, mmax) = (0, 37500)
-			elif "p1" in h_mass: (mmin, mmax) = (0, 10000)
-			elif "p2" in h_mass: (mmin, mmax) = (0, 32000)
-			SinglePlot(pltctr,h_mass, hix, mmin, mmax,
-					param, pix, 0, 0,
-				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)	
-
-	print("Beginning composition plots") # PLOT each Higgs' singlet comp against each parameter
-	for (h_comp,cix) in comp_list:
-		print("{}:".format(h_comp))
-		for (param,pix) in par_list:
-			pltctr+=1
-			SinglePlot(pltctr,param,pix,0,0,
-					h_comp, cix, 0,0,
-				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp", h_comp)
-
-	print("Beginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
 	heatmap_list = [#"viridis", "plasma", 
 			"inferno", "magma", #"cividis",
-			"brg", "rainbow","jet","turbo"]
-	for n,(c_par,c_ix) in enumerate(par_list[:-1]):	# params as heatmap choice
-		if "c_par" != "tanB": 	# heatmaps for s1mass @ lowish tanB region, LHC blob (exclude tanB)
-			pltctr+=1
-			HeatPlot(pltctr, c_par, c_ix, heatmap_list[n], "s1mass", 24, 112.5, 132.5,
-						    	"tanB", 1, 0, 0, Size, DPI, "Heatmap","s1mass")
-		pltctr+=1		# s1comp v s1mass, what drives survival
-		HeatPlot(pltctr, c_par, c_ix, heatmap_list[n], "s1mass", 24, 0, 50,
-							"s1comp", 25, 0, 0, Size, DPI, "Heatmap", "s1mass")	
+			"brg", "rainbow","jet","turbo"] # viridis, plasma, cividis read poorly
 
-	print("Comparing LO p1mamss")
-	pltctr+=1
-	SinglePlot(pltctr, "p1mass", 30, 0,0,
-			"rt n 3 k Ak mueff div lambda", 0, 0,0,
-		Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
+	if DO_PARAM:
+		print("Beginning parameter plots")
+		for i,(xpar,xind) in enumerate(par_list): # ALL PARAM VS
+			for j,(ypar,yind) in enumerate(par_list): #PARAM
+				if j<=i: continue
+				pltctr+=1
+				SinglePlot(pltctr, xpar, xind, 0, 0, ypar, yind, 0, 0,
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
+	if DO_MASS:
+		print("Beginning mass plots") # PLOT each Higgs' mass against each parameter also its singlet comp
+		for h,(h_mass,hix) in enumerate(mass_list):
+			print("{}:".format(h_mass))
+			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp, jus c_l v all comps
+				pltctr+=1
+				if "s1" in h_mass: (mmin, mmax) = (112.5,132.5)#LHC window
+				elif "s2" in h_mass: (mmin, mmax) = (0, 800) #wide 1250, spec2 800
+				elif "s3" in h_mass: (mmin, mmax) = (0, 7500)#wide 37.5k, spec2 7.5k
+				elif "p1" in h_mass: (mmin, mmax) = (0, 2000) #wide 10k, spec2 2k
+				elif "p2" in h_mass: (mmin, mmax) = (0, 7500)#wide 32k, spec2 7500
+				SinglePlot(pltctr,h_mass, hix, mmin, mmax,
+						param, pix, 0, 0,
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)	
+	if DO_COMP:
+		print("Beginning composition plots") # PLOT each Higgs' singlet comp against each parameter
+		for (h_comp,cix) in comp_list:
+			print("{}:".format(h_comp))
+			for (param,pix) in par_list:
+				pltctr+=1
+				SinglePlot(pltctr,param,pix,0,0,
+						h_comp, cix, 0,0,
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp", h_comp)
 
-
+	if DO_HEAT:
+		print("Beginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
+		for n,(c_par,c_ix) in enumerate(par_list+comp_list):# params as heatmap choice
+			if c_par != "tanB": 	# heatmaps for s1mass @ lowish tanB region, LHC blob (exclude tanB)
+				pltctr+=1
+				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],"s1mass", 24, 112.5, 132.5,
+						"tanB", 1, 0, 0, Size, DPI, "Heatmap","s1mass")
+			if c_par != "s1comp":
+				pltctr+=1	# s1comp v s1mass, what drives survival (exclude s1comp)
+				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],"s1mass", 24, 0, 50,
+						"s1comp", 25, .96, 1, Size, DPI, "Heatmap", "s1mass")	
+	if DO_MISC:
+		print("Comparing LO p1mamss")
+		pltctr+=1
+		SinglePlot(pltctr, "p1mass", 30, 0,0,
+				"rt n 3 k Ak mueff div lambda", 0, 0,0,
+			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
 
 # <empty copy paste template > 
 #	pltctr+=1
 #	SinglePlot(pltctr, "", 0, 0, 0,
 #			"", 0, 0, 0,
-#			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI)
+#			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "", "")
 #	pltctr+=1
 #	HeatPlot(pltctr, cpar, cind, cmap, xpar, xind, xmin, xmax,
-#						ypar, yind, ymin, ymax, Size, DPI)
+#						ypar, yind, ymin, ymax, Size, DPI, "", "")
 	print("Finished plots.")
 	return
 # FOR MIN,MAX MASS FILTERED BY con2
@@ -331,7 +332,8 @@ if CMYK:
 	master_list = [ List(set0), List(set1), List(set2), List(set3),
 		List(set12),List(set13),List(set23),List(set132) ]
 
-if SAVEPLOTS: GeneratePlots() 
+# args (DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
+if SAVEPLOTS: GeneratePlots(DO_PARAM=False, DO_MASS=False, DO_COMP=True, DO_HEAT=True, DO_MISC=True)
 
 print("Sorting by lightest SCALAR")
 for file_index,out_file_matrix in enumerate(file_matrices):
