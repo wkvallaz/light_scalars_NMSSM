@@ -333,9 +333,10 @@ if CMYK:
 		List(set12),List(set13),List(set23),List(set132) ]
 
 # args (DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
-if SAVEPLOTS: GeneratePlots(DO_PARAM=False, DO_MASS=False, DO_COMP=True, DO_HEAT=True, DO_MISC=True)
+if SAVEPLOTS: GeneratePlots(DO_PARAM=False, DO_MASS=False, DO_COMP=False, DO_HEAT=False, DO_MISC=False)
 
 print("Sorting by lightest SCALAR")
+print("tanB\tlambda\t\tkappa\t\tAlambda\tAkappa\t\tmueff\tMass")
 for file_index,out_file_matrix in enumerate(file_matrices):
 	sortedbys1mass = sorted(out_file_matrix, key = lambda x: x[24])
 	print(file_names[file_index])
@@ -345,11 +346,12 @@ for file_index,out_file_matrix in enumerate(file_matrices):
 			print("{:.6f}\t".format(event[19]),end="")
 			print("{:.6f}\t".format(event[20]),end="")
 			print("{:.2f}\t".format(event[21]),end="")
-			print("{:.2f}\t".format(event[22]),end="")
+			print("{:.7f}\t".format(event[22]),end="")
 			print("{:.2f}\t".format(event[23]),end="")
 			print(event[24])
 	print()
 print("\nSorting by lightest PSEUDOSCALAR")
+print("tanB\tlambda\t\tkappa\t\tAlambda\tAkappa\t\tmueff\tMass")
 for file_index,out_file_matrix in enumerate(file_matrices):
 	sortedbyp1mass = sorted(out_file_matrix, key = lambda x: x[30])
 	print(file_names[file_index])
@@ -359,7 +361,7 @@ for file_index,out_file_matrix in enumerate(file_matrices):
 			print("{:.6f}\t".format(event[19]),end="")
 			print("{:.6f}\t".format(event[20]),end="")
 			print("{:.2f}\t".format(event[21]),end="")
-			print("{:.2f}\t".format(event[22]),end="")
+			print("{:.7f}\t".format(event[22]),end="")
 			print("{:.2f}\t".format(event[23]),end="")
 			print(event[30])
 	print()
