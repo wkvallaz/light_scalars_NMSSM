@@ -7,7 +7,11 @@ import csv
 import os
 import sys
 
-############ EFFORTS TO COMBINE THE CONSTRAINED AND UNCONSTRAINED ALL ONTO A SINGLE PLOT
+DO_PARAM = True
+DO_MASS = True
+DO_COMP = True
+DO_HEAT = True 
+DO_MISC = True
  
 save_dir_name = input("Where would you like to store the scrape?: ")
 start_time = time()
@@ -22,14 +26,12 @@ except OSError as error:
 SAVEPLOTS = input("Do you want to save plots?").lower() in YES
 CMYK = input("CMYK mode?") in YES
 
-file_names = ["spec2randout","spec2con1randout","spec2con3randout","spec2con2randout"]
+file_names = ["wideprandout","widepcon1randout","widepcon3randout","widepcon2randout"]
 num_files = len(file_names)
 threshold_lighthiggs = 20 #GeV
 
 def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  
 		Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, folder, subfolder): 
-# args ^      (   int,  str,  int,  int,  int,  str,  int,  int,  int, 
-#		  arr,  arr,    arr,  arr, str,            arr, int):
 	#needs to accept a list of args:
 	#	pltctr		# plot count for figuure - considering subplots/axs?
 	#	xmin, xmax 	# if xmin!=xmax do zoomed plot also
@@ -72,8 +74,8 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	for fx,out_file_matrix in enumerate(relevant_matrix): # file_matrices for RGB, master_list for CMYK
 		if ypar == "rt n 3 k Ak mueff div lambda":
 			if fx==0:
-				plt.plot([0, 35000], [0, 35000], color="gray", alpha=0.5, 
-					linestyle="--", linewidth=0.15, label = "y = x")
+				plt.plot([0, max(Col(xind,file_matrices[0]))], [0, max(Col(xind,file_matrices[0]))],
+					color="gray", alpha=0.5, linestyle="--", linewidth=0.15, label = "y = x")
 			fn_arr = [ (-3*r[20]*r[22]*r[23]/r[19])**.5 for r in out_file_matrix]
 			plt.scatter(Col(xind,out_file_matrix), fn_arr,
 				alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], 
@@ -89,9 +91,9 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=num_files+1, frameon=False)
 	
 	
-	if xpar in ["'lambda","kappa"] or ypar in ["'lambda","kappa"]:		# If L or K is involved,
-		if xpar in ["'lambda","kappa"]: plt.xlim(0,0.1)			#  let first plot be 
-		if ypar in ["'lambda","kappa"]: plt.ylim(0,0.1)			#  confined to (0,0.8)
+	if xpar in ["lambda","kappa"] or ypar in ["'lambda","kappa"]:		# If L or K is involved,
+		if xpar in ["lambda","kappa"]: plt.xlim(0,0.8)			#  let first plot be 
+		if ypar in ["lambda","kappa"]: plt.ylim(0,0.8)			#  confined to (0,0.8)
 		plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	#  for the L&/or K axi/es
 	else: plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	# Otherwise just use DEF.
 	
@@ -103,8 +105,8 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 		plt.close()
 	return
 
-def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  # fxn reworked
-		Size, DPI, folder, subfolder): 								#  to plot a 2D with a heat map
+def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  # fxn reworked ..
+		Size, DPI, folder, subfolder): 					#  .. to plot a 2D with a heat map
 	
 	DIR = "/home/wolf/NMSSMTools_6.0.0/calculations/"+save_dir_name+"/"
 	if folder != "": DIR += folder+"/"
@@ -138,9 +140,9 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	#plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=num_files, frameon=False)
 	
 	
-	if xpar in ["'lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
-		if xpar in ["'lambda","kappa"]: plt.xlim(0,0.1)			#  let first plot be 
-		if ypar in ["'lambda","kappa"]: plt.ylim(0,0.1)			#  confined to (0,0.8)
+	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
+		if xpar in ["lambda","kappa"]: plt.xlim(0,0.8)			#  let first plot be 
+		if ypar in ["lambda","kappa"]: plt.ylim(0,0.8)			#  confined to (0,0.8)
 		plt.savefig("{}{}_v_{}_c_{}.png".format(DIR, ypar, xpar, cpar), dpi=DPI)	#  for the L&/or K axi/es
 	else: plt.savefig("{}{}_v_{}_c_{}.png".format(DIR, ypar, xpar, cpar), dpi=DPI)	# Otherwise just use DEF.
 	
@@ -197,10 +199,10 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp, jus c_l v all comps
 				pltctr+=1
 				if "s1" in h_mass: (mmin, mmax) = (112.5,132.5)#LHC window
-				elif "s2" in h_mass: (mmin, mmax) = (0, 800) #wide 1250, spec2 800
-				elif "s3" in h_mass: (mmin, mmax) = (0, 7500)#wide 37.5k, spec2 7.5k
-				elif "p1" in h_mass: (mmin, mmax) = (0, 2000) #wide 10k, spec2 2k
-				elif "p2" in h_mass: (mmin, mmax) = (0, 7500)#wide 32k, spec2 7500
+				elif "s2" in h_mass: (mmin, mmax) = (0, 1250) #wide 1250, spec2 800
+				elif "s3" in h_mass: (mmin, mmax) = (0, 37500)#wide 37.5k, spec2 7.5k
+				elif "p1" in h_mass: (mmin, mmax) = (0, 10000) #wide 10k, spec2 2k
+				elif "p2" in h_mass: (mmin, mmax) = (0, 32000)#wide 32k, spec2 7500
 				SinglePlot(pltctr,h_mass, hix, mmin, mmax,
 						param, pix, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)	
@@ -333,7 +335,7 @@ if CMYK:
 		List(set12),List(set13),List(set23),List(set132) ]
 
 # args (DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
-if SAVEPLOTS: GeneratePlots(DO_PARAM=False, DO_MASS=False, DO_COMP=False, DO_HEAT=False, DO_MISC=False)
+if SAVEPLOTS: GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 
 print("Sorting by lightest SCALAR")
 print("tanB\tlambda\t\tkappa\t\tAlambda\tAkappa\t\tmueff\tMass")
