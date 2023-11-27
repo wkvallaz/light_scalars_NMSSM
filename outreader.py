@@ -7,10 +7,10 @@ import csv
 import os
 import sys
 
-DO_PARAM = True
-DO_MASS = True
-DO_COMP = True
-DO_HEAT = True 
+DO_PARAM = 0
+DO_MASS = 0
+DO_COMP = 0
+DO_HEAT = 0 
 DO_MISC = True
  
 save_dir_name = input("Where would you like to store the scrape?: ")
@@ -234,6 +234,11 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 				"rt n 3 k Ak mueff div lambda", 0, 0,0,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
 
+		print("s2mass v s1mass")
+		pltctr+=1
+		SinglePlot(pltctr, "s1mass", 24, 100, 130,
+				"s2mass", 26, 0,0,
+			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass","")
 # <empty copy paste template > 
 #	pltctr+=1
 #	SinglePlot(pltctr, "", 0, 0, 0,
