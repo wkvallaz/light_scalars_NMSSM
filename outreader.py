@@ -7,11 +7,12 @@ import csv
 import os
 import sys
 
-DO_PARAM = 0
-DO_MASS = 0
-DO_COMP = 0
-DO_HEAT = 0 
-DO_MISC = True
+DO_PARAM = 1
+DO_MASS = 1
+DO_COMP = 1
+DO_HEAT = 1 
+DO_MISC = 1
+file_prefix = "widep"
  
 save_dir_name = input("Where would you like to store the scrape?: ")
 start_time = time()
@@ -26,7 +27,8 @@ except OSError as error:
 SAVEPLOTS = input("Do you want to save plots?").lower() in YES
 CMYK = input("CMYK mode?") in YES
 
-file_names = ["wideprandout","widepcon1randout","widepcon3randout","widepcon2randout"]
+file_names = [	"{}randout".format(file_prefix),"{}con1randout".format(file_prefix),
+		"{}con3randout".format(file_prefix),"{}con2randout".format(file_prefix) ]
 num_files = len(file_names)
 threshold_lighthiggs = 20 #GeV
 
@@ -91,7 +93,7 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=num_files+1, frameon=False)
 	
 	
-	if xpar in ["lambda","kappa"] or ypar in ["'lambda","kappa"]:		# If L or K is involved,
+	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
 		if xpar in ["lambda","kappa"]: plt.xlim(0,0.8)			#  let first plot be 
 		if ypar in ["lambda","kappa"]: plt.ylim(0,0.8)			#  confined to (0,0.8)
 		plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	#  for the L&/or K axi/es
@@ -193,16 +195,16 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 				SinglePlot(pltctr, xpar, xind, 0, 0, ypar, yind, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
 	if DO_MASS:
-		print("Beginning mass plots") # PLOT each Higgs' mass against each parameter also its singlet comp
+		print("Beginning mass plots") # PLOT ea Higgs' mass against each parameter also its singlet comp
 		for h,(h_mass,hix) in enumerate(mass_list):
 			print("{}:".format(h_mass))
 			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp, jus c_l v all comps
 				pltctr+=1
-				if "s1" in h_mass: (mmin, mmax) = (112.5,132.5)#LHC window
-				elif "s2" in h_mass: (mmin, mmax) = (0, 1250) #wide 1250, spec2 800
-				elif "s3" in h_mass: (mmin, mmax) = (0, 37500)#wide 37.5k, spec2 7.5k
-				elif "p1" in h_mass: (mmin, mmax) = (0, 10000) #wide 10k, spec2 2k
-				elif "p2" in h_mass: (mmin, mmax) = (0, 32000)#wide 32k, spec2 7500
+				if "s1" in h_mass: (mmin, mmax) = (110.0, 140.0)#LHC window
+				elif "s2" in h_mass: (mmin, mmax) = (110, 140) #wide 1250, spec2 800
+				elif "s3" in h_mass: (mmin, mmax) = (0, 7500)#wide 37.5k, spec2 7.5k
+				elif "p1" in h_mass: (mmin, mmax) = (0, 2000) #wide 10k, spec2 2k
+				elif "p2" in h_mass: (mmin, mmax) = (0, 7500)#wide 32k, spec2 7500
 				SinglePlot(pltctr,h_mass, hix, mmin, mmax,
 						param, pix, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)	
@@ -219,13 +221,15 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 	if DO_HEAT:
 		print("Beginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
 		for n,(c_par,c_ix) in enumerate(par_list+comp_list):# params as heatmap choice
-			if c_par != "tanB": 	# heatmaps for s1mass @ lowish tanB region, LHC blob (exclude tanB)
+			if c_par != "tanB": 	# heatmaps for s1mass @ lo tanB region, LHC blob (exclude tanB)
 				pltctr+=1
-				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],"s1mass", 24, 112.5, 132.5,
+				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
+						"s1mass", 24, 110, 140,
 						"tanB", 1, 0, 0, Size, DPI, "Heatmap","s1mass")
 			if c_par != "s1comp":
 				pltctr+=1	# s1comp v s1mass, what drives survival (exclude s1comp)
-				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],"s1mass", 24, 0, 50,
+				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
+						"s1mass", 24, 0, 50,
 						"s1comp", 25, .96, 1, Size, DPI, "Heatmap", "s1mass")	
 	if DO_MISC:
 		print("Comparing LO p1mamss")
