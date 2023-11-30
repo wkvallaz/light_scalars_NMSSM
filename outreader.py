@@ -12,9 +12,15 @@ DO_MASS = 1
 DO_COMP = 1
 DO_HEAT = 1 
 DO_MISC = 1
-file_prefix = "widep"
- 
-save_dir_name = input("Where would you like to store the scrape?: ")
+file_prefix = "wH"# widep
+#file_tags = ["","con1","con3","con2"]
+file_tags = ['THY','LEP','LHC','BKF']
+file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
+
+def Time():
+	return time() - start_time
+
+save_dir_name = input("Where would you like to store the scrape?: ")			##########
 start_time = time()
 DIR = "/home/wolf/NMSSMTools_6.0.0/calculations/"
 YES = ["y","ye","yea","yes"]
@@ -23,12 +29,10 @@ try:   # IF IT DOESN'T ALREADY EXIST, CREATE A DIR WITH NAME OF FILE (minus .dat
 except OSError as error:
 	print(error)
 	overwrite_req = input("Continuing will overwrite existing files, are you sure? (y/ye/yea/yes): ").lower()
-	if overwrite_req not in YES: sys.exit("Execution halted.")
+	if overwrite_req not in YES: sys.exit("Execution halted.")			##########
 SAVEPLOTS = input("Do you want to save plots?").lower() in YES
-CMYK = input("CMYK mode?") in YES
+CMYK = input("CMYK mode?") in YES							##########
 
-file_names = [	"{}randout".format(file_prefix),"{}con1randout".format(file_prefix),
-		"{}con3randout".format(file_prefix),"{}con2randout".format(file_prefix) ]
 num_files = len(file_names)
 threshold_lighthiggs = 20 #GeV
 
@@ -90,8 +94,8 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	plt.title(ypar+" v "+xpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
-	plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=num_files+1, frameon=False)
-	
+	leg = plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=8, columnspacing=0.7, frameon=False)
+	for x in range(len(Label)): leg.legend_handles[x]._sizes = [10]
 	
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
 		if xpar in ["lambda","kappa"]: plt.xlim(0,0.8)			#  let first plot be 
@@ -105,6 +109,7 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 		if ymin!=ymax: plt.ylim(ymin,ymax)				#  x/y windows
 		plt.savefig("{}{}_v_{}_zoom.png".format(DIR, ypar, xpar), dpi=DPI)
 		plt.close()
+	print(Time(),end="\t")
 	return
 
 def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  # fxn reworked ..
@@ -154,29 +159,39 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 		if ymin!=ymax: plt.ylim(ymin,ymax)				#  x/y windows
 		plt.savefig("{}{}_v_{}_c_{}_zoom.png".format(DIR, ypar, xpar, cpar), dpi=DPI)
 		plt.close()
+	print(Time(),end="\t")
 	return
 
 def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 	# w2: trigger each plot type w separate flag
 	if not CMYK:
-		Label = [x[:-7] for x in file_names]
+		Label = [file_prefix + x for x in file_names]
 		#Color = ['darkgray', 'cyan', 'yellow', 'magenta']		#CYM COLORING
 		Color = ['black', 'b', 'g', 'r']			#RGB COLORING
 		Alpha = [1,1,1,1]   
-		Size = [2,2,.8,.1] #CONCENTRIC SIZING
+		Size = [5,2,.8,.1] #CONCENTRIC SIZING
 		#Size = [0,6,5,4] #ALPHA-STACK SIZING
 		LOC = "center"
-		BBOX_TO_ANCHOR = [0.5,1.1]
+		BBOX_TO_ANCHOR = [0.475,1.105]
 		DPI = 480
 	#above was for just working with looping over file_matrices and double/trip/quad counting points on plt
 	#below, have 8 nonintersecting sets in master_list
 	else: #this is== if CMYK
-		Label = ["0:None", "1:LEP", "2:LHC", "3:Flav", "12", "13", "23", "123"]
-		Color = ["lightgray", "cyan", "magenta", "yellow", "blue", "green","red", "black"]
-		Alpha = [1,1,1,1, 1,1,1,1]
-		Size= [.25,.25,.25,.25,.25,.25,.25,.25]
+		#Label = ["0:None", "1:LEP", "2:LHC", "3:Flav", "12", "13", "23", "123"]
+		Label = [ 'T','1','2','3',
+			  'T1','T2','T3','12','13','23',
+			  'T12','T13','T23','123',
+			  'T123' ]
+		NC = len(Label)
+		#Color = ["lightgray", "cyan", "magenta", "yellow", "blue", "green","red", "black"]
+		Color = [ 'gainsboro', 'lightsteelblue', 'mistyrose', 'lemonchiffon',
+			'cornflowerblue', 'lightcoral', 'khaki', 'orchid', 'palegreen', 'orange',
+			'mediumblue', 'darkgreen', 'darkorange', 'firebrick',
+			'black' ]
+		Alpha = [1 for x in range(NC)]
+		Size= [.04 for x in range(NC)]#.25 when doing 8 colors
 		LOC = "center"
-		BBOX_TO_ANCHOR = [0.5,1.1]
+		BBOX_TO_ANCHOR = [0.475,1.105]
 		DPI = 480
 	pltctr = 0
 	par_list = [ ("lambda",19), ("kappa",20), ("Alambda",21), ("mueff",23), ("Akappa",22), ("tanB",1) ] 
@@ -254,7 +269,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 	print("Finished plots.")
 	return
 # FOR MIN,MAX MASS FILTERED BY con2
-(mins1m,maxs1m) = (140,100) # declared as such so 1st data point forces min/max to resolve
+#(mins1m,maxs1m) = (140,100) # declared as such so 1st data point forces min/max to resolve
 mh_is1 = [0,0,0,0] # elem corresp to file_index from enumerating file_names 
 mh_is2 = [0,0,0,0]
 mh_dne = [0,0,0,0]
@@ -263,9 +278,10 @@ mh_is3 = [0,0,0,0]
 
 def NearSM(mass): #temp fnc that checks if mass is near sm higgs mass
 	buffer = 3 #buffer in GeV around central SM Higgs mass 
+	buffer = 25 # large buffer for testing new 4constyle
 	return (mass > 125-buffer) and (mass < 125+buffer)
 
-file_matrices = [list(),list(),list(),list()] # for storing "out_file_matrix" of each out file
+file_matrices = [list() for file in file_names] # for storing "out_file_matrix" of each out file
 
 for file_index,out_file_name in enumerate(file_names):
 	with open("{}{}.dat".format(DIR, out_file_name)) as f:
@@ -278,7 +294,7 @@ for file_index,out_file_name in enumerate(file_names):
 			for val in fullrow:
 				if val != "": row.append(float(val))
 			out_file_matrix.append(row)
-
+			#continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
 			params = row[1:24]
 			shiggs = row[24:30] # s1mass s1comp s2mass s2comp s3mass s3comp
 			phiggs = row[30:34] # p1mass p1comp p2mass p2comp
@@ -292,26 +308,27 @@ for file_index,out_file_name in enumerate(file_names):
 		#		print()
 		
 			# CONTINUE if don't want to count NearSM higgs events nor con2lims
-			continue 
+			
 			# tracking which events have NearSM higgs in s1, s2, both, s3, or none
 			if (NearSM(shiggs[0]) and NearSM(shiggs[2])): 
 				mh_1n2[file_index]+=1
-				print("{}:event{}:s1@{}:s2@{}\t*** 1&2".format(
-					out_file_name,indexrow,shiggs[0],shiggs[2]))
+#				print("{}:event{}:s1@{}:s2@{}\t*** 1&2".format(
+#					out_file_name,indexrow,shiggs[0],shiggs[2]))
 			elif (NearSM(shiggs[0])):
 				mh_is1[file_index]+=1
 			elif (NearSM(shiggs[2])):
 				mh_is2[file_index]+=1
-				print("{}event#{}:\ts1@{}\s2@{}\t********** 2".format(out_file_name,indexrow,shiggs[0],shiggs[2]))
+#				print("{}event#{}:\ts1@{}\s2@{}\t********** 2".format(out_file_name,indexrow,shiggs[0],shiggs[2]))
 			elif (NearSM(shiggs[4])):
 				mh_is3[file_index]+=1
-				print("{}:event{}:s3@{}\t*************** 3".format(
-					out_file_name,indexrow,shiggs[4]))
+#				print("{}:event{}:s3@{}\t*************** 3".format(
+#					out_file_name,indexrow,shiggs[4]))
 			else: mh_dne[file_index]+=1
-
+			
+			# outdated, for checking what bounds lhc imposes on mass
 			# ALSO, JUST GET THE MAX AND MIN VALUES ALLOWED BY con2 FOR SM-mh
-			if ("con2" in out_file_name):
-				(mins1m,maxs1m) = (min(mins1m,shiggs[0]),max(maxs1m,shiggs[0]))
+			#if ("con2" in out_file_name):
+			#	(mins1m,maxs1m) = (min(mins1m,shiggs[0]),max(maxs1m,shiggs[0]))
 	f.close()
 
 
@@ -322,26 +339,83 @@ if CMYK:
 		return set(map(tuple, List))
 	def List(Set): # fn is Set to List conversion
 		return list(map(list, Set))
-	for i,e in enumerate(file_matrices[3]):	#BE WEARY THIS IS OVERWRITING ORIGINAL INFO
+	for i,e in enumerate(file_matrices[2]):	#BE WEARY THIS IS OVERWRITING ORIGINAL INFO
 		e[-2]=0				# ON THE PROD SIGMA THRU GGF / con3 has nonzero
+			# above arg corresponds to LHC FILE, is [3] for [ "","con1","con3","con2"]
 
-	bset0 = Set(file_matrices[0]) 		# base unc. set
-	bset1 = Set(file_matrices[1])		# base con1 set
-	bset3 = Set(file_matrices[2])		# base con3 set
-	bset2 = Set(file_matrices[3])		# base con2 set
-	
-	set132 = bset1 & bset3 & bset2 	#union all cons
-	set13 = (bset1 & bset3).difference(set132)	#survd 1 and 3, but not 2
-	set12 = (bset1 & bset2).difference(set132)	#  .   1 and 2, but not 3
-	set23 = (bset2 & bset3).difference(set132)	# .    2 and 3, but not 1
-	
-	set1 = bset1.difference(bset2,bset3)		#survd 1, but not 2 and 3
-	set3 = bset3.difference(bset1,bset2)		#survd 3, but not 1 and 2
-	set2 = bset2.difference(bset3,bset1)		#survd 2, but not 1 and 3
-	set0 = bset0.difference(bset1,bset3,bset2)	#survd no constraints
+	if False: #leaving this here but copying this architecture for the THY/LEP/LHC/BKF idea...
+		bset0 = Set(file_matrices[0]) 		# base unc. set
+		bset1 = Set(file_matrices[1])		# base con1 set
+		bset3 = Set(file_matrices[2])		# base con3 set
+		bset2 = Set(file_matrices[3])		# base con2 set
+		
+		set132 = bset1 & bset3 & bset2 	#union all cons
+		set13 = (bset1 & bset3).difference(set132)	#survd 1 and 3, but not 2
+		set12 = (bset1 & bset2).difference(set132)	#  .   1 and 2, but not 3
+		set23 = (bset2 & bset3).difference(set132)	# .    2 and 3, but not 1
+		
+		set1 = bset1.difference(bset2,bset3)		#survd 1, but not 2 and 3
+		set3 = bset3.difference(bset1,bset2)		#survd 3, but not 1 and 2
+		set2 = bset2.difference(bset3,bset1)		#survd 2, but not 1 and 3
+		set0 = bset0.difference(bset1,bset3,bset2)	#survd no constraints
 
-	master_list = [ List(set0), List(set1), List(set2), List(set3),
-		List(set12),List(set13),List(set23),List(set132) ]
+		master_list = [ List(set0), List(set1), List(set2), List(set3),
+			List(set12),List(set13),List(set23),List(set132) ]
+	else:	#below just T/L/L/B idea (as noted in the if False line)
+		# file_matrices is [ THYoutmat, LEPoutmat, LHCoutmat, BKFoutmat ]
+		# know that len of master_list going to be 2^n with n=num_files=len(file_matrices)
+		#  then, later, labels in CMYK mode also going to have to be adjusted if
+		#                running with 16 COLORS??? ouch (EDIT: actually 15 since no 0con set)
+		
+		bsT = Set(file_matrices[0]) 			# base sets exactly 1 con. applied
+		bs1 = Set(file_matrices[1])
+		bs2 = Set(file_matrices[2])
+		bs3 = Set(file_matrices[3])
+		print("Len. bsT:",len(bsT)/1)
+		print("     bs1:",len(bs1)/1)
+		print("     bs2:",len(bs2)/1)
+		print("     bs3:",len(bs3)/1)
+
+		sT123 = bsT & bs1 & bs2 & bs3 			# union all constraints
+		print("   sT123:",len(sT123)/1)
+
+		sT12 = (bsT & bs1 & bs2).difference(sT123) 	# surv.d exactly 3 con.s
+		sT13 = (bsT & bs1 & bs3).difference(sT123)
+		sT23 = (bsT & bs2 & bs3).difference(sT123)
+		s123 = (bs1 & bs2 & bs3).difference(sT123)
+		print("    sT12:",len(sT12)/1)
+		print("    sT13:",len(sT13)/1)
+		print("    sT23:",len(sT23)/1)
+		print("    s123:",len(s123)/1)
+
+		sT1 = (bsT & bs1).difference(bs2,bs3)		# surv.d exactly 2 con.s
+		sT2 = (bsT & bs2).difference(bs1,bs3)
+		sT3 = (bsT & bs3).difference(bs1,bs2)
+		s12 = (bs1 & bs2).difference(bsT,bs3)
+		s13 = (bs1 & bs3).difference(bsT,bs2)
+		s23 = (bs2 & bs3).difference(bsT,bs1)
+		print("     sT1:",len(sT1)/1)
+		print("     sT2:",len(sT2)/1)
+		print("     sT3:",len(sT3)/1)
+		print("     s12:",len(s12)/1)
+		print("     s13:",len(s13)/1)
+		print("     s23:",len(s23)/1)
+
+		sT = bsT.difference(bs1,bs2,bs3)		# surv.d exactly 1 con.
+		s1 = bs1.difference(bsT,bs2,bs3)
+		s2 = bs2.difference(bsT,bs1,bs3)
+		s3 = bs3.difference(bsT,bs1,bs2)
+		print("      sT:",len(sT)/1)
+		print("      s1:",len(s1)/1)
+		print("      s2:",len(s2)/1)
+		print("      s3:",len(s3)/1)
+		# DNE events with 0 con.s since all input events are assumed to have exactly 1 con.
+
+		master_list = [	List(sT), List(s1), List(s2), List(s3),
+				List(sT1), List(sT2), List(sT3), List(s12), List(s13), List(s23),
+				List(sT12), List(sT13), List(sT23), List(s123),
+				List(sT123) ]
+
 
 # args (DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 if SAVEPLOTS: GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
@@ -377,7 +451,7 @@ for file_index,out_file_matrix in enumerate(file_matrices):
 			print(event[30])
 	print()
 
-print("con2 min/max s1m:\t",mins1m,"\t",maxs1m)
+#print("con2 min/max s1m:\t",mins1m,"\t",maxs1m)
 
 print("\nFILE_NAME\tmh_is1\tmh_is2\tmh_dne\tmh_1&2\tmh_is3")
 for file_index,out_file_name in enumerate(file_names):
@@ -391,4 +465,4 @@ for file_index,out_file_name in enumerate(file_names):
 
 
 print("\n# Light Higgs:\t", ctr_lighthiggs)
-print("Runtime(s):\t",time()-start_time)
+print("Runtime(s):\t",Time())
