@@ -195,11 +195,6 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			  'T12','T13','T23','123',
 			  'T123' ]
 		NC = len(Label)
-		#Color = ["lightgray", "cyan", "magenta", "yellow", "blue", "green","red", "black"]
-		#Color = [ 'gainsboro', 'lightsteelblue', 'mistyrose', 'lemonchiffon',
-		#	'cornflowerblue', 'lightcoral', 'khaki', 'orchid', 'palegreen', 'orange',
-		#	'mediumblue', 'darkgreen', 'darkorange', 'firebrick',
-		#	'black' ]
 		Color =[(.8,.8,.8), (.5,1,1), (1,.5,1), (1,1,.5),
 			(0,1,1), (1,0,1), (1,1,0),
 			(.2,.6,1), (.125,1,.125), (1,.125,.125),
@@ -287,8 +282,6 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 #						ypar, yind, ymin, ymax, Size, DPI, "", "")
 	print("Finished plots.")
 	return
-# FOR MIN,MAX MASS FILTERED BY con2
-#(mins1m,maxs1m) = (140,100) # declared as such so 1st data point forces min/max to resolve
 mh_is1 = [0,0,0,0] # elem corresp to file_index from enumerating file_names 
 mh_is2 = [0,0,0,0]
 mh_dne = [0,0,0,0]
@@ -297,7 +290,7 @@ mh_is3 = [0,0,0,0]
 
 def NearSM(mass): #temp fnc that checks if mass is near sm higgs mass
 	buffer = 3 #buffer in GeV around central SM Higgs mass 
-	buffer = 25 # large buffer for testing new 4constyle
+	#buffer = 25 # large buffer for testing new 4constyle
 	return (mass > 125-buffer) and (mass < 125+buffer)
 
 file_matrices = [list() for file in file_names] # for storing "out_file_matrix" of each out file
@@ -344,10 +337,6 @@ for file_index,out_file_name in enumerate(file_names):
 #					out_file_name,indexrow,shiggs[4]))
 			else: mh_dne[file_index]+=1
 			
-			# outdated, for checking what bounds lhc imposes on mass
-			# ALSO, JUST GET THE MAX AND MIN VALUES ALLOWED BY con2 FOR SM-mh
-			#if ("con2" in out_file_name):
-			#	(mins1m,maxs1m) = (min(mins1m,shiggs[0]),max(maxs1m,shiggs[0]))
 	f.close()
 
 
@@ -474,7 +463,6 @@ for file_index,out_file_matrix in enumerate(file_matrices):
 			print("{:.2f}\t".format(event[23]),end="")
 			print(event[30])
 	print()
-#print("con2 min/max s1m:\t",mins1m,"\t",maxs1m)
 
 print("\nFILE_NAME\tmh_is1\tmh_is2\tmh_dne\tmh_1&2\tmh_is3")
 for file_index,out_file_name in enumerate(file_names):
