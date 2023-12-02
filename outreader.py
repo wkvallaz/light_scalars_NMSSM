@@ -7,31 +7,43 @@ import csv
 import os
 import sys
 
+# ARGUMENTS FROM COMMAND LINE [,,,,,], execute this file as: python3 outreader.py file_prefix save_dir_name SAVEPLOTS CMYK
+# sys.argv = ['outreader.py', file_prefix, save_dir_name, SAVEPLOTS, CMYK]
+argv = sys.argv
+
 DO_PARAM = 1
-DO_MASS = 1
-DO_COMP = 1
-DO_HEAT = 1 
-DO_MISC = 1
-file_prefix = "wH"# widep
+DO_MASS = 0
+DO_COMP = 0
+DO_HEAT = 0 
+DO_MISC = 0
+#file_prefix = "--"# widep
+file_prefix = argv[1]
 #file_tags = ["","con1","con3","con2"]
 file_tags = ['THY','LEP','LHC','BKF']
 file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
 
 def Time():
 	return time() - start_time
-
-save_dir_name = input("Where would you like to store the scrape?: ")			##########
+											# DIR+OW #
+#save_dir_name = input("Where would you like to store the scrape?: ")			##########
+save_dir_name = argv[2]
 start_time = time()
 DIR = "/home/wolf/NMSSMTools_6.0.0/calculations/"
 YES = ["y","ye","yea","yes"]
 try:   # IF IT DOESN'T ALREADY EXIST, CREATE A DIR WITH NAME OF FILE (minus .dat) TO SAVE IMGS INTO
 	os.mkdir("{}{}/".format(DIR, save_dir_name))
-except OSError as error:
-	print(error)
-	overwrite_req = input("Continuing will overwrite existing files, are you sure? (y/ye/yea/yes): ").lower()
-	if overwrite_req not in YES: sys.exit("Execution halted.")			##########
-SAVEPLOTS = input("Do you want to save plots?").lower() in YES
-CMYK = input("CMYK mode?") in YES							##########
+except OSError as error:											# USER INP #
+	pass  		# possibly very stupidly, for scripting, ALWAYS overwrite				############
+#	print(error)
+#	overwrite_req = input("Continuing will overwrite existing files, are you sure? (y/ye/yea/yes): ").lower()
+#	if overwrite_req not in YES: sys.exit("Execution halted.")			##########
+
+#SAVEPLOTS = input("Do you want to save plots?").lower() in YES
+#CMYK = input("CMYK mode?") in YES							##########
+SAVEPLOTS = argv[3]												############
+CMYK = argv[4]													############
+
+
 
 num_files = len(file_names)
 threshold_lighthiggs = 20 #GeV
@@ -68,7 +80,7 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 		except OSError as error:
 			pass
 
-	print("Plotting #{} ...".format(pltctr))
+##T	print("Plotting #{} ...".format(pltctr), end="\t")
 
 	def Col(index,matrix): #array generator statement which pulls column 'index' from  ea row of 'matrix'
 		return [r[index] for r in matrix]
@@ -109,7 +121,7 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 		if ymin!=ymax: plt.ylim(ymin,ymax)				#  x/y windows
 		plt.savefig("{}{}_v_{}_zoom.png".format(DIR, ypar, xpar), dpi=DPI)
 		plt.close()
-	print(Time(),end="\t")
+##T	print(Time())
 	return
 
 def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  # fxn reworked ..
@@ -129,7 +141,7 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 		except OSError as error:
 			pass
 	
-	print("Plotting #{} ...".format(pltctr))
+##T	print("Plotting #{} ...".format(pltctr), end="\t")
 	
 	def Col(index,matrix): #array generator statement which pulls column 'index' from  ea row of 'matrix'
 		return [r[index] for r in matrix]
@@ -159,7 +171,7 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 		if ymin!=ymax: plt.ylim(ymin,ymax)				#  x/y windows
 		plt.savefig("{}{}_v_{}_c_{}_zoom.png".format(DIR, ypar, xpar, cpar), dpi=DPI)
 		plt.close()
-	print(Time(),end="\t")
+##T	print(Time())
 	return
 
 def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
@@ -184,10 +196,16 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			  'T123' ]
 		NC = len(Label)
 		#Color = ["lightgray", "cyan", "magenta", "yellow", "blue", "green","red", "black"]
-		Color = [ 'gainsboro', 'lightsteelblue', 'mistyrose', 'lemonchiffon',
-			'cornflowerblue', 'lightcoral', 'khaki', 'orchid', 'palegreen', 'orange',
-			'mediumblue', 'darkgreen', 'darkorange', 'firebrick',
-			'black' ]
+		#Color = [ 'gainsboro', 'lightsteelblue', 'mistyrose', 'lemonchiffon',
+		#	'cornflowerblue', 'lightcoral', 'khaki', 'orchid', 'palegreen', 'orange',
+		#	'mediumblue', 'darkgreen', 'darkorange', 'firebrick',
+		#	'black' ]
+		Color =[(.8,.8,.8), (.5,1,1), (1,.5,1), (1,1,.5),
+			(0,1,1), (1,0,1), (1,1,0),
+			(.2,.6,1), (.125,1,.125), (1,.125,.125),
+			(0,0,.9), (0,.6,0), (.6,0,0), (.4,.4,.4), 
+			(0,0,0)]
+				
 		Alpha = [1 for x in range(NC)]
 		Size= [.04 for x in range(NC)]#.25 when doing 8 colors
 		LOC = "center"
@@ -195,7 +213,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		DPI = 480
 	pltctr = 0
 	par_list = [ ("lambda",19), ("kappa",20), ("Alambda",21), ("mueff",23), ("Akappa",22), ("tanB",1) ] 
-	mass_list = [ ("s1mass",24), ("s2mass",26), ("s3mass",28), ("p1mass",30), ("p2mass",32) ]
+	mass_list = [ ("s1mass",24), ("s2mass",26), ("s3mass",28), ("p1mass",30), ("p2mass",32), ("cmass",34) ]
 	comp_list = [ ("s1comp",25), ("s2comp",27), ("s3comp",29), ("p1comp",31), ("p2comp",33) ]
 	heatmap_list = [#"viridis", "plasma", 
 			"inferno", "magma", #"cividis",
@@ -215,11 +233,12 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			print("{}:".format(h_mass))
 			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp, jus c_l v all comps
 				pltctr+=1
-				if "s1" in h_mass: (mmin, mmax) = (110.0, 140.0)#LHC window
-				elif "s2" in h_mass: (mmin, mmax) = (110, 140) #wide 1250, spec2 800
-				elif "s3" in h_mass: (mmin, mmax) = (0, 7500)#wide 37.5k, spec2 7.5k
-				elif "p1" in h_mass: (mmin, mmax) = (0, 2000) #wide 10k, spec2 2k
-				elif "p2" in h_mass: (mmin, mmax) = (0, 7500)#wide 32k, spec2 7500
+				if "s1" in h_mass: (mmin, mmax) = (110.0, 130.0)#LHC window
+				elif "s2" in h_mass: (mmin, mmax) = (0, 25000) #wide 1250, spec2 800
+				elif "s3" in h_mass: (mmin, mmax) = (0, 50000)#wide 37.5k, spec2 7.5k
+				elif "p1" in h_mass: (mmin, mmax) = (0, 12500) #wide 10k, spec2 2k
+				elif "p2" in h_mass: (mmin, mmax) = (0, 50000)#wide 32k, spec2 7500
+				elif "c" in h_mass: (mmin, mmax)=(0,50000)
 				SinglePlot(pltctr,h_mass, hix, mmin, mmax,
 						param, pix, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)	
@@ -249,8 +268,8 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 	if DO_MISC:
 		print("Comparing LO p1mamss")
 		pltctr+=1
-		SinglePlot(pltctr, "p1mass", 30, 0,0,
-				"rt n 3 k Ak mueff div lambda", 0, 0,0,
+		SinglePlot(pltctr, "p1mass", 30, 0,12500,
+				"rt n 3 k Ak mueff div lambda", 0, 0,12500,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
 
 		print("s2mass v s1mass")
@@ -288,7 +307,7 @@ for file_index,out_file_name in enumerate(file_names):
 		f_reader = csv.reader(f, delimiter=" ")
 		out_file_matrix = file_matrices[file_index]
 		ctr_lighthiggs = 0
-		print("Reading in\t",out_file_name)
+		print("Reading in\t{}\t{}".format(out_file_name,Time()))
 		for indexrow,fullrow in enumerate(f_reader):
 			row = [0] # trim out strange spacing ---> this used to be the event number
 			for val in fullrow:
@@ -375,7 +394,7 @@ if CMYK:
 		print("     bs1:",len(bs1)/1)
 		print("     bs2:",len(bs2)/1)
 		print("     bs3:",len(bs3)/1)
-
+	
 		sT123 = bsT & bs1 & bs2 & bs3 			# union all constraints
 		print("   sT123:",len(sT123)/1)
 
@@ -409,7 +428,7 @@ if CMYK:
 		print("      s1:",len(s1)/1)
 		print("      s2:",len(s2)/1)
 		print("      s3:",len(s3)/1)
-		# DNE events with 0 con.s since all input events are assumed to have exactly 1 con.
+	# DNE events with 0 con.s since all input events are assumed to have exactly 1 con.
 
 		master_list = [	List(sT), List(s1), List(s2), List(s3),
 				List(sT1), List(sT2), List(sT3), List(s12), List(s13), List(s23),
@@ -419,6 +438,11 @@ if CMYK:
 
 # args (DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 if SAVEPLOTS: GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
+
+print("\n# Light Higgs:\t", ctr_lighthiggs)
+print("Runtime(s):\t",Time())
+
+sys.exit()
 
 print("Sorting by lightest SCALAR")
 print("tanB\tlambda\t\tkappa\t\tAlambda\tAkappa\t\tmueff\tMass")
@@ -450,7 +474,6 @@ for file_index,out_file_matrix in enumerate(file_matrices):
 			print("{:.2f}\t".format(event[23]),end="")
 			print(event[30])
 	print()
-
 #print("con2 min/max s1m:\t",mins1m,"\t",maxs1m)
 
 print("\nFILE_NAME\tmh_is1\tmh_is2\tmh_dne\tmh_1&2\tmh_is3")
@@ -459,10 +482,3 @@ for file_index,out_file_name in enumerate(file_names):
 	mh_is1[file_index],mh_is2[file_index],mh_dne[file_index],mh_1n2[file_index],mh_is3[file_index]))
 
 
-
-
-
-
-
-print("\n# Light Higgs:\t", ctr_lighthiggs)
-print("Runtime(s):\t",Time())
