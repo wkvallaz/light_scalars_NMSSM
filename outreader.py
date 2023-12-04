@@ -9,13 +9,14 @@ import sys
 
 # ARGUMENTS FROM COMMAND LINE [,,,,,], execute this file as: python3 outreader.py file_prefix save_dir_name SAVEPLOTS CMYK
 # sys.argv = ['outreader.py', file_prefix, save_dir_name, SAVEPLOTS, CMYK]
+## currently have CMYK automatically set as True, not needed in arguments
 argv = sys.argv
 
-DO_PARAM = 1
-DO_MASS = 0
-DO_COMP = 0
-DO_HEAT = 0 
-DO_MISC = 0
+DO_PARAM = 0
+DO_MASS = 1
+DO_COMP = 1
+DO_HEAT = 1 
+DO_MISC = 1
 #file_prefix = "--"# widep
 file_prefix = argv[1]
 #file_tags = ["","con1","con3","con2"]
@@ -41,9 +42,8 @@ except OSError as error:											# USER INP #
 #SAVEPLOTS = input("Do you want to save plots?").lower() in YES
 #CMYK = input("CMYK mode?") in YES							##########
 SAVEPLOTS = argv[3]												############
-CMYK = argv[4]													############
-
-
+#CMYK = argv[4]													###########
+CMYK = True
 
 num_files = len(file_names)
 threshold_lighthiggs = 20 #GeV
@@ -94,7 +94,7 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 			if fx==0:
 				plt.plot([0, max(Col(xind,file_matrices[0]))], [0, max(Col(xind,file_matrices[0]))],
 					color="gray", alpha=0.5, linestyle="--", linewidth=0.15, label = "y = x")
-			fn_arr = [ (-3*r[20]*r[22]*r[23]/r[19])**.5 for r in out_file_matrix]
+			fn_arr = [ np.sqrt(np.sqrt( (-3*r[20]*r[22]*r[23]/r[19])**2)) for r in out_file_matrix]
 			plt.scatter(Col(xind,out_file_matrix), fn_arr,
 				alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], 
 				marker=',', linewidths=0)
@@ -146,7 +146,6 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	def Col(index,matrix): #array generator statement which pulls column 'index' from  ea row of 'matrix'
 		return [r[index] for r in matrix]
 
-	#fig,ax = plt.subplots
 	plt.figure(pltctr)		#   vvv used to be file_matrices, changed to master_list for m.ex.sets
 	if CMYK: relevant_matrix = master_list[-1] #the fully surviving stuff
 	else: relevant_matrix = file_matrices[-1] #just LHC CON		
@@ -156,9 +155,7 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
 	plt.colorbar(label=cpar)
-	#plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=num_files, frameon=False)
-	
-	
+		
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
 		if xpar in ["lambda","kappa"]: plt.xlim(0,0.8)			#  let first plot be 
 		if ypar in ["lambda","kappa"]: plt.ylim(0,0.8)			#  confined to (0,0.8)
@@ -175,7 +172,6 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	return
 
 def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
-	# w2: trigger each plot type w separate flag
 	if not CMYK:
 		Label = [file_prefix + x for x in file_names]
 		#Color = ['darkgray', 'cyan', 'yellow', 'magenta']		#CYM COLORING
@@ -186,8 +182,6 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		LOC = "center"
 		BBOX_TO_ANCHOR = [0.475,1.105]
 		DPI = 480
-	#above was for just working with looping over file_matrices and double/trip/quad counting points on plt
-	#below, have 8 nonintersecting sets in master_list
 	else: #this is== if CMYK
 		#Label = ["0:None", "1:LEP", "2:LHC", "3:Flav", "12", "13", "23", "123"]
 		Label = [ 'T','1','2','3',
@@ -200,7 +194,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			(.2,.6,1), (.125,1,.125), (1,.125,.125),
 			(0,0,.9), (0,.6,0), (.6,0,0), (.4,.4,.4), 
 			(0,0,0)]
-				
+
 		Alpha = [1 for x in range(NC)]
 		Size= [.04 for x in range(NC)]#.25 when doing 8 colors
 		LOC = "center"
@@ -270,7 +264,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		print("s2mass v s1mass")
 		pltctr+=1
 		SinglePlot(pltctr, "s1mass", 24, 100, 130,
-				"s2mass", 26, 0,0,
+				"s2mass", 26, 0,25000,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass","")
 # <empty copy paste template > 
 #	pltctr+=1
@@ -429,7 +423,7 @@ if CMYK:
 if SAVEPLOTS: GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 
 print("\n# Light Higgs:\t", ctr_lighthiggs)
-print("Runtime(s):\t",Time())
+print("Runtime(s):\t",Time(),"\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#")
 
 sys.exit()
 
