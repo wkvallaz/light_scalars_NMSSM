@@ -2,15 +2,23 @@
 	#/usr/bin/python3
 	#1/usr/bin/expect
 	#1/usr/bin/python3 -u
+if [ $(($# % 3))  -ne 0 ]
+then # if num inputs not divisble by 4
+	echo -e DOES NOT have a number of inputs divisible by 3."\n"
+	exit 1
+fi
+#echo -e DOES have a number of inputs divisible by 4."\n"
 
-for ppsc in "wH wHdir- 1 1" "wh whdir 1 1" "wd wddir 1 1" "wR wRdir- 1 1" "wr wrdir 1 1" "wK wKdir 1 1"
+num=$(($#/3))
+arg=($@)
+for i in $(seq 1 $num)
 do
-	date
-	#echo python3 "outreader.py" $ppsc
-	python3 "outreader.py" $ppsc	
+	date	
+	python3 "outreader.py" ${arg[((3*$i-3))]} ${arg[((3*$i-2))]} ${arg[((3*$i-1))]}
 done
+echo -e "********************\n"All runs plotted."\n"
 date
-echo finito
+echo
 
 #exec python3 ./helloworld.py
 #expect "hello world" { send "stoodis" }

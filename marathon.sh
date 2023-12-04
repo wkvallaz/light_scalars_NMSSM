@@ -4,7 +4,8 @@
 	#1/usr/bin/python3 -u
 # shell script if need to run several nmssm inp files
 # REQUIRES make init AND make TO ALREADY BE RUN BEFORE
-for run in "wH" "wh" "wd" "wR" "wr" "wK"
+#for run in "wH" "wh" "wd" "wR" "wr" "wK"
+for run in "$@"
 do
 	for con in "THY" "LEP" "LHC" "BKF"
 	do
