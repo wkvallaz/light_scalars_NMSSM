@@ -12,7 +12,7 @@ import sys
 ## currently have CMYK automatically set as True, not needed in arguments
 argv = sys.argv
 
-DO_PARAM = 0
+DO_PARAM = 1
 DO_MASS = 1
 DO_COMP = 1
 DO_HEAT = 1 
@@ -90,14 +90,17 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	if CMYK: relevant_matrix = master_list
 	else: relevant_matrix = file_matrices		
 	for fx,out_file_matrix in enumerate(relevant_matrix): # file_matrices for RGB, master_list for CMYK
-		if ypar == "rt n 3 k Ak mueff div lambda":
-			if fx==0:
-				plt.plot([0, max(Col(xind,file_matrices[0]))], [0, max(Col(xind,file_matrices[0]))],
+		if ypar == "rt n 3 k Ak mueff div lambda" or (xpar == "s1mass" and ypar == "s2mass"):
+			if fx==0: # only plot line y = x on the first iter of loop
+				plt.plot([0,max(Col(xind,file_matrices[0]))],[0,max(Col(xind,file_matrices[0]))],
 					color="gray", alpha=0.5, linestyle="--", linewidth=0.15, label = "y = x")
-			fn_arr = [ np.sqrt(np.sqrt( (-3*r[20]*r[22]*r[23]/r[19])**2)) for r in out_file_matrix]
+			# y values described by fn_arr (function array)
+			if ypar == "rt n 3 k Ak mueff div lambda":
+				fn_arr = [ np.sqrt(np.sqrt( (-3*r[20]*r[22]*r[23]/r[19])**2)) for r in out_file_matrix]
+			else:
+				fn_arr = Col(yind, out_file_matrix)
 			plt.scatter(Col(xind,out_file_matrix), fn_arr,
-				alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], 
-				marker=',', linewidths=0)
+				alpha=Alpha[fx],color=Color[fx],s=Size[fx],label=Label[fx],marker=',',linewidths=0)
 			
 		else:
 			plt.scatter(Col(xind,out_file_matrix), Col(yind,out_file_matrix),
@@ -110,8 +113,10 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	for x in range(len(Label)): leg.legend_handles[x]._sizes = [10]
 	
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
-		if xpar in ["lambda","kappa"]: plt.xlim(0,0.8)			#  let first plot be 
-		if ypar in ["lambda","kappa"]: plt.ylim(0,0.8)			#  confined to (0,0.8)
+		if xpar in ["lambda"]: plt.xlim(0.4,.75)			#  let first plot be 
+		elif ypar in ["lambda"]: plt.ylim(0.4,.75)			#  confined  (,)
+		if xpar in ["kappa"]: plt.xlim(0.05,1.00)			#   
+		elif ypar in ["kappa"]: plt.ylim(0.05,1.00)			#  
 		plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	#  for the L&/or K axi/es
 	else: plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	# Otherwise just use DEF.
 	
@@ -223,11 +228,11 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp, jus c_l v all comps
 				pltctr+=1
 				if "s1" in h_mass: (mmin, mmax) = (110.0, 130.0)#LHC window
-				elif "s2" in h_mass: (mmin, mmax) = (0, 25000) #wide 1250, spec2 800
+				elif "s2" in h_mass: (mmin, mmax) = (0, 500) #wide 1250, spec2 800
 				elif "s3" in h_mass: (mmin, mmax) = (0, 50000)#wide 37.5k, spec2 7.5k
-				elif "p1" in h_mass: (mmin, mmax) = (0, 12500) #wide 10k, spec2 2k
-				elif "p2" in h_mass: (mmin, mmax) = (0, 50000)#wide 32k, spec2 7500
-				elif "c" in h_mass: (mmin, mmax)=(0,50000)
+				elif "p1" in h_mass: (mmin, mmax) = (0, 500) #wide 10k, spec2 2k
+				elif "p2" in h_mass: (mmin, mmax) = (0, 500)#wide 32k, spec2 7500
+				elif "c" in h_mass: (mmin, mmax)=(0,500)
 				SinglePlot(pltctr,h_mass, hix, mmin, mmax,
 						param, pix, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)	
@@ -257,15 +262,16 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 	if DO_MISC:
 		print("Comparing LO p1mamss")
 		pltctr+=1
-		SinglePlot(pltctr, "p1mass", 30, 0,12500,
-				"rt n 3 k Ak mueff div lambda", 0, 0,12500,
+		SinglePlot(pltctr, "p1mass", 30, 0,500,
+				"rt n 3 k Ak mueff div lambda", 0, 0,500,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
 
 		print("s2mass v s1mass")
 		pltctr+=1
-		SinglePlot(pltctr, "s1mass", 24, 100, 130,
-				"s2mass", 26, 0,25000,
+		SinglePlot(pltctr, "s1mass", 24, 110, 130,
+				"s2mass", 26, 110,500,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass","")
+
 # <empty copy paste template > 
 #	pltctr+=1
 #	SinglePlot(pltctr, "", 0, 0, 0,
