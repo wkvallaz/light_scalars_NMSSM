@@ -214,7 +214,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			"brg", "rainbow","jet","turbo"] # viridis, plasma, cividis read poorly
 
 	if DO_PARAM:
-		print("Beginning parameter plots")
+		print(Time(),"\tBeginning parameter plots")
 		for i,(xpar,xind) in enumerate(par_list): # ALL PARAM VS
 			for j,(ypar,yind) in enumerate(par_list): #PARAM
 				if j<=i: continue
@@ -222,7 +222,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 				SinglePlot(pltctr, xpar, xind, 0, 0, ypar, yind, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
 	if DO_MASS:
-		print("Beginning mass plots") # PLOT ea Higgs' mass against each parameter also its singlet comp
+		print(Time(),"\tBeginning mass plots") # PLOT ea Higgs' mass against each parameter also its singlet comp
 		for h,(h_mass,hix) in enumerate(mass_list):
 			print("{}:".format(h_mass))
 			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp, jus c_l v all comps
@@ -236,8 +236,10 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 				SinglePlot(pltctr,h_mass, hix, mmin, mmax,
 						param, pix, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)	
+	
+
 	if DO_COMP:
-		print("Beginning composition plots") # PLOT each Higgs' singlet comp against each parameter
+		print(Time(),"\tBeginning composition plots") # PLOT each Higgs' singlet comp against each parameter
 		for (h_comp,cix) in comp_list:
 			print("{}:".format(h_comp))
 			for (param,pix) in par_list:
@@ -246,8 +248,9 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 						h_comp, cix, 0,0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp", h_comp)
 
+
 	if DO_HEAT:
-		print("Beginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
+		print(Time(),"\tBeginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
 		for n,(c_par,c_ix) in enumerate(par_list+comp_list):# params as heatmap choice
 			if c_par != "tanB": 	# heatmaps for s1mass @ lo tanB region, LHC blob (exclude tanB)
 				pltctr+=1
@@ -260,17 +263,41 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 						"s1mass", 24, 0, 50,
 						"s1comp", 25, .96, 1, Size, DPI, "Heatmap", "s1mass")	
 	if DO_MISC:
-		print("Comparing LO p1mamss")
+		print(Time(),"\tComparing LO p1mamss")
 		pltctr+=1
 		SinglePlot(pltctr, "p1mass", 30, 0,500,
 				"rt n 3 k Ak mueff div lambda", 0, 0,500,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
 
-		print("s2mass v s1mass")
+		print(Time(),"\ts2mass v s1mass")
 		pltctr+=1
 		SinglePlot(pltctr, "s1mass", 24, 110, 130,
 				"s2mass", 26, 110,500,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass","")
+	
+		print(Time(),"\ts(1,2,3)comp v s1mass")
+		pltctr+=1
+		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
+		comp_color_scheme = ['red','green','blue']
+		for fx,out_file_matrix in enumerate(master_list):	
+			for color,(comp,cix) in enumerate(comp_list[0:3]):
+				if fx == 0:
+					ax.scatter( [r[24] for r in out_file_matrix], [r[cix] for r in out_file_matrix],
+						alpha=1, color=comp_color_scheme[color], s=Size[fx], label=comp, 
+						marker=',', linewidths=0)
+				else:
+					ax.scatter( [r[24] for r in out_file_matrix], [r[cix] for r in out_file_matrix],
+						alpha=1, color=comp_color_scheme[color], s=Size[fx], 
+						marker=',', linewidths=0)
+		plt.title("s(1,2,3)comp v s1mass")
+		plt.ylabel("s(1,2,3)comp")
+		plt.xlabel("s1mass")
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
+		for x in range(len(comp_color_scheme)): leg.legend_handles[x]._sizes = [10]
+		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s123comp_v_s1mass.png".format(save_dir_name),dpi=DPI)
+		plt.close()		
+
+
 
 # <empty copy paste template > 
 #	pltctr+=1
@@ -300,7 +327,7 @@ for file_index,out_file_name in enumerate(file_names):
 		f_reader = csv.reader(f, delimiter=" ")
 		out_file_matrix = file_matrices[file_index]
 		ctr_lighthiggs = 0
-		print("Reading in\t{}\t{}".format(out_file_name,Time()))
+		print("{}\tReading in\t{}".format(Time(), out_file_name))
 		for indexrow,fullrow in enumerate(f_reader):
 			row = [0] # trim out strange spacing ---> this used to be the event number
 			for val in fullrow:
@@ -341,7 +368,7 @@ for file_index,out_file_name in enumerate(file_names):
 
 
 if CMYK:
-	print("Splitting into mutually exclusive sets...")
+	print(Time(),"\tSplitting into mutually exclusive sets...")
 
 	def Set(List): # fn is List to set of tuples conversion
 		return set(map(tuple, List))
