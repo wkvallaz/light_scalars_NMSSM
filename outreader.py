@@ -12,9 +12,9 @@ import sys
 ## currently have CMYK automatically set as True, not needed in arguments
 argv = sys.argv
 
-DO_PARAM = 1
-DO_MASS = 1
-DO_COMP = 1
+DO_PARAM = 0
+DO_MASS = 0
+DO_COMP = 0
 DO_HEAT = 1 
 DO_MISC = 1
 #file_prefix = "--"# widep
@@ -106,17 +106,17 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 			plt.scatter(Col(xind,out_file_matrix), Col(yind,out_file_matrix),
 				alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], 
 				marker=',', linewidths=0)
-	plt.title(ypar+" v "+xpar)
+	plt.title(file_prefix+" : "+ypar+" v "+xpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
 	leg = plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=8, columnspacing=0.7, frameon=False)
 	for x in range(len(Label)): leg.legend_handles[x]._sizes = [10]
 	
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
-		if xpar in ["lambda"]: plt.xlim(0.4,.75)			#  let first plot be 
-		elif ypar in ["lambda"]: plt.ylim(0.4,.75)			#  confined  (,)
-		if xpar in ["kappa"]: plt.xlim(0.05,1.00)			#   
-		elif ypar in ["kappa"]: plt.ylim(0.05,1.00)			#  
+		if xpar in ["lambda"]: plt.xlim(0,1)			#  let first plot be 
+		elif ypar in ["lambda"]: plt.ylim(0,1)			#  confined  (,)
+		if xpar in ["kappa"]: plt.xlim(0,1)			#   
+		elif ypar in ["kappa"]: plt.ylim(0,1)			#  
 		plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	#  for the L&/or K axi/es
 	else: plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	# Otherwise just use DEF.
 	
@@ -156,14 +156,14 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	else: relevant_matrix = file_matrices[-1] #just LHC CON		
 	plt.scatter(Col(xind,relevant_matrix), Col(yind,relevant_matrix),
 		c=Col(cind,relevant_matrix), cmap=cmap_n, s=Size[-1], marker=',', linewidths=0)
-	plt.title(ypar+" v "+xpar+" c "+cpar)
+	plt.title(file_prefix+" : "+ypar+" v "+xpar+" c "+cpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
 	plt.colorbar(label=cpar)
 		
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
-		if xpar in ["lambda","kappa"]: plt.xlim(0,0.8)			#  let first plot be 
-		if ypar in ["lambda","kappa"]: plt.ylim(0,0.8)			#  confined to (0,0.8)
+		if xpar in ["lambda","kappa"]: plt.xlim(0,1)			#  let first plot be 
+		if ypar in ["lambda","kappa"]: plt.ylim(0,1)			#  confined to (0,0.8)
 		plt.savefig("{}{}_v_{}_c_{}.png".format(DIR, ypar, xpar, cpar), dpi=DPI)	#  for the L&/or K axi/es
 	else: plt.savefig("{}{}_v_{}_c_{}.png".format(DIR, ypar, xpar, cpar), dpi=DPI)	# Otherwise just use DEF.
 	
@@ -228,11 +228,11 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp, jus c_l v all comps
 				pltctr+=1
 				if "s1" in h_mass: (mmin, mmax) = (110.0, 130.0)#LHC window
-				elif "s2" in h_mass: (mmin, mmax) = (0, 500) #wide 1250, spec2 800
-				elif "s3" in h_mass: (mmin, mmax) = (0, 50000)#wide 37.5k, spec2 7.5k
-				elif "p1" in h_mass: (mmin, mmax) = (0, 500) #wide 10k, spec2 2k
-				elif "p2" in h_mass: (mmin, mmax) = (0, 500)#wide 32k, spec2 7500
-				elif "c" in h_mass: (mmin, mmax)=(0,500)
+				elif "s2" in h_mass: (mmin, mmax) = (0, 12500) #wide 1250, spec2 800
+				elif "s3" in h_mass: (mmin, mmax) = (0, 35000)#wide 37.5k, spec2 7.5k
+				elif "p1" in h_mass: (mmin, mmax) = (0, 12500) #wide 10k, spec2 2k
+				elif "p2" in h_mass: (mmin, mmax) = (0, 35000)#wide 32k, spec2 7500
+				elif "c" in h_mass: (mmin, mmax)=(0,35000)
 				SinglePlot(pltctr,h_mass, hix, mmin, mmax,
 						param, pix, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)	
@@ -255,46 +255,45 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			if c_par != "tanB": 	# heatmaps for s1mass @ lo tanB region, LHC blob (exclude tanB)
 				pltctr+=1
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"s1mass", 24, 110, 140,
+						"s1mass", 24, 110, 130,
 						"tanB", 1, 0, 0, Size, DPI, "Heatmap","s1mass")
 			if c_par != "s1comp":
 				pltctr+=1	# s1comp v s1mass, what drives survival (exclude s1comp)
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
 						"s1mass", 24, 0, 50,
 						"s1comp", 25, .96, 1, Size, DPI, "Heatmap", "s1mass")	
+			# possibly kappa v lambda c mueff
+			
 	if DO_MISC:
 		print(Time(),"\tComparing LO p1mamss")
 		pltctr+=1
-		SinglePlot(pltctr, "p1mass", 30, 0,500,
-				"rt n 3 k Ak mueff div lambda", 0, 0,500,
+		SinglePlot(pltctr, "p1mass", 30, 0,12500,
+				"rt n 3 k Ak mueff div lambda", 0, 0,12500,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
 
 		print(Time(),"\ts2mass v s1mass")
 		pltctr+=1
 		SinglePlot(pltctr, "s1mass", 24, 110, 130,
-				"s2mass", 26, 110,500,
+				"s2mass", 26, 110,12500,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass","")
 	
 		print(Time(),"\ts(1,2,3)comp v s1mass")
 		pltctr+=1
 		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
 		comp_color_scheme = ['red','green','blue']
-		for fx,out_file_matrix in enumerate(master_list):	
-			for color,(comp,cix) in enumerate(comp_list[0:3]):
-				if fx == 0:
-					ax.scatter( [r[24] for r in out_file_matrix], [r[cix] for r in out_file_matrix],
-						alpha=1, color=comp_color_scheme[color], s=Size[fx], label=comp, 
-						marker=',', linewidths=0)
-				else:
-					ax.scatter( [r[24] for r in out_file_matrix], [r[cix] for r in out_file_matrix],
-						alpha=1, color=comp_color_scheme[color], s=Size[fx], 
-						marker=',', linewidths=0)
-		plt.title("s(1,2,3)comp v s1mass")
+#		for fx,out_file_matrix in enumerate(master_list):	# master_list[-1] <--> out_file_matrix
+		for color,(comp,cix) in enumerate(comp_list[0:3]):
+			ax.scatter( [r[24] for r in master_list[-1]], [r[cix] for r in master_list[-1]],
+				alpha=1, color=comp_color_scheme[color], s=Size[0], label=comp, 
+				marker=',', linewidths=0)
+		plt.title(file_prefix+" : s(1,2,3)comp v s1mass")
 		plt.ylabel("s(1,2,3)comp")
 		plt.xlabel("s1mass")
 		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
 		for x in range(len(comp_color_scheme)): leg.legend_handles[x]._sizes = [10]
 		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s123comp_v_s1mass.png".format(save_dir_name),dpi=DPI)
+		plt.xlim(110,130)
+		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s123comp_v_s1mass_zoom.png".format(save_dir_name),dpi=DPI)
 		plt.close()		
 
 
@@ -329,11 +328,14 @@ for file_index,out_file_name in enumerate(file_names):
 		ctr_lighthiggs = 0
 		print("{}\tReading in\t{}".format(Time(), out_file_name))
 		for indexrow,fullrow in enumerate(f_reader):
+			if indexrow%10000==0: print(indexrow)
 			row = [0] # trim out strange spacing ---> this used to be the event number
 			for val in fullrow:
 				if val != "": row.append(float(val))
 			out_file_matrix.append(row)
-			#continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
+			
+			continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
+			
 			params = row[1:24]
 			shiggs = row[24:30] # s1mass s1comp s2mass s2comp s3mass s3comp
 			phiggs = row[30:34] # p1mass p1comp p2mass p2comp
