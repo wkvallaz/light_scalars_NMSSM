@@ -326,7 +326,11 @@
        NFAIL(I)=0
       ENDDO
       TOT=0
-
+! - wolf
+      DO I=1,NPROB
+       NUMPROB(I)=0d0
+      ENDDO
+      
 *   Reading of the input parameters
 
       CALL INPUT(PAR,NPAR)
@@ -810,7 +814,6 @@
 
       DO I=1,NPROB
        PROB(I)=0d0
-       NUMPROB(I)=0d0
       ENDDO
       IFAIL=0
 
@@ -1046,6 +1049,7 @@
        IF(PROB(I).NE.0d0)THEN
 !        WRITE(0,*)"PROB",I,PROB(I)
 	NUMPROB(I)=NUMPROB(I)+1d0
+!        WRITE(0,*)"NUMPROB(I) ",NUMPROB(I)
         IFAIL=10
        ENDIF
       ENDDO
@@ -1125,10 +1129,6 @@ c      CALL FTPAR(PAR,0)
       ENDIF
 
       ENDDO
-
-!      DO I=1,88
-!       NUMPROB(I)=NUMPROB(I)+PROB(I)
-!      ENDDO
 
 *   Summary of the scanning:
 *   Number of points that passed/failed the tests
