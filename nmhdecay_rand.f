@@ -224,7 +224,8 @@
 
       INTEGER NFL,NPROB,NPAR
       PARAMETER (NFL=14,NPROB=88,NPAR=25)
-      INTEGER NFAIL(NFL),IFAIL,DIFAIL,I,IMAX,TOT,ITOT
+! - WOLF
+      INTEGER NFAIL(NFL),IFAIL,DIFAIL,I,IMAX,TOT,ITOT,NUMPROB(NPROB)
       INTEGER M1FLAG,M2FLAG,M3FLAG,MHDFLAG,MHUFLAG,MSFLAG
       INTEGER AKFLAG,ALFLAG,OMGFLAG,MAFLAG,MOFLAG,PFLAG,GMUFLAG
       INTEGER HFLAG,NMSFLAG,UNCERTFLAG,GRFLAG,MWFLAG,CFLAG(6)
@@ -233,8 +234,8 @@
       INTEGER NAU3,NAD3,NAE3,NAE2,NML3,NML2,NME3
       INTEGER NME2,NMQ3,NMQ2,NMU3,NMU2,NMD3,NMD2
       INTEGER IND,strlen
-! - WOLF
-      DOUBLE PRECISION PAR(NPAR),PROB(NPROB),NUMPROB(NPROB),RAN2
+
+      DOUBLE PRECISION PAR(NPAR),PROB(NPROB),RAN2
       DOUBLE PRECISION LMIN,LMAX,KMIN,KMAX,TBMIN,TBMAX,MUMIN,MUMAX
       DOUBLE PRECISION ALMIN,ALMAX,AKMIN,AKMAX,XIFMIN,XIFMAX
       DOUBLE PRECISION XISMIN,XISMAX,MUPMIN,MUPMAX,MSPMIN,MSPMAX
@@ -328,7 +329,7 @@
       TOT=0
 ! - wolf
       DO I=1,NPROB
-       NUMPROB(I)=0d0
+       NUMPROB(I)=0
       ENDDO
       
 *   Reading of the input parameters
@@ -1049,7 +1050,7 @@
        IF(PROB(I).NE.0d0)THEN
 !        WRITE(0,*)"PROB",I,PROB(I)
 ! - wolf
-	NUMPROB(I)=NUMPROB(I)+1d0
+	NUMPROB(I)=NUMPROB(I)+1
 !        WRITE(0,*)"NUMPROB(I) ",NUMPROB(I)
         IFAIL=10
        ENDIF
@@ -1856,8 +1857,8 @@ c      CALL FTPAR(PAR,0)
       IMPLICIT NONE
 
       CHARACTER CHAN*20
-
-      INTEGER NBIN,I,NRES,IRES,GRFLAG,NSUSY,NGUT,NMES,IMAX,IFAIL
+! add mres - wolf
+      INTEGER NBIN,I,NRES,IRES,GRFLAG,NSUSY,NGUT,NMES,IMAX,IFAIL,MRES
       PARAMETER (NSUSY=14,NGUT=21,NMES=21,IMAX=200)
 
       DOUBLE PRECISION RES(IMAX),PAR(*),PROB(*),SIG(5,8),R
@@ -2175,7 +2176,8 @@ c      CALL FTPAR(PAR,0)
 
       IRES=23
       NRES=49+IRES
-
+      MRES=8+NRES
+! - WOLF
       RES(1)=PAR(3)           !TB
       RES(2)=PAR(20)          !M1
       RES(3)=PAR(21)          !M2
@@ -2199,52 +2201,56 @@ c      CALL FTPAR(PAR,0)
       RES(21)=PAR(5)          !AL
       RES(22)=PAR(6)          !AK
       RES(23)=PAR(4)          !MU
-
+! add comps to out st. ~(mass u d s) not just (m s) for each - wolf
       DO I=1,3
-       RES(IRES-1+2*I)=SMASS(I)
-       RES(IRES+2*I)=SCOMP(I,3)**2
+       RES(IRES-3+4*I)=SMASS(I)
+       RES(IRES-2+4*I)=SCOMP(I,1)**2
+       RES(IRES-1+4*I)=SCOMP(I,2)**2
+       RES(IRES+4*I)=SCOMP(I,3)**2
       ENDDO
 ! correction to pmass component, used to be 1 and 1,2 - wolf
+! outs now (mass Acomp Scomp) not just (mass Scomp) - wolf
       DO I=1,2
-       RES(IRES+5+2*I)=PMASS(I)
-       RES(IRES+6+2*I)=PCOMP(I,2)**2
+       RES(IRES+4+6+3*I)=PMASS(I)
+       RES(IRES+5+6+3*I)=PCOMP(I,1)**2
+       RES(IRES+6+6+3*I)=PCOMP(I,2)**2
       ENDDO
-      RES(IRES+11)=CMASS
+      RES(IRES+11+8)=CMASS
       DO I=1,3
-       RES(IRES+8+4*I)=DABS(MNEU(I))
-       RES(IRES+9+4*I)=NEU(I,1)**2
-       RES(IRES+10+4*I)=NEU(I,3)**2+NEU(I,4)**2
-       RES(IRES+11+4*I)=NEU(I,5)**2
+       RES(IRES+8+8+4*I)=DABS(MNEU(I))
+       RES(IRES+9+8+4*I)=NEU(I,1)**2
+       RES(IRES+10+8+4*I)=NEU(I,3)**2+NEU(I,4)**2
+       RES(IRES+11+8+4*I)=NEU(I,5)**2
       ENDDO
-      RES(IRES+24)=DABS(MCHA(1))
-      RES(IRES+25)=MGL
-      RES(IRES+26)=MIN(MUL,MUR,MDL,MDR)
-      RES(IRES+27)=MST1
-      RES(IRES+28)=MSB1
-      RES(IRES+29)=MLL
-      RES(IRES+30)=MNL
-      RES(IRES+31)=MSL1
-      RES(IRES+32)=MSNT
-      RES(IRES+33)=MWNMSSM
-      RES(IRES+34)=delmagmu
-      RES(IRES+35)=csPsi
-      RES(IRES+36)=BRHHH(1)
-      RES(IRES+37)=BRBB(1)
-      RES(IRES+38)=BRLL(1)
-      RES(IRES+39)=BRGG(1)
-      RES(IRES+40)=BRHAA(1,1)
-      RES(IRES+41)=BRNEU(1,1,1)
-      RES(IRES+42)=brcharsnt1(1)  ! BR(cha1 -> tau snutau)
-      RES(IRES+43)=2d0*brcharsne1(1)  ! BR(cha1 -> l snul)
-      RES(IRES+44)=brcharwneut(1,1)+2d0*brnupdb(1,1)+brntopbb(1,1)
+      RES(IRES+24+8)=DABS(MCHA(1))
+      RES(IRES+25+8)=MGL
+      RES(IRES+26+8)=MIN(MUL,MUR,MDL,MDR)
+      RES(IRES+27+8)=MST1
+      RES(IRES+28+8)=MSB1
+      RES(IRES+29+8)=MLL
+      RES(IRES+30+8)=MNL
+      RES(IRES+31+8)=MSL1
+      RES(IRES+32+8)=MSNT
+      RES(IRES+33+8)=MWNMSSM
+      RES(IRES+34+8)=delmagmu
+      RES(IRES+35+8)=csPsi
+      RES(IRES+36+8)=BRHHH(1)
+      RES(IRES+37+8)=BRBB(1)
+      RES(IRES+38+8)=BRLL(1)
+      RES(IRES+39+8)=BRGG(1)
+      RES(IRES+40+8)=BRHAA(1,1)
+      RES(IRES+41+8)=BRNEU(1,1,1)
+      RES(IRES+42+8)=brcharsnt1(1)  ! BR(cha1 -> tau snutau)
+      RES(IRES+43+8)=2d0*brcharsne1(1)  ! BR(cha1 -> l snul)
+      RES(IRES+44+8)=brcharwneut(1,1)+2d0*brnupdb(1,1)+brntopbb(1,1)
      .          +brnelnue(1,1)+brnmunumu(1,1)+brntaunut(1,1)  ! BR(cha1 -> neu1 W)
-      RES(IRES+45)=brcharstau1(1)  ! BR(cha1 ->  stau nutau)
-      RES(IRES+46)=2d0*brcharsel(1)  ! BR(cha1 -> sel nu)
-      RES(IRES+47)=brneutHneut(2,1,1)  ! BR(neu2 -> neu1 H1)
-      RES(IRES+48)=SIG(1,8)
-      RES(IRES+49)=R
+      RES(IRES+45+8)=brcharstau1(1)  ! BR(cha1 ->  stau nutau)
+      RES(IRES+46+8)=2d0*brcharsel(1)  ! BR(cha1 -> sel nu)
+      RES(IRES+47+8)=brneutHneut(2,1,1)  ! BR(neu2 -> neu1 H1)
+      RES(IRES+48+8)=SIG(1,8)
+      RES(IRES+49+8)=R
 
-      WRITE(16,11)(RES(I),I=1,NRES)
+      WRITE(16,11)(RES(I),I=1,MRES)
  11   FORMAT(200E14.6)
 
       END
@@ -2259,12 +2265,12 @@ c      CALL FTPAR(PAR,0)
 *********************************************************************
 
       IMPLICIT NONE
-
-      INTEGER I,S,TOT,NTOT,NFAIL(*),GMUFLAG,HFLAG,MWFLAG
+! - wolf
+      INTEGER I,S,TOT,NTOT,NFAIL(*),GMUFLAG,HFLAG,MWFLAG,NUMPROB(*)
       INTEGER CFLAG(6),M1FLAG,M2FLAG,M3FLAG,MHDFLAG,MHUFLAG
       INTEGER MSFLAG,AKFLAG,ALFLAG,OMGFLAG,MAFLAG,MOFLAG
-! - wolf
-      DOUBLE PRECISION LN,LNN,KN,KNN,TBN,TBNN,MUN,MUNN,NUMPROB(*)
+
+      DOUBLE PRECISION LN,LNN,KN,KNN,TBN,TBNN,MUN,MUNN
       DOUBLE PRECISION ALN,ALNN,AKN,AKNN,XIFN,XIFNN
       DOUBLE PRECISION XISN,XISNN,MUPN,MUPNN,MSPN,MSPNN
       DOUBLE PRECISION M3HN,M3HNN,MAN,MANN,MPN,MPNN

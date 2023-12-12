@@ -12,9 +12,9 @@ import sys
 ## currently have CMYK automatically set as True, not needed in arguments
 argv = sys.argv
 
-DO_PARAM = 0
-DO_MASS = 0
-DO_COMP = 0
+DO_PARAM = 1
+DO_MASS = 1
+DO_COMP = 1
 DO_HEAT = 1 
 DO_MISC = 1
 #file_prefix = "--"# widep
@@ -207,8 +207,8 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		DPI = 480
 	pltctr = 0
 	par_list = [ ("lambda",19), ("kappa",20), ("Alambda",21), ("mueff",23), ("Akappa",22), ("tanB",1) ] 
-	mass_list = [ ("s1mass",24), ("s2mass",26), ("s3mass",28), ("p1mass",30), ("p2mass",32), ("cmass",34) ]
-	comp_list = [ ("s1comp",25), ("s2comp",27), ("s3comp",29), ("p1comp",31), ("p2comp",33) ]
+	mass_list = [ ("s1mass",24), ("s2mass",28), ("s3mass",32), ("p1mass",36), ("p2mass",39), ("cmass",42) ]
+	comp_list = [ ("s1comp",27), ("s2comp",31), ("s3comp",35), ("p1comp",38), ("p2comp",41) ]#sing comp
 	heatmap_list = [#"viridis", "plasma", 
 			"inferno", "magma", #"cividis",
 			"brg", "rainbow","jet","turbo"] # viridis, plasma, cividis read poorly
@@ -261,39 +261,39 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 				pltctr+=1	# s1comp v s1mass, what drives survival (exclude s1comp)
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
 						"s1mass", 24, 0, 50,
-						"s1comp", 25, .96, 1, Size, DPI, "Heatmap", "s1mass")	
+						"s1comp", 27, .96, 1, Size, DPI, "Heatmap", "s1mass")	
 			# possibly kappa v lambda c mueff
 			
 	if DO_MISC:
 		print(Time(),"\tComparing LO p1mamss")
 		pltctr+=1
-		SinglePlot(pltctr, "p1mass", 30, 0,12500,
+		SinglePlot(pltctr, "p1mass", 36, 0,12500,
 				"rt n 3 k Ak mueff div lambda", 0, 0,12500,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
 
 		print(Time(),"\ts2mass v s1mass")
 		pltctr+=1
 		SinglePlot(pltctr, "s1mass", 24, 110, 130,
-				"s2mass", 26, 110,12500,
+				"s2mass", 28, 110,12500,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass","")
 	
-		print(Time(),"\ts(1,2,3)comp v s1mass")
+		print(Time(),"\ts1(u,d,s)comp v s1mass")
 		pltctr+=1
 		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
-		comp_color_scheme = ['red','green','blue']
+		comp_color_scheme = ['magenta','cyan','yellow']
 #		for fx,out_file_matrix in enumerate(master_list):	# master_list[-1] <--> out_file_matrix
-		for color,(comp,cix) in enumerate(comp_list[0:3]):
+		for color,(comp,cix) in enumerate([("s1ucomp",25),("s1dcomp",26),("s1scomp",27)]):
 			ax.scatter( [r[24] for r in master_list[-1]], [r[cix] for r in master_list[-1]],
-				alpha=1, color=comp_color_scheme[color], s=Size[0], label=comp, 
+				alpha=0.7, color=comp_color_scheme[color], s=Size[0], label=comp, 
 				marker=',', linewidths=0)
-		plt.title(file_prefix+" : s(1,2,3)comp v s1mass")
-		plt.ylabel("s(1,2,3)comp")
+		plt.title(file_prefix+" : s1(u,d,s)comp v s1mass")
+		plt.ylabel("s1(u,d,s)comp")
 		plt.xlabel("s1mass")
 		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
 		for x in range(len(comp_color_scheme)): leg.legend_handles[x]._sizes = [10]
-		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s123comp_v_s1mass.png".format(save_dir_name),dpi=DPI)
+		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s1udscomp_v_s1mass.png".format(save_dir_name),dpi=DPI)
 		plt.xlim(110,130)
-		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s123comp_v_s1mass_zoom.png".format(save_dir_name),dpi=DPI)
+		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s1udscomp_v_s1mass_zoom.png".format(save_dir_name),dpi=DPI)
 		plt.close()		
 
 
