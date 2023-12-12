@@ -1048,6 +1048,7 @@
       DO I=1,NPROB
        IF(PROB(I).NE.0d0)THEN
 !        WRITE(0,*)"PROB",I,PROB(I)
+! - wolf
 	NUMPROB(I)=NUMPROB(I)+1d0
 !        WRITE(0,*)"NUMPROB(I) ",NUMPROB(I)
         IFAIL=10
@@ -1135,7 +1136,7 @@ c      CALL FTPAR(PAR,0)
 *   and range for scanned parameters
 
       CALL ERROR(TOT,NTOT,NFAIL,NUMPROB)
-
+! - wolf
       CLOSE(16)
       CLOSE(17)
 
@@ -2250,7 +2251,7 @@ c      CALL FTPAR(PAR,0)
 
 
       SUBROUTINE ERROR(TOT,NTOT,NFAIL,NUMPROB)
-
+! - wolf
 *********************************************************************
 *   Subroutine for the error file. It contains a summary of the scan:
 *   Number of points that passed/failed the tests
@@ -2262,7 +2263,7 @@ c      CALL FTPAR(PAR,0)
       INTEGER I,S,TOT,NTOT,NFAIL(*),GMUFLAG,HFLAG,MWFLAG
       INTEGER CFLAG(6),M1FLAG,M2FLAG,M3FLAG,MHDFLAG,MHUFLAG
       INTEGER MSFLAG,AKFLAG,ALFLAG,OMGFLAG,MAFLAG,MOFLAG
-
+! - wolf
       DOUBLE PRECISION LN,LNN,KN,KNN,TBN,TBNN,MUN,MUNN,NUMPROB(*)
       DOUBLE PRECISION ALN,ALNN,AKN,AKNN,XIFN,XIFNN
       DOUBLE PRECISION XISN,XISNN,MUPN,MUPNN,MSPN,MSPNN
@@ -2418,7 +2419,7 @@ c      CALL FTPAR(PAR,0)
        WRITE(17,30)" MU2: ",MU2N,MU2NN,DEV(MU2N,MU2NN)
        WRITE(17,30)" MD3: ",MD3N,MD3NN,DEV(MD3N,MD3NN)
        WRITE(17,30)" MD2: ",MD2N,MD2NN,DEV(MD2N,MD2NN)
-       
+! - wolf
        WRITE(17,*)
        WRITE(17,*)"I NUMPROB(I)"
        DO I=1,88
