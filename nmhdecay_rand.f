@@ -1045,6 +1045,7 @@
       DO I=1,NPROB
        IF(PROB(I).NE.0d0)THEN
 !        WRITE(0,*)"PROB",I,PROB(I)
+	NUMPROB(I)=NUMPROB(I)+1d0
         IFAIL=10
        ENDIF
       ENDDO
@@ -1125,9 +1126,9 @@ c      CALL FTPAR(PAR,0)
 
       ENDDO
 
-      DO I=1,88
-       NUMPROB(I)=NUMPROB(I)+PROB(I)
-      ENDDO
+!      DO I=1,88
+!       NUMPROB(I)=NUMPROB(I)+PROB(I)
+!      ENDDO
 
 *   Summary of the scanning:
 *   Number of points that passed/failed the tests
