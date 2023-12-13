@@ -195,7 +195,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			  'T123' ]
 		NC = len(Label)
 		Color =[(.8,.8,.8), (.5,1,1), (1,.5,1), (1,1,.5),
-			(0,1,1), (1,0,1), (1,1,0),
+			(0,.9,.9), (.9,0,.9), (.9,.9,0),
 			(.2,.6,1), (.125,1,.125), (1,.125,.125),
 			(0,0,.9), (0,.6,0), (.6,0,0), (.4,.4,.4), 
 			(0,0,0)]
@@ -280,11 +280,11 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		print(Time(),"\ts1(u,d,s)comp v s1mass")
 		pltctr+=1
 		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
-		comp_color_scheme = ['magenta','cyan','yellow']
+		comp_color_scheme = [(.9,0,.9),(0,.9,.9),(.9,.9,0)]
 #		for fx,out_file_matrix in enumerate(master_list):	# master_list[-1] <--> out_file_matrix
 		for color,(comp,cix) in enumerate([("s1ucomp",25),("s1dcomp",26),("s1scomp",27)]):
 			ax.scatter( [r[24] for r in master_list[-1]], [r[cix] for r in master_list[-1]],
-				alpha=0.7, color=comp_color_scheme[color], s=Size[0], label=comp, 
+				alpha=0.7, color=comp_color_scheme[color], s=3, label=comp, 
 				marker=',', linewidths=0)
 		plt.title(file_prefix+" : s1(u,d,s)comp v s1mass")
 		plt.ylabel("s1(u,d,s)comp")
