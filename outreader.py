@@ -280,7 +280,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		print(Time(),"\ts1(u,d,s)comp v s1mass")
 		pltctr+=1
 		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
-		comp_color_scheme = [(.9,0,.9),(0,.9,.9),(.9,.9,0)]
+		comp_color_scheme = [(.9,0,.9),(0,.85,.85),(.9,.9,0)]
 #		for fx,out_file_matrix in enumerate(master_list):	# master_list[-1] <--> out_file_matrix
 		for color,(comp,cix) in enumerate([("s1ucomp",25),("s1dcomp",26),("s1scomp",27)]):
 			ax.scatter( [r[24] for r in master_list[-1]], [r[cix] for r in master_list[-1]],
@@ -408,22 +408,22 @@ if CMYK:
 		bs1 = Set(file_matrices[1])
 		bs2 = Set(file_matrices[2])
 		bs3 = Set(file_matrices[3])
-		print("Len. bsT:",len(bsT)/1)
-		print("     bs1:",len(bs1)/1)
-		print("     bs2:",len(bs2)/1)
-		print("     bs3:",len(bs3)/1)
+		print("bsT:",int(len(bsT)),end=" -")
+		print("bs1:",int(len(bs1)),end=" -")
+		print("bs2:",int(len(bs2)),end=" -")
+		print("bs3:",int(len(bs3)))
 	
 		sT123 = bsT & bs1 & bs2 & bs3 			# union all constraints
-		print("   sT123:",len(sT123)/1)
+		print("sT123:",int(len(sT123)))
 
 		sT12 = (bsT & bs1 & bs2).difference(sT123) 	# surv.d exactly 3 con.s
 		sT13 = (bsT & bs1 & bs3).difference(sT123)
 		sT23 = (bsT & bs2 & bs3).difference(sT123)
 		s123 = (bs1 & bs2 & bs3).difference(sT123)
-		print("    sT12:",len(sT12)/1)
-		print("    sT13:",len(sT13)/1)
-		print("    sT23:",len(sT23)/1)
-		print("    s123:",len(s123)/1)
+		print("sT12:",len(sT12),end=" -=")
+		print("sT13:",len(sT13),end=" -=")
+		print("sT23:",len(sT23),end=" -=")
+		print("s123:",len(s123))
 
 		sT1 = (bsT & bs1).difference(bs2,bs3)		# surv.d exactly 2 con.s
 		sT2 = (bsT & bs2).difference(bs1,bs3)
@@ -431,21 +431,21 @@ if CMYK:
 		s12 = (bs1 & bs2).difference(bsT,bs3)
 		s13 = (bs1 & bs3).difference(bsT,bs2)
 		s23 = (bs2 & bs3).difference(bsT,bs1)
-		print("     sT1:",len(sT1)/1)
-		print("     sT2:",len(sT2)/1)
-		print("     sT3:",len(sT3)/1)
-		print("     s12:",len(s12)/1)
-		print("     s13:",len(s13)/1)
-		print("     s23:",len(s23)/1)
+		print("sT1:",int(len(sT1)),end=" -=-")
+		print("sT2:",int(len(sT2)),end=" -=-")
+		print("sT3:",int(len(sT3)),end=" -=-")
+		print("s12:",int(len(s12)),end=" -=-")
+		print("s13:",int(len(s13)),end=" -=-")
+		print("s23:",int(len(s23)))
 
 		sT = bsT.difference(bs1,bs2,bs3)		# surv.d exactly 1 con.
 		s1 = bs1.difference(bsT,bs2,bs3)
 		s2 = bs2.difference(bsT,bs1,bs3)
 		s3 = bs3.difference(bsT,bs1,bs2)
-		print("      sT:",len(sT)/1)
-		print("      s1:",len(s1)/1)
-		print("      s2:",len(s2)/1)
-		print("      s3:",len(s3)/1)
+		print("sT:",int(len(sT)),end=" -=- ")
+		print("s1:",int(len(s1)),end=" -=- ")
+		print("s2:",int(len(s2)),end=" -=- ")
+		print("s3:",int(len(s3)))
 	# DNE events with 0 con.s since all input events are assumed to have exactly 1 con.
 
 		master_list = [	List(sT), List(s1), List(s2), List(s3),
