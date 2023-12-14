@@ -12,10 +12,10 @@ import sys
 ## currently have CMYK automatically set as True, not needed in arguments
 argv = sys.argv
 
-DO_PARAM = 1
-DO_MASS = 1
-DO_COMP = 1
-DO_HEAT = 1 
+DO_PARAM = 0
+DO_MASS = 0
+DO_COMP = 0
+DO_HEAT = 0 
 DO_MISC = 1
 #file_prefix = "--"# widep
 file_prefix = argv[1]
