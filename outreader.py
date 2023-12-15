@@ -236,11 +236,11 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp, jus c_l v all comps
 				pltctr+=1
 				if "s1" in h_mass: (mmin, mmax) = (110.0, 130.0)#LHC window
-				elif "s2" in h_mass: (mmin, mmax) = (0, 12500) #wide 1250, spec2 800
-				elif "s3" in h_mass: (mmin, mmax) = (0, 35000)#wide 37.5k, spec2 7.5k
-				elif "p1" in h_mass: (mmin, mmax) = (0, 12500) #wide 10k, spec2 2k
-				elif "p2" in h_mass: (mmin, mmax) = (0, 35000)#wide 32k, spec2 7500
-				elif "c" in h_mass: (mmin, mmax)=(0,35000)
+				elif "s2" in h_mass: (mmin, mmax) = (0, 1000) #wide 1250, spec2 800
+				elif "s3" in h_mass: (mmin, mmax) = (0, 300)#wide 37.5k, spec2 7.5k
+				elif "p1" in h_mass: (mmin, mmax) = (0, 100) #wide 10k, spec2 2k
+				elif "p2" in h_mass: (mmin, mmax) = (0, 1000)#wide 32k, spec2 7500
+				elif "c" in h_mass: (mmin, mmax)=(0,1000)
 				SinglePlot(pltctr,h_mass, hix, mmin, mmax,
 						param, pix, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)	
@@ -275,14 +275,14 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 	if DO_MISC:
 		print(Time(),"\tComparing LO p1mamss")
 		pltctr+=1
-		SinglePlot(pltctr, "p1mass", 36, 0,12500,
-				"rt n 3 k Ak mueff div lambda", 0, 0,12500,
+		SinglePlot(pltctr, "p1mass", 36, 0,1000,
+				"rt n 3 k Ak mueff div lambda", 0, 0,1000,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
 
 		print(Time(),"\ts2mass v s1mass")
 		pltctr+=1
 		SinglePlot(pltctr, "s1mass", 24, 110, 130,
-				"s2mass", 28, 110,12500,
+				"s2mass", 28, 110,1000,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass","")
 	
 		print(Time(),"\ts1(u,d,s)comp v s1mass")
@@ -453,22 +453,22 @@ if CMYK:
 		bs1 = Set(file_matrices[1])
 		bs2 = Set(file_matrices[2])
 		bs3 = Set(file_matrices[3])
-		print("bsT:\t",int(len(bsT)),end="\t")
-		print("bs1:\t",int(len(bs1)),end="\t")
-		print("bs2:\t",int(len(bs2)),end="\t")
-		print("bs3:\t",int(len(bs3)))
+		print("bsT\t",int(len(bsT)),end="\t|")
+		print("bs1\t",int(len(bs1)),end="\t|")
+		print("bs2\t",int(len(bs2)),end="\t|")
+		print("bs3\t",int(len(bs3)))
 	
 		sT123 = bsT & bs1 & bs2 & bs3 			# union all constraints
-		print("sT123:\t",int(len(sT123)))
+		print("sT123\t",int(len(sT123)))
 
 		sT12 = (bsT & bs1 & bs2).difference(sT123) 	# surv.d exactly 3 con.s
 		sT13 = (bsT & bs1 & bs3).difference(sT123)
 		sT23 = (bsT & bs2 & bs3).difference(sT123)
 		s123 = (bs1 & bs2 & bs3).difference(sT123)
-		print("sT12:\t",len(sT12),end="\t")
-		print("sT13:\t",len(sT13),end="\t")
-		print("sT23:\t",len(sT23),end="\t")
-		print("s123:\t",len(s123))
+		print("sT12\t",len(sT12),end="\t|")
+		print("sT13\t",len(sT13),end="\t|")
+		print("sT23\t",len(sT23),end="\t|")
+		print("s123\t",len(s123))
 
 		sT1 = (bsT & bs1).difference(bs2,bs3)		# surv.d exactly 2 con.s
 		sT2 = (bsT & bs2).difference(bs1,bs3)
@@ -476,21 +476,21 @@ if CMYK:
 		s12 = (bs1 & bs2).difference(bsT,bs3)
 		s13 = (bs1 & bs3).difference(bsT,bs2)
 		s23 = (bs2 & bs3).difference(bsT,bs1)
-		print("sT1:\t",int(len(sT1)),end="\t")
-		print("sT2:\t",int(len(sT2)),end="\t")
-		print("sT3:\t",int(len(sT3)),end="\t")
-		print("s12:\t",int(len(s12)),end="\t")
-		print("s13:\t",int(len(s13)),end="\t")
-		print("s23:\t",int(len(s23)))
+		print("sT1\t",int(len(sT1)),end="\t|")
+		print("sT2\t",int(len(sT2)),end="\t|")
+		print("sT3\t",int(len(sT3)),end="\t|")
+		print("s12\t",int(len(s12)),end="\t|")
+		print("s13\t",int(len(s13)),end="\t|")
+		print("s23\t",int(len(s23)))
 
 		sT = bsT.difference(bs1,bs2,bs3)		# surv.d exactly 1 con.
 		s1 = bs1.difference(bsT,bs2,bs3)
 		s2 = bs2.difference(bsT,bs1,bs3)
 		s3 = bs3.difference(bsT,bs1,bs2)
-		print("sT:\t",int(len(sT)),end="\t")
-		print("s1:\t",int(len(s1)),end="\t")
-		print("s2:\t",int(len(s2)),end="\t")
-		print("s3:\t",int(len(s3)))
+		print("sT\t",int(len(sT)),end="\t|")
+		print("s1\t",int(len(s1)),end="\t|")
+		print("s2\t",int(len(s2)),end="\t|")
+		print("s3\t",int(len(s3)))
 	# DNE events with 0 con.s since all input events are assumed to have exactly 1 con.
 
 		master_list = [	List(sT), List(s1), List(s2), List(s3),
