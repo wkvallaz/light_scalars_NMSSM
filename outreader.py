@@ -25,8 +25,8 @@ file_prefix = argv[1]
 file_tags = ['THY','LEP','LHC','BKF']
 file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
 
-def Time():
-	return time() - start_time
+def Time(): #current runtime to 10ms place
+	return round(time() - start_time,2)
 											# DIR+OW #
 #save_dir_name = input("Where would you like to store the scrape?: ")			##########
 save_dir_name = argv[2]
@@ -475,7 +475,7 @@ if CMYK:
 		print("bs3\t",int(len(bs3)))
 	
 		sT123 = bsT & bs1 & bs2 & bs3 			# union all constraints
-		print("sT123\t",int(len(sT123)))
+		print("sT123\t",int(len(sT123)),end="\t|\t.\t|\t.\t|\t.\n")
 
 		sT12 = (bsT & bs1 & bs2).difference(sT123) 	# surv.d exactly 3 con.s
 		sT13 = (bsT & bs1 & bs3).difference(sT123)
@@ -494,10 +494,10 @@ if CMYK:
 		s23 = (bs2 & bs3).difference(bsT,bs1)
 		print("sT1\t",int(len(sT1)),end="\t|")
 		print("sT2\t",int(len(sT2)),end="\t|")
-		print("sT3\t",int(len(sT3)),end="\t|")
-		print("s12\t",int(len(s12)),end="\t|")
+		print("sT3\t",int(len(sT3)),end="\t|\t.")
+		print("\ns12\t",int(len(s12)),end="\t|")
 		print("s13\t",int(len(s13)),end="\t|")
-		print("s23\t",int(len(s23)))
+		print("s23\t",int(len(s23)),end="\t|\t.\n")
 
 		sT = bsT.difference(bs1,bs2,bs3)		# surv.d exactly 1 con.
 		s1 = bs1.difference(bsT,bs2,bs3)
