@@ -2431,7 +2431,7 @@ c      CALL FTPAR(PAR,0)
        WRITE(17,*)
        WRITE(17,*)"I NUMPROB(I)"
        DO I=1,88
-        WRITE(17,*)I,NUMPROB(I)
+	IF(NUMPROB(I).NE.0)WRITE(17,*)I,NUMPROB(I)
        ENDDO
 
       ENDIF
