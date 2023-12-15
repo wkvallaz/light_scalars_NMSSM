@@ -84,16 +84,21 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 
 	def Col(index,matrix): #array generator statement which pulls column 'index' from  ea row of 'matrix'
 		return [r[index] for r in matrix]
-
+	if "comp" in ypar:
+		y_expon = 2
+	else:
+		y_expon = 1
 	#fig,ax = plt.subplots
 	plt.figure(pltctr)		#   vvv used to be file_matrices, changed to master_list for m.ex.sets
 	if CMYK: relevant_matrix = master_list
-	else: relevant_matrix = file_matrices		
+	else: relevant_matrix = file_matrices	
+	extralegelem=0	
 	for fx,out_file_matrix in enumerate(relevant_matrix): # file_matrices for RGB, master_list for CMYK
 		if ypar == "rt n 3 k Ak mueff div lambda" or (xpar == "s1mass" and ypar == "s2mass"):
 			if fx==0: # only plot line y = x on the first iter of loop
+				extralegelem=1
 				plt.plot([0,max(Col(xind,file_matrices[0]))],[0,max(Col(xind,file_matrices[0]))],
-					color="gray", alpha=0.5, linestyle="--", linewidth=0.15, label = "y = x")
+					color="gray", alpha=0.5, linestyle="--", linewidth=0.30, label = "y = x")#lw0.15@dpi480
 			# y values described by fn_arr (function array)
 			if ypar == "rt n 3 k Ak mueff div lambda":
 				fn_arr = [ np.sqrt(np.sqrt( (-3*r[20]*r[22]*r[23]/r[19])**2)) for r in out_file_matrix]
@@ -101,16 +106,15 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 				fn_arr = Col(yind, out_file_matrix)
 			plt.scatter(Col(xind,out_file_matrix), fn_arr,
 				alpha=Alpha[fx],color=Color[fx],s=Size[fx],label=Label[fx],marker=',',linewidths=0)
-			
 		else:
-			plt.scatter(Col(xind,out_file_matrix), Col(yind,out_file_matrix),
+			plt.scatter(Col(xind,out_file_matrix), [r[yind]**y_expon for r in out_file_matrix],
 				alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], 
 				marker=',', linewidths=0)
 	plt.title(file_prefix+" : "+ypar+" v "+xpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
 	leg = plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=8, columnspacing=0.7, frameon=False)
-	for x in range(len(Label)): leg.legend_handles[x]._sizes = [10]
+	for x in range(len(Label)+extralegelem): leg.legend_handles[x]._sizes = [10]
 	
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
 		if xpar in ["lambda"]: plt.xlim(0,1)			#  let first plot be 
@@ -153,9 +157,11 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 
 	plt.figure(pltctr)		#   vvv used to be file_matrices, changed to master_list for m.ex.sets
 	if CMYK: relevant_matrix = master_list[-1] #the fully surviving stuff
-	else: relevant_matrix = file_matrices[-1] #just LHC CON		
-	plt.scatter(Col(xind,relevant_matrix), Col(yind,relevant_matrix),
-		c=Col(cind,relevant_matrix), cmap=cmap_n, s=Size[-1], marker=',', linewidths=0)
+	else: relevant_matrix = file_matrices[-1] #just LHC CON
+	if "comp" in ypar: y_expon = 2
+	else: y_expon = 1		
+	plt.scatter([r[xind] for r in relevant_matrix], [r[yind]**y_expon for r in relevant_matrix],
+		  c=[r[cind] for r in relevant_matrix], cmap=cmap_n, s=Size[-1], marker=',', linewidths=0)
 	plt.title(file_prefix+" : "+ypar+" v "+xpar+" c "+cpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
@@ -186,7 +192,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		#Size = [0,6,5,4] #ALPHA-STACK SIZING
 		LOC = "center"
 		BBOX_TO_ANCHOR = [0.475,1.105]
-		DPI = 480
+		DPI = 240
 	else: #this is== if CMYK
 		#Label = ["0:None", "1:LEP", "2:LHC", "3:Flav", "12", "13", "23", "123"]
 		Label = [ 'T','1','2','3',
@@ -201,13 +207,15 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			(0,0,0)]
 
 		Alpha = [1 for x in range(NC)]
-		Size= [.04 for x in range(NC)]#.25 when doing 8 colors
+		Size= [.1 for x in range(NC)]#.25 when doing 8 colors
 		LOC = "center"
 		BBOX_TO_ANCHOR = [0.475,1.105]
-		DPI = 480
+		DPI = 240 #for very long time operating at 480 DPI, @1730_14dec23 changed to 240
+		######## IF DPI @ 480, SIZE OF 0.04 OK. IF DPI @ 240, DOTS DO NOT RENDER @ THAT SIZE. INC TO 0.1
 	pltctr = 0
 	par_list = [ ("lambda",19), ("kappa",20), ("Alambda",21), ("mueff",23), ("Akappa",22), ("tanB",1) ] 
 	mass_list = [ ("s1mass",24), ("s2mass",28), ("s3mass",32), ("p1mass",36), ("p2mass",39), ("cmass",42) ]
+		# after edits to nmhdecay_rand.f these comps are matrix elems not true compositions, need **2
 	comp_list = [ ("s1comp",27), ("s2comp",31), ("s3comp",35), ("p1comp",38), ("p2comp",41) ]#sing comp
 	heatmap_list = [#"viridis", "plasma", 
 			"inferno", "magma", #"cividis",
@@ -283,8 +291,8 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		comp_color_scheme = [(.9,0,.9),(0,.85,.85),(.9,.9,0)]
 #		for fx,out_file_matrix in enumerate(master_list):	# master_list[-1] <--> out_file_matrix
 		for color,(comp,cix) in enumerate([("s1ucomp",25),("s1dcomp",26),("s1scomp",27)]):
-			ax.scatter( [r[24] for r in master_list[-1]], [r[cix] for r in master_list[-1]],
-				alpha=0.7, color=comp_color_scheme[color], s=3, label=comp, 
+			ax.scatter( [r[24] for r in master_list[-1]], [r[cix]**2 for r in master_list[-1]],
+				alpha=0.7, color=comp_color_scheme[color], s=1, label=comp, 
 				marker=',', linewidths=0)
 		plt.title(file_prefix+" : s1(u,d,s)comp v s1mass")
 		plt.ylabel("s1(u,d,s)comp")
@@ -295,6 +303,43 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		plt.xlim(110,130)
 		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s1udscomp_v_s1mass_zoom.png".format(save_dir_name),dpi=DPI)
 		plt.close()		
+
+		print(Time(),"\ts1(h,H,s)comp v s1mass")
+		pltctr+=1
+		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
+		
+		s1hsmcomp_list = list() #hsmcomps,
+		s1Hbsmcomp_list = list() # and Hbsm comps for each event
+		for r in master_list[-1]: #for each event in the set...
+			 		  # calculate its alpha value (h-H mixing) and the comps
+			M2A = 2*r[23]*(r[19]*r[21]+r[20]*r[23])/(r[19]*np.sin(2*np.arctan(r[1])))
+			M2Z = 91.187**2
+			ahH = (1/2)*np.arctan(  (2*r[1]/(1-r[1]**2))*( (M2A+M2Z)/(M2A-M2Z) )  )	
+
+			s1hsmcomp_list.append( r[25]*np.cos(ahH) - r[26]*np.sin(ahH) )
+			s1Hbsmcomp_list.append( r[25]*np.sin(ahH) + r[26]*np.cos(ahH) )
+
+		for color,comp in enumerate(["s1scomp", "s1(hsm)comp", "s1(Hbsm)comp"]):
+			if comp == "s1(hsm)comp":
+				fn_arr = [R**2 for R in s1hsmcomp_list]
+			elif comp == "s1(Hbsm)comp":
+				fn_arr = [R**2 for R in s1Hbsmcomp_list]
+			elif comp == "s1scomp":
+				fn_arr = [r[27]**2 for r in master_list[-1]]
+
+			ax.scatter( [r[24] for r in master_list[-1]], fn_arr,
+				alpha=.7, color=comp_color_scheme[color-1], s=1, label=comp, 
+				marker=',', linewidths=0)
+		plt.title(file_prefix+" : s1(h,H,s)comp v s1mass")
+		plt.ylabel("s1(h,H,s)comp")
+		plt.xlabel("s1mass")
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
+		for x in range(len(comp_color_scheme)): leg.legend_handles[x]._sizes = [10]
+		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s1hHscomp_v_s1mass.png".format(save_dir_name),dpi=DPI)
+		plt.xlim(110,130)
+		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s1hHscomp_v_s1mass_zoom.png".format(save_dir_name),dpi=DPI)
+		plt.close()		
+
 
 
 
@@ -328,7 +373,7 @@ for file_index,out_file_name in enumerate(file_names):
 		ctr_lighthiggs = 0
 		print("{}\tReading in\t{}".format(Time(), out_file_name))
 		for indexrow,fullrow in enumerate(f_reader):
-			if indexrow%10000==0: print(indexrow)
+			if indexrow%100000==0: print(indexrow)
 			row = [0] # trim out strange spacing ---> this used to be the event number
 			for val in fullrow:
 				if val != "": row.append(float(val))
@@ -408,22 +453,22 @@ if CMYK:
 		bs1 = Set(file_matrices[1])
 		bs2 = Set(file_matrices[2])
 		bs3 = Set(file_matrices[3])
-		print("bsT:",int(len(bsT)),end=" -")
-		print("bs1:",int(len(bs1)),end=" -")
-		print("bs2:",int(len(bs2)),end=" -")
-		print("bs3:",int(len(bs3)))
+		print("bsT:\t",int(len(bsT)),end="\t")
+		print("bs1:\t",int(len(bs1)),end="\t")
+		print("bs2:\t",int(len(bs2)),end="\t")
+		print("bs3:\t",int(len(bs3)))
 	
 		sT123 = bsT & bs1 & bs2 & bs3 			# union all constraints
-		print("sT123:",int(len(sT123)))
+		print("sT123:\t",int(len(sT123)))
 
 		sT12 = (bsT & bs1 & bs2).difference(sT123) 	# surv.d exactly 3 con.s
 		sT13 = (bsT & bs1 & bs3).difference(sT123)
 		sT23 = (bsT & bs2 & bs3).difference(sT123)
 		s123 = (bs1 & bs2 & bs3).difference(sT123)
-		print("sT12:",len(sT12),end=" -=")
-		print("sT13:",len(sT13),end=" -=")
-		print("sT23:",len(sT23),end=" -=")
-		print("s123:",len(s123))
+		print("sT12:\t",len(sT12),end="\t")
+		print("sT13:\t",len(sT13),end="\t")
+		print("sT23:\t",len(sT23),end="\t")
+		print("s123:\t",len(s123))
 
 		sT1 = (bsT & bs1).difference(bs2,bs3)		# surv.d exactly 2 con.s
 		sT2 = (bsT & bs2).difference(bs1,bs3)
@@ -431,21 +476,21 @@ if CMYK:
 		s12 = (bs1 & bs2).difference(bsT,bs3)
 		s13 = (bs1 & bs3).difference(bsT,bs2)
 		s23 = (bs2 & bs3).difference(bsT,bs1)
-		print("sT1:",int(len(sT1)),end=" -=-")
-		print("sT2:",int(len(sT2)),end=" -=-")
-		print("sT3:",int(len(sT3)),end=" -=-")
-		print("s12:",int(len(s12)),end=" -=-")
-		print("s13:",int(len(s13)),end=" -=-")
-		print("s23:",int(len(s23)))
+		print("sT1:\t",int(len(sT1)),end="\t")
+		print("sT2:\t",int(len(sT2)),end="\t")
+		print("sT3:\t",int(len(sT3)),end="\t")
+		print("s12:\t",int(len(s12)),end="\t")
+		print("s13:\t",int(len(s13)),end="\t")
+		print("s23:\t",int(len(s23)))
 
 		sT = bsT.difference(bs1,bs2,bs3)		# surv.d exactly 1 con.
 		s1 = bs1.difference(bsT,bs2,bs3)
 		s2 = bs2.difference(bsT,bs1,bs3)
 		s3 = bs3.difference(bsT,bs1,bs2)
-		print("sT:",int(len(sT)),end=" -=- ")
-		print("s1:",int(len(s1)),end=" -=- ")
-		print("s2:",int(len(s2)),end=" -=- ")
-		print("s3:",int(len(s3)))
+		print("sT:\t",int(len(sT)),end="\t")
+		print("s1:\t",int(len(s1)),end="\t")
+		print("s2:\t",int(len(s2)),end="\t")
+		print("s3:\t",int(len(s3)))
 	# DNE events with 0 con.s since all input events are assumed to have exactly 1 con.
 
 		master_list = [	List(sT), List(s1), List(s2), List(s3),

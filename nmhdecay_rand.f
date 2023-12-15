@@ -2202,18 +2202,20 @@ c      CALL FTPAR(PAR,0)
       RES(22)=PAR(6)          !AK
       RES(23)=PAR(4)          !MU
 ! add comps to out st. ~(mass u d s) not just (m s) for each - wolf
+! edit comp outputs to not squared, now is matrix elems, not "composition" as thought normally - wolf
       DO I=1,3
        RES(IRES-3+4*I)=SMASS(I)
-       RES(IRES-2+4*I)=SCOMP(I,1)**2
-       RES(IRES-1+4*I)=SCOMP(I,2)**2
-       RES(IRES+4*I)=SCOMP(I,3)**2
+       RES(IRES-2+4*I)=SCOMP(I,1)
+       RES(IRES-1+4*I)=SCOMP(I,2)
+       RES(IRES+4*I)=SCOMP(I,3)
       ENDDO
 ! correction to pmass component, used to be 1 and 1,2 - wolf
 ! outs now (mass Acomp Scomp) not just (mass Scomp) - wolf
+! edit comp outputs to not squared, now is matrix elems, not "composition" as thought normally - wolf
       DO I=1,2
        RES(IRES+4+6+3*I)=PMASS(I)
-       RES(IRES+5+6+3*I)=PCOMP(I,1)**2
-       RES(IRES+6+6+3*I)=PCOMP(I,2)**2
+       RES(IRES+5+6+3*I)=PCOMP(I,1)
+       RES(IRES+6+6+3*I)=PCOMP(I,2)
       ENDDO
       RES(IRES+11+8)=CMASS
       DO I=1,3
