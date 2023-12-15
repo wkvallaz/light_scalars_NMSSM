@@ -13,10 +13,10 @@ import sys
 argv = sys.argv
 
 DO_PARAM = 0
-DO_MASS = 0
+DO_MASS = 1
 DO_COMP = 0
 DO_HEAT = 0 
-DO_MISC = 1
+DO_MISC = 0
 #file_prefix = "--"# widep
 file_prefix = argv[1]
 #file_tags = ["","con1","con3","con2"]
