@@ -16,7 +16,7 @@ do
 	date	
 	python3 "outreader.py" ${arg[((3*$i-3))]} ${arg[((3*$i-2))]} ${arg[((3*$i-1))]}
 done
-echo -e "********************\n"All runs plotted."\n"
+echo -e "All runs plotted.\n"
 date
 echo
 

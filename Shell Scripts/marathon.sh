@@ -25,7 +25,8 @@ do
 	do
 		date
 		./run calculations/$run$con\randinp.dat
+		echo "- --- - ----- - --- - ----- - --- - ----- - --- -"
 	done
 done
 date
-echo -e Runs complete."\n- --- - --- - --- - --- -"
+echo -e Marathon complete."\n= === = ===== = === = ===== = === = ===== = === ="
