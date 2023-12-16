@@ -12,10 +12,10 @@ import sys
 ## currently have CMYK automatically set as True, not needed in arguments
 argv = sys.argv
 
-DEBUG_MODE = False #enables print statements used for tracking
+DEBUG_MODE = True #enables print statements used for tracking
 
-DO_PARAM = 0
-DO_MASS = 0
+DO_PARAM = 1
+DO_MASS = 1
 DO_COMP = 0
 DO_HEAT = 0 
 DO_MISC = 0
