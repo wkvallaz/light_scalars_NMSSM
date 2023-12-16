@@ -1,4 +1,5 @@
 import numpy as np
+import cmath
 import matplotlib.pyplot as plt
 from time import time
 import glob
@@ -12,13 +13,13 @@ import sys
 ## currently have CMYK automatically set as True, not needed in arguments
 argv = sys.argv
 
-DEBUG_MODE = True #enables print statements used for tracking
+DEBUG_MODE = False #enables print statements used for tracking
 
 DO_PARAM = 1
 DO_MASS = 1
-DO_COMP = 0
-DO_HEAT = 0 
-DO_MISC = 0
+DO_COMP = 1
+DO_HEAT = 1 
+DO_MISC = 1
 #=-=# file_prefix = "--"# widep
 file_prefix = argv[1]
 #file_tags = ["","con1","con3","con2"]
@@ -94,33 +95,53 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	else: relevant_matrix = file_matrices	
 	extralegelem=0	
 	for fx,out_file_matrix in enumerate(relevant_matrix): # file_matrices for RGB, master_list for CMYK
-		if ypar == "rt n 3 k Ak mueff div lambda" or (xpar == "s1mass" and ypar == "s2mass"):
-			if fx==0: # only plot line y = x on the first iter of loop
-				extralegelem=1
-				plt.plot([0,max(Col(xind,file_matrices[0]))],[0,max(Col(xind,file_matrices[0]))],
-					color="gray", alpha=0.5, linestyle="--", linewidth=0.30, label = "y = x")#lw0.15@dpi480
+		if (ypar == "rt n 3 k Ak mueff div lambda"  or (xpar == "MA") or 
+#		  (xpar == "s1mass" and ypar == "s2mass")  or		
+#		  (xpar == "s2mass" and ypar == "s3mass")  or
+#		  (xpar == "p1mass" and ypar == "p2mass")  or
+		  (xpar[-4:] == "mass" and ypar[-4:] == "mass")	):
+			if fx==0 and (xpar != "MA"): #only plot line y = x on the first iter of loop & don't
+				extralegelem=1	     #				put y=x for the MA stuff
+				plt.plot([0,max(Col(xind,file_matrices[0]))],
+					 [0,max(Col(xind,file_matrices[0]))],
+				 	 	color="black", alpha=1.0, linestyle="solid", linewidth=0.30,
+						 label = "y = x")#lw0.15@dpi480
 			# y values described by fn_arr (function array)
-			if ypar == "rt n 3 k Ak mueff div lambda":
-				fn_arr = [ np.sqrt(np.sqrt( (-3*r[20]*r[22]*r[23]/r[19])**2)) for r in out_file_matrix]
+			if ypar == "rt n 3 k Ak mueff div lambda":	
+				fn_arr = [np.real(cmath.sqrt(
+	-3*r[20]*r[22]*r[23]/r[19]						)) for r in out_file_matrix]
 			else:
 				fn_arr = Col(yind, out_file_matrix)
-			plt.scatter(Col(xind,out_file_matrix), fn_arr,
-				alpha=Alpha[fx],color=Color[fx],s=Size[fx],label=Label[fx],marker=',',linewidths=0)
+			# x values descd by fnxarr
+			if xpar == "MA":
+				fnxarr = [np.real(cmath.sqrt(
+	2*r[23]*(r[19]*r[21]+r[20]*r[23])/(r[19]*np.sin(2*np.arctan(r[1])))	)) for r in out_file_matrix]
+			else:
+				fnxarr = Col(xind,out_file_matrix)
+			plt.scatter(fnxarr, fn_arr,
+				alpha=Alpha[fx],color=Color[fx],s=Size[fx],
+				label=Label[fx],marker=',',linewidths=0)
 		else:
 			plt.scatter(Col(xind,out_file_matrix), [r[yind]**y_expon for r in out_file_matrix],
-				alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], 
-				marker=',', linewidths=0)
+				alpha=Alpha[fx], color=Color[fx], s=Size[fx],
+				label=Label[fx], marker=',', linewidths=0)
 	plt.title(file_prefix+" : "+ypar+" v "+xpar)
 	plt.ylabel(ypar)
+	
+	if (len(Label)+extralegelem) <= 4: Ncols = len(Label)+extralegelem
+	else: Ncols = np.ceil( (len(Label)+extralegelem)/2 )
 	plt.xlabel(xpar)
-	leg = plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=8, columnspacing=0.7, frameon=False)
+	leg = plt.legend(loc=LOC, bbox_to_anchor=BBOX_TO_ANCHOR, ncols=Ncols, columnspacing=0.7, frameon=False)
 	for x in range(len(Label)+extralegelem): leg.legend_handles[x]._sizes = [10]
 	
-	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
+	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"] or (file_prefix == "13032113" and xpar == "Alambda"):		# If L or K is involved,
 		if xpar in ["lambda"]: plt.xlim(0,1)			#  let first plot be 
 		elif ypar in ["lambda"]: plt.ylim(0,1)			#  confined  (,)
 		if xpar in ["kappa"]: plt.xlim(0,1)			#   
 		elif ypar in ["kappa"]: plt.ylim(0,1)			#  
+		if (file_prefix == "13032113"): 
+			if xpar == "Alambda": plt.xlim(-700,300)
+			elif ypar == "Alambda": plt.ylim(-700,300)
 		plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	#  for the L&/or K axi/es
 	else: plt.savefig("{}{}_v_{}.png".format(DIR, ypar, xpar), dpi=DPI)	# Otherwise just use DEF.
 	
@@ -156,9 +177,11 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	if CMYK: relevant_matrix = master_list[-1] #the fully surviving stuff
 	else: relevant_matrix = file_matrices[-1] #just LHC CON
 	if "comp" in ypar: y_expon = 2
-	else: y_expon = 1		
+	else: y_expon = 1
+	if "comp" in cpar: c_expon = 2
+	else: c_expon = 1		
 	plt.scatter([r[xind] for r in relevant_matrix], [r[yind]**y_expon for r in relevant_matrix],
-		  c=[r[cind] for r in relevant_matrix], cmap=cmap_n, s=Size[-1], marker=',', linewidths=0)
+	  c=[r[cind]**c_expon for r in relevant_matrix], cmap=cmap_n, s=Size[-1], marker=',', linewidths=0)
 	plt.title(file_prefix+" : "+ypar+" v "+xpar+" c "+cpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
@@ -264,11 +287,11 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
 						"s1mass", 24, 110, 130,
 						"tanB", 1, 0, 0, Size, DPI, "Heatmap","s1mass")
-			if c_par != "s1comp":
-				pltctr+=1	# s1comp v s1mass, what drives survival (exclude s1comp)
+			if c_par != "s1scomp":
+				pltctr+=1	# s1scomp v s1mass, what drives survival (exclude s1comp)
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
 						"s1mass", 24, 0, 50,
-						"s1comp", 27, .96, 1, Size, DPI, "Heatmap", "s1mass")	
+						"s1scomp", 27, .96, 1, Size, DPI, "Heatmap", "s1mass")	
 			# possibly kappa v lambda c mueff
 			
 	if DO_MISC:
@@ -353,12 +376,23 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		plt.title(file_prefix+" : p1(A,s)comp v p1mass")
 		plt.ylabel("p1(A,s)comp")
 		plt.xlabel("p1mass")
-		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=2,columnspacing=0.7, frameon=False)
 		for x in range(2): leg.legend_handles[x]._sizes = [10]
 		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/p1mass/p1Ascomp_v_p1mass.png".format(save_dir_name),dpi=DPI)
 		plt.xlim(0,1000)
 		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/p1mass/p1Ascomp_v_p1mass_zoom.png".format(save_dir_name),dpi=DPI)
 		plt.close()		
+		
+		if file_prefix == "13032113":
+			print("13032113-specific plots.")
+			pltctr+=1
+			SinglePlot(pltctr, "MA", 0, 0, 200,
+					"lambda", 19, 0, 0,
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "", "")
+			pltctr+=1
+			SinglePlot(pltctr, "MA", 0, 0, 200,
+					"kappa", 20, 0, 0,
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
 
 
 
@@ -395,10 +429,10 @@ for file_index,out_file_name in enumerate(file_names):
 			if DEBUG_MODE: 
 				if indexrow%100000==0: print(indexrow)
 			row = [0] # trim out strange spacing ---> this used to be the event number
-			for val in fullrow:
+			for indexelem,val in enumerate(fullrow):
 				if val != "": row.append(float(val))
-			out_file_matrix.append(row)
-			
+			out_file_matrix.append(row[0:43])
+
 			continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
 			
 			params = row[1:24]
@@ -437,8 +471,8 @@ if CMYK:
 		return set(map(tuple, List))
 	def List(Set): # fn is Set to List conversion
 		return list(map(list, Set))
-	for i,e in enumerate(file_matrices[2]):	#BE WEARY THIS IS OVERWRITING ORIGINAL INFO
-		e[-2]=0				# ON THE PROD SIGMA THRU GGF / con2 has nonzero
+	#for i,e in enumerate(file_matrices[2]):	#BE WEARY THIS IS OVERWRITING ORIGINAL INFO
+	#	e[-2]=0				# ON THE PROD SIGMA THRU GGF / con2 has nonzero
 			# above arg corresponds to LHC FILE, is [3] for [ "","con1","con3","con2"]
 
 	if False: #leaving this here but copying this architecture for the THY/LEP/LHC/BKF idea...
