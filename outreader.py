@@ -13,7 +13,7 @@ import sys
 ## currently have CMYK automatically set as True, not needed in arguments
 argv = sys.argv
 
-DEBUG_MODE = False #enables print statements used for tracking
+DEBUG_MODE = 0 #enables print statements used for tracking
 MASSTRK = True #enables tracking masses near LHC and of light s/o
 DO_PARAM = 1
 DO_MASS = 1
@@ -26,8 +26,6 @@ file_prefix = argv[1]
 file_tags = ['THY','LEP','LHC','BKF']
 file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
 
-def Time(): #current runtime to 10ms place
-	return round(time() - start_time,2)
 											# DIR+OW #
 #save_dir_name = input("Where would you like to store the scrape?: ")			##########
 save_dir_name = argv[2]
@@ -51,6 +49,9 @@ CMYK = True
 
 num_files = len(file_names)
 threshold_lighthiggs = 10 #GeV
+
+def Time(): #current runtime to 10ms place
+	return round(time() - start_time,2)
 
 def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  
 		Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, folder, subfolder): 
@@ -135,10 +136,10 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	for x in range(len(Label)+extralegelem): leg.legend_handles[x]._sizes = [10]
 	
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"] or (file_prefix == "13032113" and xpar == "Alambda"):		# If L or K is involved,
-		if xpar in ["lambda"]: plt.xlim(0,.1)			#  let first plot be 
-		elif ypar in ["lambda"]: plt.ylim(0,.1)			#  confined  (,)
-		if xpar in ["kappa"]: plt.xlim(0,.015)			#   
-		elif ypar in ["kappa"]: plt.ylim(0,.015)			#  
+		if xpar in ["lambda"]: plt.xlim(0,.5)			#  let first plot be 
+		elif ypar in ["lambda"]: plt.ylim(0,.5)			#  confined  (,)
+		if xpar in ["kappa"]: plt.xlim(0,.100)			#   
+		elif ypar in ["kappa"]: plt.ylim(0,.100)			#  
 		if (file_prefix == "13032113"): 
 			if xpar == "Alambda": plt.xlim(-700,300)
 			elif ypar == "Alambda": plt.ylim(-700,300)
@@ -194,10 +195,10 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	plt.colorbar(label=cpar)
 		
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
-		if xpar in ["lambda"]: plt.xlim(0,.1)
-		elif ypar == "lambda": plt.ylim(0,.1)			#  let first plot be 
-		if xpar in ["kappa"]: plt.xlim(0,.015)
-		elif ypar == "kappa": plt.ylim(0,.015)			#  confined to (0,0.8)
+		if xpar in ["lambda"]: plt.xlim(0,.5)
+		elif ypar == "lambda": plt.ylim(0,.5)			#  let first plot be 
+		if xpar in ["kappa"]: plt.xlim(0,.100)
+		elif ypar == "kappa": plt.ylim(0,.100)			#  confined to (0,0.8)
 		plt.savefig("{}{}_v_{}_c_{}.png".format(DIR, ypar, xpar, cpar), dpi=DPI)	#  for the L&/or K axi/es
 	else: plt.savefig("{}{}_v_{}_c_{}.png".format(DIR, ypar, xpar, cpar), dpi=DPI)	# Otherwise just use DEF.
 	
@@ -263,7 +264,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 	if DO_MASS:
 		print(Time(),"\tBeginning mass plots") # PLOT ea Higgs' mass against each parameter also its singlet comp
 		for h,(h_mass,hix) in enumerate(mass_list):
-			print("{}".format(h_mass))
+			print("{}\t{}".format(Time(),h_mass))
 			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp, jus c_l v all comps
 				pltctr+=1
 				if "s1" in h_mass: (mmin, mmax) = (110.0, 130.0)#LHC window
@@ -283,7 +284,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 	if DO_COMP:
 		print(Time(),"\tBeginning composition plots") # PLOT each Higgs' singlet comp against each parameter
 		for (h_comp,cix) in comp_list:
-			print("{}".format(h_comp))
+			print("{}\t{}".format(Time(),h_comp))
 			for (param,pix) in par_list:
 				pltctr+=1
 				SinglePlot(pltctr,param,pix,0,0,
@@ -311,123 +312,83 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		SinglePlot(pltctr, "p1mass", 36, 0,1000,
 				"rt n 3 k Ak mueff div lambda", 0, 0,1000,
 			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
-	
-		print(Time(),"\ts1(u,d,s)comp v s1mass")
-		pltctr+=1
-		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
-		comp_color_scheme = [(.9,0,.9),(0,.85,.85),(.9,.9,0)]
-#		for fx,out_file_matrix in enumerate(master_list):	# master_list[-1] <--> out_file_matrix
-		for color,(comp,cix) in enumerate([("s1ucomp",25),("s1dcomp",26),("s1scomp",27)]):
-			ax.scatter( [r[24] for r in master_list[-1]], [r[cix]**2 for r in master_list[-1]],
-				alpha=0.7, color=comp_color_scheme[color], s=1, label=comp, 
-				marker=',', linewidths=0)
 
-		plt.title(file_prefix+" : s1(u,d,s)comp v s1mass")
-		plt.ylabel("s1(u,d,s)comp")
-		plt.xlabel("s1mass")
-		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
-		for x in range(len(comp_color_scheme)): leg.legend_handles[x]._sizes = [10]
-		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s1udscomp_v_s1mass.png".format(save_dir_name),dpi=DPI)
-		plt.xlim(110,130)
-		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s1udscomp_v_s1mass_zoom.png".format(save_dir_name),dpi=DPI)
-		plt.close()		
 
-		print(Time(),"\ts1(h,H,s)comp v s1mass")
-		pltctr+=1
-		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
 
-		ahH_list = list()
-		s1hsmcomp_list = list() #hsmcomps,
-		s1Hbsmcomp_list = list() # and Hbsm comps for each event
-
+#START OF SUDS SHHS LOOP	
+		ahH_list=list()
 		for r in master_list[-1]: #for each event in the set...
-			 		  # calculate its alpha value (h-H mixing) and the comps
+			 		  # calculate its alpha value (h-H mixing)
 			M2A = 2*r[23]*(r[19]*r[21]+r[20]*r[23])/(r[19]*np.sin(2*np.arctan(r[1]))) #DOESN'T WORK
 			M2A = r[43]**2
 			M2Z = 91.187**2
 			ahH = (1/2)*np.arctan(  (2*r[1]/(1-r[1]**2))*( (M2A+M2Z)/(M2A-M2Z) )  )	
-
 			ahH_list.append(ahH)
+		
+		for (smass, sindex) in [("s1mass",24),("s2mass",28),("s3mass",32)]:
+	
+			print(Time(),"\t{}(u,d,s)comp v {}".format(smass[0:2],smass))
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
+			comp_color_scheme = [(.9,0,.9),(0,.85,.85),(.9,.9,0)]
+	#		for fx,out_file_matrix in enumerate(master_list):	# master_list[-1] <--> out_file_matrix
+			for color,(comp,cix) in enumerate([("{}ucomp".format(smass[0:2]),sindex+1),("{}dcomp".format(smass[0:2]),sindex+2),("{}scomp".format(smass[0:2]),sindex+3)]):
+				ax.scatter( [r[sindex] for r in master_list[-1]], [r[cix]**2 for r in master_list[-1]],
+					alpha=0.7, color=comp_color_scheme[color], s=1, label=comp, 
+					marker=',', linewidths=0)
+	
+	
+			plt.title(file_prefix+" : {}(u,d,s)comp v {}".format(smass[0:2],smass))
+			plt.ylabel("{}(u,d,s)comp".format(smass[0:2]))
+			plt.xlabel(smass)
+			leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
+			for x in range(len(comp_color_scheme)): leg.legend_handles[x]._sizes = [10]
+			plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/{}/{}udscomp_v_{}.png".format(save_dir_name,smass,smass[0:2],smass),dpi=DPI)
+			
+			if smass=="s1mass":plt.xlim(110,130)
+			elif smass=="s2mass":plt.xlim(100,600)
+			elif smass=="s3mass":plt.xlim(0,1000)
+			plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/{}/{}udscomp_v_{}_zoom.png".format(save_dir_name,smass,smass[0:2],smass),dpi=DPI)
+			plt.close()		
+	
+			print(Time(),"\t{}(h,H,s)comp v {}".format(smass[0:2],smass))
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
+	
+			shsmcomp_list = list() #hsmcomps,
+			sHbsmcomp_list = list() # and Hbsm comps for each event
+			for i,r in enumerate(master_list[-1]):
+				shsmcomp_list.append( r[sindex+1]*np.cos(ahH_list[i]) - r[sindex+2]*np.sin(ahH_list[i]) )
+				sHbsmcomp_list.append( r[sindex+1]*np.sin(ahH_list[i]) + r[sindex+2]*np.cos(ahH_list[i]) )
+	
+			
+			for color,comp in enumerate(["{}scomp".format(smass[0:2]), "{}(hsm)comp".format(smass[0:2]), "{}(Hbsm)comp".format(smass[0:2])]):
+				if comp == "{}(hsm)comp".format(smass[0:2]):
+					fn_arr = [R**2 for R in shsmcomp_list]
+				elif comp == "{}(Hbsm)comp".format(smass[0:2]):
+					fn_arr = [R**2 for R in sHbsmcomp_list]
+				elif comp == "{}scomp".format(smass[0:2]):
+					fn_arr = [r[sindex+3]**2 for r in master_list[-1]]
 
-			s1hsmcomp_list.append( r[25]*np.cos(ahH) - r[26]*np.sin(ahH) )
-			s1Hbsmcomp_list.append( r[25]*np.sin(ahH) + r[26]*np.cos(ahH) )
+				ax.scatter( [r[sindex] for r in master_list[-1]], fn_arr,
+					alpha=.7, color=comp_color_scheme[color-1], s=1, label=comp, 
+					marker=',', linewidths=0)
+			plt.title(file_prefix+" : {}(h,H,s)comp v {}".format(smass[0:2],smass))
+			plt.ylabel("{}(h,H,s)comp".format(smass[0:2]))
+			plt.xlabel(smass)
+			leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
+			for x in range(3): leg.legend_handles[x]._sizes = [10]
+			plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/{}/{}hHscomp_v_{}.png".format(save_dir_name,smass,smass[0:2],smass),dpi=DPI)
+			if smass=="s1mass":plt.xlim(110,130)
+			elif smass=="s2mass":plt.xlim(100,600)
+			elif smass=="s3mass":plt.xlim(0,1000)
+			plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/{}/{}hHscomp_v_{}_zoom.png".format(save_dir_name,smass,smass[0:2],smass),dpi=DPI)
+			plt.close()		
+	
+	
 
-		for color,comp in enumerate(["s1scomp", "s1(hsm)comp", "s1(Hbsm)comp"]):
-			if comp == "s1(hsm)comp":
-				fn_arr = [R**2 for R in s1hsmcomp_list]
-			elif comp == "s1(Hbsm)comp":
-				fn_arr = [R**2 for R in s1Hbsmcomp_list]
-			elif comp == "s1scomp":
-				fn_arr = [r[27]**2 for r in master_list[-1]]
 
-			ax.scatter( [r[24] for r in master_list[-1]], fn_arr,
-				alpha=.7, color=comp_color_scheme[color-1], s=1, label=comp, 
-				marker=',', linewidths=0)
-		plt.title(file_prefix+" : s1(h,H,s)comp v s1mass")
-		plt.ylabel("s1(h,H,s)comp")
-		plt.xlabel("s1mass")
-		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
-		for x in range(3): leg.legend_handles[x]._sizes = [10]
-		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s1hHscomp_v_s1mass.png".format(save_dir_name),dpi=DPI)
-		plt.xlim(110,130)
-		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s1hHscomp_v_s1mass_zoom.png".format(save_dir_name),dpi=DPI)
-		plt.close()		
-#make s2comps now
-		print(Time(),"\ts2(u,d,s)comp v s2mass")
-		pltctr+=1
-		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
-		comp_color_scheme = [(.9,0,.9),(0,.85,.85),(.9,.9,0)]
-#		for fx,out_file_matrix in enumerate(master_list):	# master_list[-1] <--> out_file_matrix
-		for color,(comp,cix) in enumerate([("s2ucomp",29),("s2dcomp",30),("s2scomp",31)]):
-			ax.scatter( [r[28] for r in master_list[-1]], [r[cix]**2 for r in master_list[-1]],
-				alpha=0.7, color=comp_color_scheme[color], s=1, label=comp, 
-				marker=',', linewidths=0)
-
-		plt.title(file_prefix+" : s2(u,d,s)comp v s2mass")
-		plt.ylabel("s2(u,d,s)comp")
-		plt.xlabel("s2mass")
-		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
-		for x in range(len(comp_color_scheme)): leg.legend_handles[x]._sizes = [10]
-		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s2mass/s2udscomp_v_s2mass.png".format(save_dir_name),dpi=DPI)
-		plt.xlim(100,600)
-		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s2mass/s2udscomp_v_s2mass_zoom.png".format(save_dir_name),dpi=DPI)
-		plt.close()		
-
-		print(Time(),"\ts2(h,H,s)comp v s2mass")
-		pltctr+=1
-		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
-
-		s2hsmcomp_list = list() #hsmcomps,
-		s2Hbsmcomp_list = list() # and Hbsm comps for each event
-
-		for ind,r in enumerate(master_list[-1]): #for each event in the set...
-			M2A = r[43]**2
-			M2Z = 91.187**2
-
-			s2hsmcomp_list.append( r[29]*np.cos(ahH_list[ind]) - r[30]*np.sin(ahH_list[ind]) )
-			s2Hbsmcomp_list.append( r[29]*np.sin(ahH_list[ind]) + r[30]*np.cos(ahH_list[ind]) )
-
-		for color,comp in enumerate(["s2scomp", "s2(hsm)comp", "s2(Hbsm)comp"]):
-			if comp == "s2(hsm)comp":
-				fn_arr = [R**2 for R in s2hsmcomp_list]
-			elif comp == "s2(Hbsm)comp":
-				fn_arr = [R**2 for R in s2Hbsmcomp_list]
-			elif comp == "s2scomp":
-				fn_arr = [r[31]**2 for r in master_list[-1]]
-
-			ax.scatter( [r[28] for r in master_list[-1]], fn_arr,
-				alpha=.7, color=comp_color_scheme[color-1], s=1, label=comp, 
-				marker=',', linewidths=0)
-		plt.title(file_prefix+" : s2(h,H,s)comp v s1mass")
-		plt.ylabel("s2(h,H,s)comp")
-		plt.xlabel("s2mass")
-		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
-		for x in range(3): leg.legend_handles[x]._sizes = [10]
-		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s2mass/s2hHscomp_v_s2mass.png".format(save_dir_name),dpi=DPI)
-		plt.xlim(100,600)
-		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s2mass/s2hHscomp_v_s2mass_zoom.png".format(save_dir_name),dpi=DPI)
-		plt.close()		
-
+# DONT BOTHER TO LOOP P1 AND P2 COMPS, ITS JUST TWO PLOTS AND EASIER THIS WAY
 		print(Time(),"\tp1(A,s)comp v p1mass")
 		pltctr+=1
 		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
@@ -445,9 +406,27 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		plt.xlim(0,1000)
 		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/p1mass/p1Ascomp_v_p1mass_zoom.png".format(save_dir_name),dpi=DPI)
 		plt.close()		
-		
+	
+		print(Time(),"\tp2(A,s)comp v p2mass")
+		pltctr+=1
+		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
+	
+		for color,(comp,cix) in enumerate([("p2Acomp",40),("p2scomp",41)]):
+			ax.scatter( [r[39] for r in master_list[-1]], [r[cix]**2 for r in master_list[-1]],
+				alpha=.7, color=["blue","red"][color], s=1, label=comp, 
+				marker=',', linewidths=0)
+		plt.title(file_prefix+" : p2(A,s)comp v p2mass")
+		plt.ylabel("p2(A,s)comp")
+		plt.xlabel("p2mass")
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=2,columnspacing=0.7, frameon=False)
+		for x in range(2): leg.legend_handles[x]._sizes = [10]
+		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/p2mass/p2Ascomp_v_p2mass.png".format(save_dir_name),dpi=DPI)
+		plt.xlim(0,1000)
+		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/p2mass/p2Ascomp_v_p2mass_zoom.png".format(save_dir_name),dpi=DPI)
+		plt.close()		
+	
 		if "13032113" in file_prefix:
-			print("13032113-specific plots.")
+			print(Time(),"\t13032113-specific plots.")
 			pltctr+=1
 			SinglePlot(pltctr, "MA", 43, 0, 200,
 					"lambda", 19, 0, 0,
@@ -604,7 +583,7 @@ if SAVEPLOTS:
 	if DEBUG_MODE: print(Time(),"\tStarting to plot...")
 	GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 
-if MASSTRK:
+if MASSTRK:	
 	print("\nSorting by lightest SCALAR")
 	print("tanB\tlambda\t\tkappa\t\tAlambda\tAkappa\t\tmueff\tMass")
 	for file_index,out_file_matrix in enumerate(file_matrices):
@@ -620,6 +599,7 @@ if MASSTRK:
 				print("{:.2f}\t".format(event[23]),end="")
 				print(event[24])
 		print()
+	
 	print("\nSorting by lightest PSEUDOSCALAR")
 	print("tanB\tlambda\t\tkappa\t\tAlambda\tAkappa\t\tmueff\tMass")
 	for file_index,out_file_matrix in enumerate(file_matrices):
@@ -646,6 +626,11 @@ if MASSTRK:
 		print("\nLight p in:\tNone\tp1\tp1&2",end="\n\t\t")
 		for lp in lp_trk[file_index]: print(lp,end="\t")
 		print("\n")
-
+	ls_ctr = 0
+	lp_ctr = 0
+	for r in master_list[-1]:
+		if r[24]<threshold_lighthiggs: ls_ctr+=1
+		if r[36]<threshold_lighthiggs: lp_ctr+=1
+	print("# Light Scalars: {}\n# Light Pseudoscalars: {}".format(ls_ctr,lp_ctr))
 print("Runtime(s):\t{}\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#".format(Time()))
 #sys.exit()
