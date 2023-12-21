@@ -14,7 +14,7 @@ import sys
 argv = sys.argv
 
 DEBUG_MODE = False #enables print statements used for tracking
-
+MASSTRK = True #enables tracking masses near LHC and of light s/o
 DO_PARAM = 1
 DO_MASS = 1
 DO_COMP = 1
@@ -36,8 +36,8 @@ DIR = "/home/wolf/NMSSMTools_6.0.0/calculations/"
 YES = ["y","ye","yea","yes", 1, "1", True, "true"]
 try:   # IF IT DOESN'T ALREADY EXIST, CREATE A DIR WITH NAME OF FILE (minus .dat) TO SAVE IMGS INTO
 	os.mkdir("{}{}/".format(DIR, save_dir_name))
-except OSError as error:											# USER INP #
-	if DEBUG_MODE: print(error)  		# possibly very stupidly, for scripting, ALWAYS overwrite				############
+except OSError as error:							# USER INP #
+	if DEBUG_MODE: print(error)  		# stupidly ALWAYS overwrite	############
 #	print(error)
 #	overwrite_req = input("Continuing will overwrite existing files, are you sure? (y/ye/yea/yes): ").lower()
 #	if overwrite_req not in YES: sys.exit("Execution halted.")			##########
@@ -46,11 +46,11 @@ except OSError as error:											# USER INP #
 #CMYK = input("CMYK mode?") in YES							##########
 SAVEPLOTS = (argv[3].lower() in YES)												############
 if DEBUG_MODE: print("SAVEPLOTS: ", SAVEPLOTS)
-#CMYK = argv[4]													###########
+#CMYK = argv[4]									###########
 CMYK = True
 
 num_files = len(file_names)
-threshold_lighthiggs = 20 #GeV
+threshold_lighthiggs = 10 #GeV
 
 def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  
 		Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, folder, subfolder): 
@@ -113,7 +113,7 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 			else:
 				fn_arr = Col(yind, out_file_matrix)
 			# x values descd by fnxarr
-			if xpar == "MA":
+			if xpar == "xnopyt": #THIS USED TO BE if xpar == "MA" but it innaccurate for MA value
 				fnxarr = [np.real(cmath.sqrt(
 	2*r[23]*(r[19]*r[21]+r[20]*r[23])/(r[19]*np.sin(2*np.arctan(r[1])))	)) for r in out_file_matrix]
 			else:
@@ -135,10 +135,10 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	for x in range(len(Label)+extralegelem): leg.legend_handles[x]._sizes = [10]
 	
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"] or (file_prefix == "13032113" and xpar == "Alambda"):		# If L or K is involved,
-		if xpar in ["lambda"]: plt.xlim(0,1)			#  let first plot be 
-		elif ypar in ["lambda"]: plt.ylim(0,1)			#  confined  (,)
-		if xpar in ["kappa"]: plt.xlim(0,1)			#   
-		elif ypar in ["kappa"]: plt.ylim(0,1)			#  
+		if xpar in ["lambda"]: plt.xlim(0,.1)			#  let first plot be 
+		elif ypar in ["lambda"]: plt.ylim(0,.1)			#  confined  (,)
+		if xpar in ["kappa"]: plt.xlim(0,.015)			#   
+		elif ypar in ["kappa"]: plt.ylim(0,.015)			#  
 		if (file_prefix == "13032113"): 
 			if xpar == "Alambda": plt.xlim(-700,300)
 			elif ypar == "Alambda": plt.ylim(-700,300)
@@ -154,7 +154,7 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	return
 
 def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  # fxn reworked ..
-		Size, DPI, folder, subfolder): 					#  .. to plot a 2D with a heat map
+		Size, DPI, folder, subfolder): 				#  .. to plot a 2D with a heat map
 	
 	DIR = "/home/wolf/NMSSMTools_6.0.0/calculations/"+save_dir_name+"/"
 	if folder != "": DIR += folder+"/"
@@ -168,14 +168,20 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 			os.mkdir(DIR)
 		except OSError as error:
 			if DEBUG_MODE: print(error)
-	
-	
+		
 	def Col(index,matrix): #array generator statement which pulls column 'index' from  ea row of 'matrix'
 		return [r[index] for r in matrix]
 
 	plt.figure(pltctr)		#   vvv used to be file_matrices, changed to master_list for m.ex.sets
 	if CMYK: relevant_matrix = master_list[-1] #the fully surviving stuff
 	else: relevant_matrix = file_matrices[-1] #just LHC CON
+	
+	if "13032113" in file_prefix: 
+		LEN = len(master_list)
+		relevant_matrix = master_list[LEN-6]+master_list[LEN-5]+master_list[LEN-4]+master_list[LEN-3]+master_list[LEN-2]+master_list[LEN-1]
+
+	
+
 	if "comp" in ypar: y_expon = 2
 	else: y_expon = 1
 	if "comp" in cpar: c_expon = 2
@@ -188,8 +194,10 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	plt.colorbar(label=cpar)
 		
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
-		if xpar in ["lambda","kappa"]: plt.xlim(0,1)			#  let first plot be 
-		if ypar in ["lambda","kappa"]: plt.ylim(0,1)			#  confined to (0,0.8)
+		if xpar in ["lambda"]: plt.xlim(0,.1)
+		elif ypar == "lambda": plt.ylim(0,.1)			#  let first plot be 
+		if xpar in ["kappa"]: plt.xlim(0,.015)
+		elif ypar == "kappa": plt.ylim(0,.015)			#  confined to (0,0.8)
 		plt.savefig("{}{}_v_{}_c_{}.png".format(DIR, ypar, xpar, cpar), dpi=DPI)	#  for the L&/or K axi/es
 	else: plt.savefig("{}{}_v_{}_c_{}.png".format(DIR, ypar, xpar, cpar), dpi=DPI)	# Otherwise just use DEF.
 	
@@ -226,7 +234,8 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			(0,0,0)]
 
 		Alpha = [1 for x in range(NC)]
-		Size= [.1 for x in range(NC)]#.25 when doing 8 colors
+		Size= [.1 for x in range(NC-1)]+[10*.1]#.25 when doing 8 colors
+		if "13032113" in file_prefix: Size = [10*s for s in Size] 
 		LOC = "center"
 		BBOX_TO_ANCHOR = [0.475,1.105]
 		DPI = 240 #for very long time operating at 480 DPI, @1730_14dec23 changed to 240
@@ -243,8 +252,10 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 
 	if DO_PARAM:
 		print(Time(),"\tBeginning parameter plots")
-		for i,(xpar,xind) in enumerate(par_list): # ALL PARAM VS
-			for j,(ypar,yind) in enumerate(par_list): #PARAM
+		if "13032113" in file_prefix: extra_pars_list=[("MA",43)]
+		else: extra_pars_list=[]
+		for i,(xpar,xind) in enumerate(extra_pars_list+par_list): # ALL PARAM VS
+			for j,(ypar,yind) in enumerate(extra_pars_list+par_list): #PARAM
 				if j<=i: continue
 				pltctr+=1
 				SinglePlot(pltctr, xpar, xind, 0, 0, ypar, yind, 0, 0,
@@ -278,10 +289,11 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 				SinglePlot(pltctr,param,pix,0,0,
 						h_comp, cix, 0,0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp", h_comp)
-
 	if DO_HEAT:
 		print(Time(),"\tBeginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
-		for n,(c_par,c_ix) in enumerate(par_list+comp_list):# params as heatmap choice
+		if "13032113" in file_prefix: extra_pars_list = [("AU3",5), ("MQ3",13)]
+		else: extra_pars_list = []
+		for n,(c_par,c_ix) in enumerate(par_list+comp_list+extra_pars_list):# params as heatmap choice
 			if c_par != "tanB": 	# heatmaps for s1mass @ lo tanB region, LHC blob (exclude tanB)
 				pltctr+=1
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
@@ -292,8 +304,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
 						"s1mass", 24, 0, 50,
 						"s1scomp", 27, .96, 1, Size, DPI, "Heatmap", "s1mass")	
-			# possibly kappa v lambda c mueff
-			
+			# possibly kappa v lambda c mueff	
 	if DO_MISC:
 		print(Time(),"\tComparing LO p1mamss")
 		pltctr+=1
@@ -325,20 +336,17 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		pltctr+=1
 		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
 
-		M2A_list = list()
-		M2Z_list = list()
 		ahH_list = list()
 		s1hsmcomp_list = list() #hsmcomps,
 		s1Hbsmcomp_list = list() # and Hbsm comps for each event
 
 		for r in master_list[-1]: #for each event in the set...
 			 		  # calculate its alpha value (h-H mixing) and the comps
-			M2A = 2*r[23]*(r[19]*r[21]+r[20]*r[23])/(r[19]*np.sin(2*np.arctan(r[1])))
+			M2A = 2*r[23]*(r[19]*r[21]+r[20]*r[23])/(r[19]*np.sin(2*np.arctan(r[1]))) #DOESN'T WORK
+			M2A = r[43]**2
 			M2Z = 91.187**2
 			ahH = (1/2)*np.arctan(  (2*r[1]/(1-r[1]**2))*( (M2A+M2Z)/(M2A-M2Z) )  )	
 
-			M2A_list.append(M2A)
-			M2Z_list.append(M2A)
 			ahH_list.append(ahH)
 
 			s1hsmcomp_list.append( r[25]*np.cos(ahH) - r[26]*np.sin(ahH) )
@@ -364,6 +372,61 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		plt.xlim(110,130)
 		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s1mass/s1hHscomp_v_s1mass_zoom.png".format(save_dir_name),dpi=DPI)
 		plt.close()		
+#make s2comps now
+		print(Time(),"\ts2(u,d,s)comp v s2mass")
+		pltctr+=1
+		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
+		comp_color_scheme = [(.9,0,.9),(0,.85,.85),(.9,.9,0)]
+#		for fx,out_file_matrix in enumerate(master_list):	# master_list[-1] <--> out_file_matrix
+		for color,(comp,cix) in enumerate([("s2ucomp",29),("s2dcomp",30),("s2scomp",31)]):
+			ax.scatter( [r[28] for r in master_list[-1]], [r[cix]**2 for r in master_list[-1]],
+				alpha=0.7, color=comp_color_scheme[color], s=1, label=comp, 
+				marker=',', linewidths=0)
+
+		plt.title(file_prefix+" : s2(u,d,s)comp v s2mass")
+		plt.ylabel("s2(u,d,s)comp")
+		plt.xlabel("s2mass")
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
+		for x in range(len(comp_color_scheme)): leg.legend_handles[x]._sizes = [10]
+		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s2mass/s2udscomp_v_s2mass.png".format(save_dir_name),dpi=DPI)
+		plt.xlim(100,600)
+		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s2mass/s2udscomp_v_s2mass_zoom.png".format(save_dir_name),dpi=DPI)
+		plt.close()		
+
+		print(Time(),"\ts2(h,H,s)comp v s2mass")
+		pltctr+=1
+		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
+
+		s2hsmcomp_list = list() #hsmcomps,
+		s2Hbsmcomp_list = list() # and Hbsm comps for each event
+
+		for ind,r in enumerate(master_list[-1]): #for each event in the set...
+			M2A = r[43]**2
+			M2Z = 91.187**2
+
+			s2hsmcomp_list.append( r[29]*np.cos(ahH_list[ind]) - r[30]*np.sin(ahH_list[ind]) )
+			s2Hbsmcomp_list.append( r[29]*np.sin(ahH_list[ind]) + r[30]*np.cos(ahH_list[ind]) )
+
+		for color,comp in enumerate(["s2scomp", "s2(hsm)comp", "s2(Hbsm)comp"]):
+			if comp == "s2(hsm)comp":
+				fn_arr = [R**2 for R in s2hsmcomp_list]
+			elif comp == "s2(Hbsm)comp":
+				fn_arr = [R**2 for R in s2Hbsmcomp_list]
+			elif comp == "s2scomp":
+				fn_arr = [r[31]**2 for r in master_list[-1]]
+
+			ax.scatter( [r[28] for r in master_list[-1]], fn_arr,
+				alpha=.7, color=comp_color_scheme[color-1], s=1, label=comp, 
+				marker=',', linewidths=0)
+		plt.title(file_prefix+" : s2(h,H,s)comp v s1mass")
+		plt.ylabel("s2(h,H,s)comp")
+		plt.xlabel("s2mass")
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3, columnspacing=0.7, frameon=False)
+		for x in range(3): leg.legend_handles[x]._sizes = [10]
+		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s2mass/s2hHscomp_v_s2mass.png".format(save_dir_name),dpi=DPI)
+		plt.xlim(100,600)
+		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/s2mass/s2hHscomp_v_s2mass_zoom.png".format(save_dir_name),dpi=DPI)
+		plt.close()		
 
 		print(Time(),"\tp1(A,s)comp v p1mass")
 		pltctr+=1
@@ -383,18 +446,16 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/p1mass/p1Ascomp_v_p1mass_zoom.png".format(save_dir_name),dpi=DPI)
 		plt.close()		
 		
-		if file_prefix == "13032113":
+		if "13032113" in file_prefix:
 			print("13032113-specific plots.")
 			pltctr+=1
-			SinglePlot(pltctr, "MA", 0, 0, 200,
+			SinglePlot(pltctr, "MA", 43, 0, 200,
 					"lambda", 19, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "", "")
 			pltctr+=1
-			SinglePlot(pltctr, "MA", 0, 0, 200,
+			SinglePlot(pltctr, "MA", 43, 0, 200,
 					"kappa", 20, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
-
-
 
 # <empty copy paste template > 
 #	pltctr+=1
@@ -406,16 +467,15 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 #						ypar, yind, ymin, ymax, Size, DPI, "", "")
 	print("Finished plots.")
 	return
-mh_is1 = [0,0,0,0] # elem corresp to file_index from enumerating file_names 
-mh_is2 = [0,0,0,0]
-mh_dne = [0,0,0,0]
-mh_1n2 = [0,0,0,0]
-mh_is3 = [0,0,0,0]
 
+#        [ dne, in1, in2, in1and2, in3, in1and3, in2and3, in1n2n3], [none, 1, 12, 123], or [none, 1, 12]
+ms_trk = [[0 for j in range(2**3)] for i in range(num_files)] #tracking which bins scalars like LHC higgs are in
+ls_trk = [[0 for j in range(1+3)] for i in range(num_files)] #      tracking which bins LIGHT pseudos are in
+lp_trk = [[0 for j in range(1+2)] for i in range(num_files)] #       (or for the pseudos)
 def NearSM(mass): #temp fnc that checks if mass is near sm higgs mass
-	buffer = 3 #buffer in GeV around central SM Higgs mass 
+	buffer = 3.02083333 #buffer in GeV around central SM Higgs mass 
 	#buffer = 25 # large buffer for testing new 4constyle
-	return (mass > 125-buffer) and (mass < 125+buffer)
+	return (mass > 125.173611-buffer) and (mass < 125.173611+buffer)
 
 file_matrices = [list() for file in file_names] # for storing "out_file_matrix" of each out file
 
@@ -431,36 +491,26 @@ for file_index,out_file_name in enumerate(file_names):
 			row = [0] # trim out strange spacing ---> this used to be the event number
 			for indexelem,val in enumerate(fullrow):
 				if val != "": row.append(float(val))
-			out_file_matrix.append(row[0:43])
+			out_file_matrix.append(row[0:44])
 
-			continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
+			if not MASSTRK: continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
 			
-			params = row[1:24]
-			shiggs = row[24:30] # s1mass s1comp s2mass s2comp s3mass s3comp
-			phiggs = row[30:34] # p1mass p1comp p2mass p2comp
-
-			if (float(shiggs[0])<threshold_lighthiggs) or (float(phiggs[0])<threshold_lighthiggs):
-				ctr_lighthiggs += 1			
-		#		print("Light Higgs in event {}:".format(indexrow))
-		#		print("params:\t", params)
-		#		print("shiggs:\t", shiggs)
-		#		print("phiggs:\t", phiggs)
-		#		print()
-		
-			#continue # CONTINUE if don't want to count NearSM higgs events nor con2lims
+			params = row[1:24]+[row[43]]
+			shiggs = row[24:32+1:4] # s1mass s2mass s3mass
+			phiggs = [row[36]]+[row[39]] # p1mass p2mass
 			
-			# tracking which events have NearSM higgs in s1, s2, s1&s2, s3, or none
-			if (NearSM(shiggs[0]) and NearSM(shiggs[2])): 
-				mh_1n2[file_index]+=1
-			elif (NearSM(shiggs[0])):
-				mh_is1[file_index]+=1
-			elif (NearSM(shiggs[2])):
-				mh_is2[file_index]+=1
-			elif (NearSM(shiggs[4])):
-				mh_is3[file_index]+=1
-			else: 
-				mh_dne[file_index]+=1
-			
+			in_trk = 0 #ms_trk index
+			in_trk += 1*int(NearSM(shiggs[0]))
+			in_trk += 2*int(NearSM(shiggs[1]))
+			in_trk += 4*int(NearSM(shiggs[2]))
+			ms_trk[file_index][in_trk]+=1
+			if in_trk==7: print("All scalars in LHC range! #{}:{}.".format(indexrow,out_file_name))
+			in_trk = 0 #ls_trk
+			for mass in shiggs: in_trk += 1*int(mass<threshold_lighthiggs)
+			ls_trk[file_index][in_trk]+=1
+			in_trk = 0 #lp_trk
+			for mass in phiggs: in_trk += 1*int(mass<threshold_lighthiggs)
+			lp_trk[file_index][in_trk]+=1
 	f.close()
 
 
@@ -554,45 +604,48 @@ if SAVEPLOTS:
 	if DEBUG_MODE: print(Time(),"\tStarting to plot...")
 	GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 
-print("\n# Light Higgs:\t", ctr_lighthiggs)
-print("Runtime(s):\t",Time(),"\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#")
+if MASSTRK:
+	print("\nSorting by lightest SCALAR")
+	print("tanB\tlambda\t\tkappa\t\tAlambda\tAkappa\t\tmueff\tMass")
+	for file_index,out_file_matrix in enumerate(file_matrices):
+		sortedbys1mass = sorted(out_file_matrix, key = lambda x: x[24])
+		print(file_names[file_index], "\t{} events".format(len(out_file_matrix)))
+		for event_index,event in enumerate(sortedbys1mass):
+			if event_index < 3:
+				print("{:.4f}\t".format(event[1]),end="")
+				print("{:.6f}\t".format(event[19]),end="")
+				print("{:.6f}\t".format(event[20]),end="")
+				print("{:.2f}\t".format(event[21]),end="")
+				print("{:.7f}\t".format(event[22]),end="")
+				print("{:.2f}\t".format(event[23]),end="")
+				print(event[24])
+		print()
+	print("\nSorting by lightest PSEUDOSCALAR")
+	print("tanB\tlambda\t\tkappa\t\tAlambda\tAkappa\t\tmueff\tMass")
+	for file_index,out_file_matrix in enumerate(file_matrices):
+		sortedbyp1mass = sorted(out_file_matrix, key = lambda x: x[36])
+		print(file_names[file_index], "\t{} events".format(len(out_file_matrix)))
+		for event_index,event in enumerate(sortedbyp1mass):
+			if event_index < 3:
+				print("{:.4f}\t".format(event[1]),end="")
+				print("{:.6f}\t".format(event[19]),end="")
+				print("{:.6f}\t".format(event[20]),end="")
+				print("{:.2f}\t".format(event[21]),end="")
+				print("{:.7f}\t".format(event[22]),end="")
+				print("{:.2f}\t".format(event[23]),end="")
+				print(event[36])
+		print()
+	
+	print("\nTracking masses in LHC BOUNDS (122.15, 128.19)")
+	for file_index,out_file_name in enumerate(file_names):
+		print(out_file_name, "\t{} events".format(len(file_matrices[file_index])))
+		print("LHC Higgs in:\tNone\ts1\ts2\ts1&2\ts3\ts1&3\ts2&3\ts1&2&3",end="\n\t\t")
+		for ms in ms_trk[file_index]: print(ms,end="\t")
+		print("\nLight s in:\tNone\ts1\ts1&2\ts1&2&3",end="\n\t\t")
+		for ls in ls_trk[file_index]: print(ls,end="\t")
+		print("\nLight p in:\tNone\tp1\tp1&2",end="\n\t\t")
+		for lp in lp_trk[file_index]: print(lp,end="\t")
+		print("\n")
 
-sys.exit()
-
-print("Sorting by lightest SCALAR")
-print("tanB\tlambda\t\tkappa\t\tAlambda\tAkappa\t\tmueff\tMass")
-for file_index,out_file_matrix in enumerate(file_matrices):
-	sortedbys1mass = sorted(out_file_matrix, key = lambda x: x[24])
-	print(file_names[file_index])
-	for event_index,event in enumerate(sortedbys1mass):
-		if event_index < 3:
-			print("{:.4f}\t".format(event[1]),end="")
-			print("{:.6f}\t".format(event[19]),end="")
-			print("{:.6f}\t".format(event[20]),end="")
-			print("{:.2f}\t".format(event[21]),end="")
-			print("{:.7f}\t".format(event[22]),end="")
-			print("{:.2f}\t".format(event[23]),end="")
-			print(event[24])
-	print()
-print("\nSorting by lightest PSEUDOSCALAR")
-print("tanB\tlambda\t\tkappa\t\tAlambda\tAkappa\t\tmueff\tMass")
-for file_index,out_file_matrix in enumerate(file_matrices):
-	sortedbyp1mass = sorted(out_file_matrix, key = lambda x: x[30])
-	print(file_names[file_index])
-	for event_index,event in enumerate(sortedbyp1mass):
-		if event_index < 3:
-			print("{:.4f}\t".format(event[1]),end="")
-			print("{:.6f}\t".format(event[19]),end="")
-			print("{:.6f}\t".format(event[20]),end="")
-			print("{:.2f}\t".format(event[21]),end="")
-			print("{:.7f}\t".format(event[22]),end="")
-			print("{:.2f}\t".format(event[23]),end="")
-			print(event[30])
-	print()
-
-print("\nFILE_NAME\tmh_is1\tmh_is2\tmh_dne\tmh_1&2\tmh_is3")
-for file_index,out_file_name in enumerate(file_names):
-	print("{}\t{}\t{}\t{}\t{}\t{}".format(out_file_name[:-3], 
-	mh_is1[file_index],mh_is2[file_index],mh_dne[file_index],mh_1n2[file_index],mh_is3[file_index]))
-
-
+print("Runtime(s):\t{}\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#".format(Time()))
+#sys.exit()

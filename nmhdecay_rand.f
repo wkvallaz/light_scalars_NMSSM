@@ -1857,8 +1857,9 @@ c      CALL FTPAR(PAR,0)
       IMPLICIT NONE
 
       CHARACTER CHAN*20
-! add mres - wolf
-      INTEGER NBIN,I,NRES,IRES,GRFLAG,NSUSY,NGUT,NMES,IMAX,IFAIL,MRES
+! add mres and WADD - wolf
+      INTEGER NBIN,I,NRES,IRES,GRFLAG,NSUSY,NGUT,NMES,IMAX,IFAIL,
+     . MRES,WADD
       PARAMETER (NSUSY=14,NGUT=21,NMES=21,IMAX=200)
 
       DOUBLE PRECISION RES(IMAX),PAR(*),PROB(*),SIG(5,8),R
@@ -2175,8 +2176,10 @@ c      CALL FTPAR(PAR,0)
       IF(IFAIL.NE.0)RETURN
 
       IRES=23
+      WADD=9
       NRES=49+IRES
-      MRES=8+NRES
+      MRES=WADD+NRES
+! WADD is number of things Wolf added (6 new elems of scomp, 2 of pcomp, 1 MA) - wolf
 ! - WOLF
       RES(1)=PAR(3)           !TB
       RES(2)=PAR(20)          !M1
@@ -2213,44 +2216,46 @@ c      CALL FTPAR(PAR,0)
 ! outs now (mass Acomp Scomp) not just (mass Scomp) - wolf
 ! edit comp outputs to not squared, now is matrix elems, not "composition" as thought normally - wolf
       DO I=1,2
-       RES(IRES+4+6+3*I)=PMASS(I)
-       RES(IRES+5+6+3*I)=PCOMP(I,1)
-       RES(IRES+6+6+3*I)=PCOMP(I,2)
+       RES(IRES+12-2+3*I)=PMASS(I)
+       RES(IRES+12-1+3*I)=PCOMP(I,1)
+       RES(IRES+12+3*I)=PCOMP(I,2)
       ENDDO
-      RES(IRES+11+8)=CMASS
+      RES(IRES+12+7)=CMASS
+! added MA to outs after CMASS - wolf
+      RES(IRES+12+8)=PAR(23)
       DO I=1,3
-       RES(IRES+8+8+4*I)=DABS(MNEU(I))
-       RES(IRES+9+8+4*I)=NEU(I,1)**2
-       RES(IRES+10+8+4*I)=NEU(I,3)**2+NEU(I,4)**2
-       RES(IRES+11+8+4*I)=NEU(I,5)**2
+       RES(IRES+8+WADD+4*I)=DABS(MNEU(I))
+       RES(IRES+9+WADD+4*I)=NEU(I,1)**2
+       RES(IRES+10+WADD+4*I)=NEU(I,3)**2+NEU(I,4)**2
+       RES(IRES+11+WADD+4*I)=NEU(I,5)**2
       ENDDO
-      RES(IRES+24+8)=DABS(MCHA(1))
-      RES(IRES+25+8)=MGL
-      RES(IRES+26+8)=MIN(MUL,MUR,MDL,MDR)
-      RES(IRES+27+8)=MST1
-      RES(IRES+28+8)=MSB1
-      RES(IRES+29+8)=MLL
-      RES(IRES+30+8)=MNL
-      RES(IRES+31+8)=MSL1
-      RES(IRES+32+8)=MSNT
-      RES(IRES+33+8)=MWNMSSM
-      RES(IRES+34+8)=delmagmu
-      RES(IRES+35+8)=csPsi
-      RES(IRES+36+8)=BRHHH(1)
-      RES(IRES+37+8)=BRBB(1)
-      RES(IRES+38+8)=BRLL(1)
-      RES(IRES+39+8)=BRGG(1)
-      RES(IRES+40+8)=BRHAA(1,1)
-      RES(IRES+41+8)=BRNEU(1,1,1)
-      RES(IRES+42+8)=brcharsnt1(1)  ! BR(cha1 -> tau snutau)
-      RES(IRES+43+8)=2d0*brcharsne1(1)  ! BR(cha1 -> l snul)
-      RES(IRES+44+8)=brcharwneut(1,1)+2d0*brnupdb(1,1)+brntopbb(1,1)
+      RES(IRES+24+WADD)=DABS(MCHA(1))
+      RES(IRES+25+WADD)=MGL
+      RES(IRES+26+WADD)=MIN(MUL,MUR,MDL,MDR)
+      RES(IRES+27+WADD)=MST1
+      RES(IRES+28+WADD)=MSB1
+      RES(IRES+29+WADD)=MLL
+      RES(IRES+30+WADD)=MNL
+      RES(IRES+31+WADD)=MSL1
+      RES(IRES+32+WADD)=MSNT
+      RES(IRES+33+WADD)=MWNMSSM
+      RES(IRES+34+WADD)=delmagmu
+      RES(IRES+35+WADD)=csPsi
+      RES(IRES+36+WADD)=BRHHH(1)
+      RES(IRES+37+WADD)=BRBB(1)
+      RES(IRES+38+WADD)=BRLL(1)
+      RES(IRES+39+WADD)=BRGG(1)
+      RES(IRES+40+WADD)=BRHAA(1,1)
+      RES(IRES+41+WADD)=BRNEU(1,1,1)
+      RES(IRES+42+WADD)=brcharsnt1(1)  ! BR(cha1 -> tau snutau)
+      RES(IRES+43+WADD)=2d0*brcharsne1(1)  ! BR(cha1 -> l snul)
+      RES(IRES+44+WADD)=brcharwneut(1,1)+2d0*brnupdb(1,1)+brntopbb(1,1)
      .          +brnelnue(1,1)+brnmunumu(1,1)+brntaunut(1,1)  ! BR(cha1 -> neu1 W)
-      RES(IRES+45+8)=brcharstau1(1)  ! BR(cha1 ->  stau nutau)
-      RES(IRES+46+8)=2d0*brcharsel(1)  ! BR(cha1 -> sel nu)
-      RES(IRES+47+8)=brneutHneut(2,1,1)  ! BR(neu2 -> neu1 H1)
-      RES(IRES+48+8)=SIG(1,8)
-      RES(IRES+49+8)=R
+      RES(IRES+45+WADD)=brcharstau1(1)  ! BR(cha1 ->  stau nutau)
+      RES(IRES+46+WADD)=2d0*brcharsel(1)  ! BR(cha1 -> sel nu)
+      RES(IRES+47+WADD)=brneutHneut(2,1,1)  ! BR(neu2 -> neu1 H1)
+      RES(IRES+48+WADD)=SIG(1,8)
+      RES(IRES+49+WADD)=R
 
       WRITE(16,11)(RES(I),I=1,MRES)
  11   FORMAT(200E14.6)
@@ -2308,8 +2313,16 @@ c      CALL FTPAR(PAR,0)
       WRITE(17,10)"  mu=0 or (kappa=0 and Akappa=/=0) ",NFAIL(9)
       S=0
       DO I=1,7
-       S=S+NFAIL(I)
+       S=S+NFAIL(I)                               
       ENDDO
+! adding NFAIL in IFAIL [1,7] for details on which squared masses are negative
+      WRITE(17,10)"  with mh1^2                   < 0 ",NFAIL(1)
+      WRITE(17,10)"  with          ma1^2          < 0 ",NFAIL(2)
+      WRITE(17,10)"  with mh1^2 && ma1^2          < 0 ",NFAIL(3)
+      WRITE(17,10)"  with                   mhc^2 < 0 ",NFAIL(4)
+      WRITE(17,10)"  with mh1^2 &&          mhc^2 < 0 ",NFAIL(5)
+      WRITE(17,10)"  with          ma1^2 && mhc^2 < 0 ",NFAIL(6)
+      WRITE(17,10)"  with mh1^2 && ma1^2 && mhc^2 < 0 ",NFAIL(7)
       WRITE(17,10)"  with mh1^2 or ma1^2 or mhc^2 < 0 ",S
       WRITE(17,10)"  with m_sfermion^2 < 0            ",NFAIL(8)
       WRITE(17,10)"  violating constraints            ",NFAIL(10)
@@ -2431,7 +2444,7 @@ c      CALL FTPAR(PAR,0)
        WRITE(17,*)
        WRITE(17,*)"I NUMPROB(I)"
        DO I=1,88
-	IF(NUMPROB(I).NE.0)WRITE(17,*)I,NUMPROB(I)
+        IF(NUMPROB(I).NE.0)WRITE(17,*)I,NUMPROB(I)
        ENDDO
 
       ENDIF
