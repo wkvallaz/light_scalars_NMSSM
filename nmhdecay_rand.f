@@ -2176,7 +2176,7 @@ c      CALL FTPAR(PAR,0)
       IF(IFAIL.NE.0)RETURN
 
       IRES=23
-      WADD=9
+      WADD=27
       NRES=49+IRES
       MRES=WADD+NRES
 ! WADD is number of things Wolf added (6 new elems of scomp, 2 of pcomp, 1 MA) - wolf
@@ -2220,14 +2220,16 @@ c      CALL FTPAR(PAR,0)
        RES(IRES+12-1+3*I)=PCOMP(I,1)
        RES(IRES+12+3*I)=PCOMP(I,2)
       ENDDO
-      RES(IRES+12+7)=CMASS
+      RES(IRES+18+1)=CMASS
 ! added MA to outs after CMASS - wolf
-      RES(IRES+12+8)=PAR(23)
-      DO I=1,3
-       RES(IRES+8+WADD+4*I)=DABS(MNEU(I))
-       RES(IRES+9+WADD+4*I)=NEU(I,1)**2
-       RES(IRES+10+WADD+4*I)=NEU(I,3)**2+NEU(I,4)**2
-       RES(IRES+11+WADD+4*I)=NEU(I,5)**2
+      RES(IRES+18+2)=PAR(23)
+      DO I=1,5
+       RES(IRES+15+6*I)=DABS(MNEU(I))
+       RES(IRES+16+6*I)=NEU(I,1) !NEUI BINO
+       RES(IRES+17+6*I)=NEU(I,2) !WINO
+       RES(IRES+18+6*I)=NEU(I,3) ! U
+       RES(IRES+19+6*I)=NEU(I,4) ! D
+       RES(IRES+20+6*I)=NEU(I,5) ! S
       ENDDO
       RES(IRES+24+WADD)=DABS(MCHA(1))
       RES(IRES+25+WADD)=MGL
@@ -2261,7 +2263,6 @@ c      CALL FTPAR(PAR,0)
  11   FORMAT(200E14.6)
 
       END
-
 
       SUBROUTINE ERROR(TOT,NTOT,NFAIL,NUMPROB)
 ! - wolf
