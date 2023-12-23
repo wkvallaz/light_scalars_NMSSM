@@ -7,6 +7,7 @@ import pandas as pd
 import csv 
 import os
 import sys
+import gc
 
 # ARGS FROM COMMAND LINE [,,,,,], execute this file as: python3 outreader.py file_prefix save_dir_name SAVEPLOTS
 # sys.argv = ['outreader.py', file_prefix, save_dir_name, SAVEPLOTS]
@@ -243,7 +244,9 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		DPI = 240 #for very long time operating at 480 DPI, @1730_14dec23 changed to 240
 		######## IF DPI @ 480, SIZE OF 0.04 OK. IF DPI @ 240, DOTS DO NOT RENDER @ THAT SIZE. INC TO 0.1
 	pltctr = 0
-	par_list = [ ("lambda",19), ("kappa",20), ("Alambda",21), ("mueff",23), ("Akappa",22), ("tanB",1) ] 
+	par_list = [ ("lambda",19), ("kappa",20), ("Alambda",21), ("mueff",23), ("Akappa",22), ("tanB",1) ]
+	par_list = [("MA",43)] + par_list
+	if "108035020" in file_prefix: par_list = [("AU3",5),("M1",2),("M2",3),("M3",4)] + par_list
 	mass_list = [ ("s1mass",24), ("s2mass",28), ("s3mass",32), ("p1mass",36), ("p2mass",39), ("cmass",42) ]
 		# after edits to nmhdecay_rand.f these comps are matrix elems not true compositions, ned **2
 		# comps also used to just be called comp, but specifically called as singlet comp, change filenm
@@ -254,11 +257,8 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 
 	if DO_PARAM:
 		print(Time(),"\tBeginning parameter plots")
-		if "13032113" in file_prefix: extra_pars_list=[("MA",43)]
-		elif "108035020" in file_prefix: extra_pars_list = [("AU3", 5), ("M1", 2),("M2", 3),("M3", 4)]
-		else: extra_pars_list=[]
-		for i,(xpar,xind) in enumerate(extra_pars_list+par_list): # ALL PARAM VS
-			for j,(ypar,yind) in enumerate(extra_pars_list+par_list): #PARAM
+		for i,(xpar,xind) in enumerate(par_list): # ALL PARAM VS
+			for j,(ypar,yind) in enumerate(par_list): #PARAM
 				if j<=i: continue
 				pltctr+=1
 				SinglePlot(pltctr, xpar, xind, 0, 0, ypar, yind, 0, 0,
@@ -267,11 +267,8 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		print(Time(),"\tBeginning mass plots") # PLOT ea Higgs' mass against each parameter also its singlet comp
 		for h,(h_mass,hix) in enumerate(mass_list):
 			print("{}\t{}".format(Time(),h_mass))
-			if "13032113" in file_prefix: extra_pars_list = [("AU3",5), ("MQ3",13)]
-			elif "108035020" in file_prefix: extra_pars_list = [("AU3", 5), ("M1", 2),("M2", 3),("M3", 4)]
-			else: extra_pars_list = []
-			for (param,pix) in par_list+comp_list+extra_pars_list: #c_l[h] does higgs v own comp, jus c_l v all comps
-				pltctr+=1
+			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp,
+				pltctr+=1			# , just c_l is h v all comps
 				if "s1" in h_mass: (mmin, mmax) = (110.0, 130.0)#LHC window
 				else: (mmin, mmax) = (0, 1000)
 				SinglePlot(pltctr,h_mass, hix, mmin, mmax,
@@ -290,19 +287,14 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 		print(Time(),"\tBeginning composition plots") # PLOT each Higgs' singlet comp against each parameter
 		for (h_comp,cix) in comp_list:
 			print("{}\t{}".format(Time(),h_comp))
-			if "108035020" in file_prefix: extra_pars_list=[("AU3", 5), ("M1",2),("M2",3),("M3",4)]
-			else: extra_pars_list = []
-			for (param,pix) in par_list+extra_pars_list:
+			for (param,pix) in par_list:
 				pltctr+=1
 				SinglePlot(pltctr,param,pix,0,0,
 						h_comp, cix, 0,0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp", h_comp)
 	if DO_HEAT:
 		print(Time(),"\tBeginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
-		if "13032113" in file_prefix: extra_pars_list = [("AU3",5), ("MQ3",13)]
-		elif "108035020" in file_prefix: extra_pars_list = [("AU3", 5), ("M1", 2),("M2", 3),("M3", 4)]
-		else: extra_pars_list = []
-		for n,(c_par,c_ix) in enumerate(par_list+comp_list+extra_pars_list):# params as heatmap choice
+		for n,(c_par,c_ix) in enumerate(par_list+comp_list):# params as heatmap choice
 			if c_par != "tanB": 	# heatmaps for s1mass @ lo tanB region, LHC blob (exclude tanB)
 				pltctr+=1
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
@@ -523,9 +515,19 @@ for file_index,out_file_name in enumerate(file_names):
 			if DEBUG_MODE: 
 				if indexrow%100000==0: print(indexrow)
 			row = [0] # trim out strange spacing ---> this used to be the event number
+			
+			reject_row = False
+			if "108035020" in file_prefix: last_element=73	#trunc out after neu5scomp
+			else: last_element=43				#                MA
+
 			for indexelem,val in enumerate(fullrow):
 				if val != "": row.append(float(val))
-			out_file_matrix.append(row[0:75])
+				if "108035020" in file_prefix and len(row)==21:
+					if abs(row[20])/row[19] > 0.15: #outside of allowed kappa/lambda ratio
+						reject_row = True
+						break
+				if len(row)>last_element: break
+			if not reject_row: out_file_matrix.append(row)
 
 			if not MASSTRK: continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
 			
@@ -550,7 +552,7 @@ for file_index,out_file_name in enumerate(file_names):
 
 if CMYK:
 	print(Time(),"\tSplitting into mutually exclusive sets...")
-
+	
 	def Set(List): # fn is List to set of tuples conversion
 		return set(map(tuple, List))
 	def List(Set): # fn is Set to List conversion
@@ -587,51 +589,102 @@ if CMYK:
 		bs1 = Set(file_matrices[1])
 		bs2 = Set(file_matrices[2])
 		bs3 = Set(file_matrices[3])
-		print("bsT\t",int(len(bsT)),end="\t|")
+		master_list = [None for i in range(15)]
+
+		print(Time(),"\tbsT\t",int(len(bsT)),end="\t|")
 		print("bs1\t",int(len(bs1)),end="\t|")
 		print("bs2\t",int(len(bs2)),end="\t|")
 		print("bs3\t",int(len(bs3)))
-	
-		sT123 = bsT & bs1 & bs2 & bs3 			# union all constraints
-		print("sT123\t",int(len(sT123)),end="\t|\t.\t|\t.\t|\t.\n")
 
-		sT12 = (bsT & bs1 & bs2).difference(sT123) 	# surv.d exactly 3 con.s
-		sT13 = (bsT & bs1 & bs3).difference(sT123)
-		sT23 = (bsT & bs2 & bs3).difference(sT123)
-		s123 = (bs1 & bs2 & bs3).difference(sT123)
-		print("sT12\t",len(sT12),end="\t|")
-		print("sT13\t",len(sT13),end="\t|")
-		print("sT23\t",len(sT23),end="\t|")
-		print("s123\t",len(s123))
-
-		sT1 = (bsT & bs1).difference(bs2,bs3)		# surv.d exactly 2 con.s
-		sT2 = (bsT & bs2).difference(bs1,bs3)
-		sT3 = (bsT & bs3).difference(bs1,bs2)
-		s12 = (bs1 & bs2).difference(bsT,bs3)
-		s13 = (bs1 & bs3).difference(bsT,bs2)
-		s23 = (bs2 & bs3).difference(bsT,bs1)
-		print("sT1\t",int(len(sT1)),end="\t|")
-		print("sT2\t",int(len(sT2)),end="\t|")
-		print("sT3\t",int(len(sT3)),end="\t|\t.")
-		print("\ns12\t",int(len(s12)),end="\t|")
-		print("s13\t",int(len(s13)),end="\t|")
-		print("s23\t",int(len(s23)),end="\t|\t.\n")
-
-		sT = bsT.difference(bs1,bs2,bs3)		# surv.d exactly 1 con.
-		s1 = bs1.difference(bsT,bs2,bs3)
-		s2 = bs2.difference(bsT,bs1,bs3)
-		s3 = bs3.difference(bsT,bs1,bs2)
-		print("sT\t",int(len(sT)),end="\t|")
-		print("s1\t",int(len(s1)),end="\t|")
-		print("s2\t",int(len(s2)),end="\t|")
-		print("s3\t",int(len(s3)))
-	# DNE events with 0 con.s since all input events are assumed to have exactly 1 con.
-
-		master_list = [	List(sT), List(s1), List(s2), List(s3),
-				List(sT1), List(sT2), List(sT3), List(s12), List(s13), List(s23),
-				List(sT12), List(sT13), List(sT23), List(s123),
-				List(sT123) ]
-
+		bT1 = bsT & bs1
+		print(Time(),"\tbt1",len(bT1))
+		bT2 = bsT & bs2
+		print(Time(),"\tbt2",len(bT2))
+		b23 = bs2 & bs3
+		print(Time(),"\tb23",len(b23))
+		b12 = bs1 & bs2
+		print(Time(),"\tb12",len(b12))
+		b13 = bs1 & bs3
+		print(Time(),"\tb13",len(b13))
+		bT3 = bsT & bs3
+		print(Time(),"\tbt3",len(bT3))
+		sT123 = bT1 & b23
+		master_list[14]=List(sT123)
+		print(Time(),"\tst123",len(sT123))
+		sT12m = bT1 & b12
+		print(Time(),"\tst12m",len(sT12m))
+		sT12 = sT12m.difference(sT123)
+		master_list[10] = List(sT12)
+		del sT12m
+		print(Time(),"\tst12",len(sT12))
+		sT1m3 = bT1 & bT3
+		print(Time(),"\tst1m3",len(sT1m3))
+		sT13 = sT1m3.difference(sT123)
+		master_list[11] = List(sT13)
+		del sT1m3
+		print(Time(),"\tst13",len(sT13))
+		sTm23 = bT3 & b23
+		print(Time(),"\tstm23",len(sTm23))
+		sT23 = sTm23.difference(sT123)
+		del sTm23
+		master_list[12] = List(sT23)
+		print(Time(),"\tst23",len(sT23))
+		sm123 = b12 & b23
+		print(Time(),"\tsm123",len(sm123))
+		s123 = sm123.difference(sT123)
+		master_list[13] = List(s123)
+		del sm123
+		print(Time(),"\ts123",len(s123))
+		sT1 = bT1.difference(sT12,sT123,sT13)
+		master_list[4] = List(sT1)
+		print(Time(),"\tst1",len(sT1))
+		s23 = b23.difference(sT23,sT123,s123)
+		master_list[9] = List(s23)
+		print(Time(),"\ts23",len(s23))		
+		s12 = b12.difference(sT12,sT123,s123)
+		master_list[7] = List(s12)
+		del b12
+		print(Time(),"\ts12",len(s12)) # KILLED after this print
+		sT3 = bT3.difference(sT23,sT123,sT13)
+		del bT3
+		master_list[6] = List(sT3)
+		print(Time(),"\tst3",len(sT3))
+		sT2 = bT2.difference(sT12,sT123,sT23)
+		master_list[5] = List(sT2)
+		print(Time(),"\tst2",len(sT2))
+		del bT2
+		s13 = b13.difference(sT13,sT123,s123)
+		master_list[8] = List(s13)
+		print(Time(),"\ts13",len(s13))
+		del b13
+		del sT123
+		sT = bsT.difference(bT1,sT2,sT23,sT3)
+		master_list[0] = List(sT)
+		print(Time(),"\tst",len(sT))
+		del bsT
+		del sT23
+		s1 = bs1.difference(bT1,s12,s123,s13)
+		master_list[1] = List(s1)
+		print(Time(),"\ts1",len(s1))
+		del bs1
+		del bT1
+		del s123
+		s2 = bs2.difference(b23,sT2,sT12,s12)
+		master_list[2] = List(s2)
+		print(Time(),"\ts2",len(s2))
+		del bs2
+		del sT2
+		del sT12
+		del s12
+		s3 = bs3.difference(b23,sT3,sT13,s13)
+		master_list[3] = List(s3)
+		print(Time(),"\ts3",len(s3))
+		del bs3
+		del b23
+		del s3
+		del sT3
+		del sT13
+		del s13
 
 # args (DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 if SAVEPLOTS: 
