@@ -27,6 +27,11 @@ file_prefix = argv[1] #=-=# file_prefix = "--"# widep
 file_tags = ['THY','LEP','LHC','BKF']#file_tags = ["","con1","con3","con2"]
 file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
 
+N_EXTRA = 2 # number of extra seeds for files (x4 for actual num extra files)
+for ie in range(N_EXTRA):
+	extra_names = ["{}_{}{}randout".format(file_prefix, ie+2, tag) for tag in file_tags]
+	file_names = file_names + extra_names
+
 if "108035020" in file_prefix: (KMIN, KMAX, LMIN, LMAX) = (-.015, .015, 0, .1)	#def plot axis window
 elif "s" == file_prefix[0]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.5)
 else: (KMIN, KMAX, LMIN, LMAX) = (0, 1, 0, 1)
@@ -495,20 +500,19 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 	return
 
 #        [ dne, in1, in2, in1and2, in3, in1and3, in2and3, in1n2n3], [none, 1, 12, 123], or [none, 1, 12]
-ms_trk = [[0 for j in range(2**3)] for i in range(num_files)] #tracking which bins scalars like LHC higgs are in
-ls_trk = [[0 for j in range(1+3)] for i in range(num_files)] #      tracking which bins LIGHT pseudos are in
-lp_trk = [[0 for j in range(1+2)] for i in range(num_files)] #       (or for the pseudos)
+ms_trk = [[0 for j in range(2**3)] for i in range(len(file_tags))] #tracking which bins sca ~ LHC higgs are in
+ls_trk = [[0 for j in range(1+3)] for i in range(len(file_tags))] #      tracking which bins LIGHT pseudos are in
+lp_trk = [[0 for j in range(1+2)] for i in range(len(file_tags))] #       (or for the pseudos)
 def NearSM(mass): #temp fnc that checks if mass is near sm higgs mass
 	buffer = 3.02083333 #buffer in GeV around central SM Higgs mass 
 	#buffer = 25 # large buffer for testing new 4constyle
 	return (mass > 125.173611-buffer) and (mass < 125.173611+buffer)
 
-file_matrices = [list() for file in file_names] # for storing "out_file_matrix" of each out file
+file_matrices = [list() for file in file_tags] # for storing "out_file_matrix" of each out file
 
 for file_index,out_file_name in enumerate(file_names):
 	with open("{}{}.dat".format(DIR, out_file_name)) as f:
 		f_reader = csv.reader(f, delimiter=" ")
-		out_file_matrix = file_matrices[file_index]
 		ctr_lighthiggs = 0
 		print("{}\tReading in\t{}".format(Time(), out_file_name))
 		for indexrow,fullrow in enumerate(f_reader):
@@ -527,8 +531,7 @@ for file_index,out_file_name in enumerate(file_names):
 						reject_row = True
 						break
 				if len(row)>last_element: break
-			if not reject_row: out_file_matrix.append(row)
-
+			if not reject_row: file_matrices[file_index % 4].append(row)
 			if not MASSTRK: continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
 			
 			params = row[1:24]+[row[43]]
@@ -547,6 +550,7 @@ for file_index,out_file_name in enumerate(file_names):
 			in_trk = 0 #lp_trk
 			for mass in phiggs: in_trk += 1*int(mass<threshold_lighthiggs)
 			lp_trk[file_index][in_trk]+=1
+	#	print(len(file_matrices[file_index%4]))
 	f.close()
 
 
@@ -597,88 +601,84 @@ if CMYK:
 		print("bs3\t",int(len(bs3)))
 
 		bT1 = bsT & bs1
-		print(Time(),"\tbt1",len(bT1))
+		print(Time(),"\tbT1\t",len(bT1))
 		bT2 = bsT & bs2
-		print(Time(),"\tbt2",len(bT2))
+		print(Time(),"\tbT2\t",len(bT2))
 		b23 = bs2 & bs3
-		print(Time(),"\tb23",len(b23))
+		print(Time(),"\tb23\t",len(b23))
 		b12 = bs1 & bs2
-		print(Time(),"\tb12",len(b12))
+		print(Time(),"\tb12\t",len(b12))
 		b13 = bs1 & bs3
-		print(Time(),"\tb13",len(b13))
+		print(Time(),"\tb13\t",len(b13))
 		bT3 = bsT & bs3
-		print(Time(),"\tbt3",len(bT3))
+		print(Time(),"\tbT3\t",len(bT3))
 		sT123 = bT1 & b23
 		master_list[14]=List(sT123)
-		print(Time(),"\tst123",len(sT123))
+		print(Time(),"\t*sT123*\t",len(sT123))
 		sT12m = bT1 & b12
-		print(Time(),"\tst12m",len(sT12m))
 		sT12 = sT12m.difference(sT123)
 		master_list[10] = List(sT12)
 		del sT12m
-		print(Time(),"\tst12",len(sT12))
+		print(Time(),"\tsT12\t",len(sT12))
 		sT1m3 = bT1 & bT3
-		print(Time(),"\tst1m3",len(sT1m3))
 		sT13 = sT1m3.difference(sT123)
 		master_list[11] = List(sT13)
 		del sT1m3
-		print(Time(),"\tst13",len(sT13))
+		print(Time(),"\tsT13\t",len(sT13))
 		sTm23 = bT3 & b23
-		print(Time(),"\tstm23",len(sTm23))
 		sT23 = sTm23.difference(sT123)
 		del sTm23
 		master_list[12] = List(sT23)
-		print(Time(),"\tst23",len(sT23))
+		print(Time(),"\tsT23\t",len(sT23))
 		sm123 = b12 & b23
-		print(Time(),"\tsm123",len(sm123))
 		s123 = sm123.difference(sT123)
 		master_list[13] = List(s123)
 		del sm123
-		print(Time(),"\ts123",len(s123))
+		print(Time(),"\ts123\t",len(s123))
 		sT1 = bT1.difference(sT12,sT123,sT13)
 		master_list[4] = List(sT1)
-		print(Time(),"\tst1",len(sT1))
+		print(Time(),"\tsT1\t",len(sT1))
 		s23 = b23.difference(sT23,sT123,s123)
 		master_list[9] = List(s23)
-		print(Time(),"\ts23",len(s23))		
+		print(Time(),"\ts23\t",len(s23))		
 		s12 = b12.difference(sT12,sT123,s123)
 		master_list[7] = List(s12)
 		del b12
-		print(Time(),"\ts12",len(s12)) # KILLED after this print
+		print(Time(),"\ts12\t",len(s12)) # KILLED after this print
 		sT3 = bT3.difference(sT23,sT123,sT13)
 		del bT3
 		master_list[6] = List(sT3)
-		print(Time(),"\tst3",len(sT3))
+		print(Time(),"\tsT3\t",len(sT3))
 		sT2 = bT2.difference(sT12,sT123,sT23)
 		master_list[5] = List(sT2)
-		print(Time(),"\tst2",len(sT2))
+		print(Time(),"\tsT2\t",len(sT2))
 		del bT2
 		s13 = b13.difference(sT13,sT123,s123)
 		master_list[8] = List(s13)
-		print(Time(),"\ts13",len(s13))
+		print(Time(),"\ts13\t",len(s13))
 		del b13
 		del sT123
 		sT = bsT.difference(bT1,sT2,sT23,sT3)
 		master_list[0] = List(sT)
-		print(Time(),"\tst",len(sT))
+		print(Time(),"\tsT\t",len(sT))
 		del bsT
 		del sT23
 		s1 = bs1.difference(bT1,s12,s123,s13)
 		master_list[1] = List(s1)
-		print(Time(),"\ts1",len(s1))
+		print(Time(),"\ts1\t",len(s1))
 		del bs1
 		del bT1
 		del s123
 		s2 = bs2.difference(b23,sT2,sT12,s12)
 		master_list[2] = List(s2)
-		print(Time(),"\ts2",len(s2))
+		print(Time(),"\ts2\t",len(s2))
 		del bs2
 		del sT2
 		del sT12
 		del s12
 		s3 = bs3.difference(b23,sT3,sT13,s13)
 		master_list[3] = List(s3)
-		print(Time(),"\ts3",len(s3))
+		print(Time(),"\ts3\t",len(s3))
 		del bs3
 		del b23
 		del s3
