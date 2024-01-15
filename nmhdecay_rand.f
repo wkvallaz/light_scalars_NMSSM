@@ -2310,8 +2310,8 @@ c      CALL FTPAR(PAR,0)
       WRITE(17,*)
       WRITE(17,10)"Number of points:                  "
       WRITE(17,*)
-      WRITE(17,10)"  scanned                          ",NTOT
-      WRITE(17,10)"  mu=0 or (kappa=0 and Akappa=/=0) ",NFAIL(9)
+      WRITE(17,10)"  scanned                         *",NTOT
+      WRITE(17,10)"  mu=0 or (kappa=0 and Akappa=/=0)*",NFAIL(9)
       S=0
       DO I=1,7
        S=S+NFAIL(I)                               
@@ -2324,9 +2324,9 @@ c      CALL FTPAR(PAR,0)
       WRITE(17,10)"  with mh1^2 &&          mhc^2 < 0 ",NFAIL(5)
       WRITE(17,10)"  with          ma1^2 && mhc^2 < 0 ",NFAIL(6)
       WRITE(17,10)"  with mh1^2 && ma1^2 && mhc^2 < 0 ",NFAIL(7)
-      WRITE(17,10)"  with mh1^2 or ma1^2 or mhc^2 < 0 ",S
-      WRITE(17,10)"  with m_sfermion^2 < 0            ",NFAIL(8)
-      WRITE(17,10)"  violating constraints            ",NFAIL(10)
+      WRITE(17,10)"  with mh1^2 or ma1^2 or mhc^2 < 0*",S
+      WRITE(17,10)"  with m_sfermion^2 < 0           *",NFAIL(8)
+      WRITE(17,10)"  violating constraints           *",NFAIL(10)
       S=NFAIL(11)+NFAIL(12)
       WRITE(17,10)"  RGE integration problem          ",S
       S=NFAIL(13)+NFAIL(14)

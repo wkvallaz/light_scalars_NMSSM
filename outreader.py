@@ -18,22 +18,24 @@ DEBUG_MODE = 0 #enables print statements used for tracking
 MASSTRK = 0 #enables tracking masses near LHC and of light s/o
 DO_PARAM = 1
 DO_MASS = 1
-DO_COMP = 1
-DO_HEAT = 1 
-DO_MISC = 1
+DO_COMP = 0
+DO_HEAT = 0 
+DO_MISC = 0
+DO_REPL = 0
 
 threshold_lighthiggs = 50 # GeV
 file_prefix = argv[1] #=-=# file_prefix = "--"# widep
 file_tags = ['THY','LEP','LHC','BKF']#file_tags = ["","con1","con3","con2"]
 file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
 
-N_EXTRA = 2 # number of extra seeds for files (x4 for actual num extra files)
+N_EXTRA = 0 # number of extra seeds for files (x4 for actual num extra files)
 for ie in range(N_EXTRA):
 	extra_names = ["{}_{}{}randout".format(file_prefix, ie+2, tag) for tag in file_tags]
 	file_names = file_names + extra_names
 
 if "108035020" in file_prefix: (KMIN, KMAX, LMIN, LMAX) = (-.015, .015, 0, .1)	#def plot axis window
 elif "s" == file_prefix[0]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.5)
+elif "PQ" == file_prefix[0:2]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.7)
 else: (KMIN, KMAX, LMIN, LMAX) = (0, 1, 0, 1)
 
 save_dir_name = argv[2]
@@ -217,7 +219,7 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 		plt.close()
 	return
 
-def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
+def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 	if not CMYK:
 		Label = [file_prefix + x for x in file_names]
 		#Color = ['darkgray', 'cyan', 'yellow', 'magenta']		#CYM COLORING
@@ -242,11 +244,13 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			(0,0,0)]
 
 		Alpha = [1 for x in range(NC)]
-		Size= [.1 for x in range(NC-1)]+[10*.1]#.25 when doing 8 colors
-		if "13032113" in file_prefix: Size = [10*s for s in Size] 
+		dot_size = 0.2;	Size= [dot_size for x in range(NC-1)]+[8*dot_size]#.25 when doing 8 colors
+		
+		if "13032113" in file_prefix: Size = [10*s for s in Size]
+		elif "108035020" in file_prefix: Size = [10*s for s in Size] 
 		LOC = "center"
 		BBOX_TO_ANCHOR = [0.475,1.105]
-		DPI = 240 #for very long time operating at 480 DPI, @1730_14dec23 changed to 240
+		DPI = 360 #for very long time operating at 480 DPI, @1730_14dec23 changed to 240
 		######## IF DPI @ 480, SIZE OF 0.04 OK. IF DPI @ 240, DOTS DO NOT RENDER @ THAT SIZE. INC TO 0.1
 	pltctr = 0
 	par_list = [ ("lambda",19), ("kappa",20), ("Alambda",21), ("mueff",23), ("Akappa",22), ("tanB",1) ]
@@ -275,16 +279,16 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp,
 				pltctr+=1			# , just c_l is h v all comps
 				if "s1" in h_mass: (mmin, mmax) = (110.0, 130.0)#LHC window
-				else: (mmin, mmax) = (0, 1000)
+				else: (mmin, mmax) = (0, 500)
 				SinglePlot(pltctr,h_mass, hix, mmin, mmax,
 						param, pix, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)
 			for yit,(y_higg,yix) in enumerate(mass_list):	 #for mass v mass plots
 				if yit <= h: continue
 				if "s1" in h_mass: (xmin, xmax) = (110, 130)
-				else: (xmin, xmax) = (0, 1000)
+				else: (xmin, xmax) = (0, 500)
 				if "s1" in y_higg: (ymin, ymax) = (110, 130) # should never trigger
-				else: (ymin, ymax) = (0, 1000)
+				else: (ymin, ymax) = (0, 500)
 				SinglePlot(pltctr, h_mass, hix, xmin, xmax,
 						y_higg, yix, ymin, ymax,
 						Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass", "")
@@ -461,7 +465,350 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC):
 				plt.close()		
 # S123jCOMP V SiMASS LOOP
 
-		if "108035020" in file_prefix:
+	if DO_REPL: # for the very specific plots in replic trials
+		if "13032113" in file_prefix:
+			print(Time(),"\tPlotting Figure (3)...")
+			# 3A cmass v s1mass,s2mass,s3mass in s1m126
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
+			for matrix in master_list:
+				for r in matrix:
+					if 124<r[24] and r[24]<128:
+						ax.scatter( r[42], r[24], alpha=.9, color="red", 
+							    s=9, label="s1mass", marker=',', linewidths=0)
+						ax.scatter( r[42], r[28], alpha=.9, color="green", 
+							    s=9, label="s2mass", marker=',', linewidths=0)
+						ax.scatter( r[42], r[32], alpha=.9, color="blue", 
+							    s=9, label="s3mass", marker=',', linewidths=0)
+						# i just realized this legend will suck
+			plt.title(file_prefix+" : (3a) s123mass v cmass in s1m126")	
+			plt.ylabel("s(1,2,3)mass")
+			plt.xlabel("cmass")
+			plt.xlim(100,300)
+			plt.ylim(0,300)
+			plt.savefig("{}{}/s123mass_v_cmass_s1m126.png".format(DIR, save_dir_name))
+			plt.close()
+			# 3C cmass v s1m,s2m,s3m in s2m126
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
+			for matrix in master_list:
+				for r in matrix: #s2m126 case acc to table 3
+					if 124<r[28] and r[28]<128:
+						ax.scatter( r[42], r[24], alpha=.9, color="red", 
+							    s=9, label="s1mass", marker=',', linewidths=0)
+						ax.scatter( r[42], r[28], alpha=.9, color="green", 
+							    s=9, label="s2mass", marker=',', linewidths=0)
+						ax.scatter( r[42], r[32], alpha=.9, color="blue", 
+							    s=9, label="s3mass", marker=',', linewidths=0)
+						# i just realized this legend will suck
+			plt.title(file_prefix+" : (3c) s123mass v cmass in s2m126")	
+			plt.ylabel("s(1,2,3)mass")
+			plt.xlabel("cmass")
+			plt.xlim(100,300)
+			plt.ylim(0,300)
+			plt.savefig("{}{}/s123mass_v_cmass_s2m126.png".format(DIR, save_dir_name))
+			plt.close()
+			# 3E cmass v s1m,s2m,s3m in s3m126
+			# 3B cm v p1p2cm
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
+			for matrix in master_list:
+				for r in matrix:
+					if 124<r[24] and r[24]<128:
+						ax.scatter( r[42], r[36], alpha=.9, color="magenta", 
+							    s=9, label="p1mass", marker=',', linewidths=0)
+						ax.scatter( r[42], r[39], alpha=.9, color="orange", 
+							    s=9, label="p2mass", marker=',', linewidths=0)
+						ax.scatter( r[42], r[42], alpha=.9, color="cyan", 
+							    s=9, label="cmass", marker=',', linewidths=0)
+						# i just realized this legend will suck
+			plt.title(file_prefix+" : (3b) p1p2cmass v cmass in s1m126")	
+			plt.ylabel("p1p2cmass")
+			plt.xlabel("cmass")
+			plt.xlim(100,300)
+			plt.ylim(0,300)
+			plt.savefig("{}{}/p1p2cmass_v_cmass_s1m126.png".format(DIR, save_dir_name))
+			plt.close()
+			# 3D cm v p1p2cm
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
+			for matrix in master_list:
+				for r in matrix:
+					if 124<r[28] and r[28]<128:
+						ax.scatter( r[42], r[36], alpha=.9, color="magenta", 
+							    s=9, label="p1mass", marker=',', linewidths=0)
+						ax.scatter( r[42], r[39], alpha=.9, color="orange", 
+							    s=9, label="p2mass", marker=',', linewidths=0)
+						ax.scatter( r[42], r[42], alpha=.9, color="cyan", 
+							    s=9, label="cmass", marker=',', linewidths=0)
+						# i just realized this legend will suck
+			plt.title(file_prefix+" : (3d) p1p2cmass v cmass in s2m126")	
+			plt.ylabel("p1p2cmass")
+			plt.xlabel("cmass")
+			plt.xlim(100,300)
+			plt.ylim(0,300)
+			plt.savefig("{}{}/p1p2cmass_v_cmass_s2m126.png".format(DIR, save_dir_name))
+			plt.close()
+	#		# 3F cm v p1p2cm
+	#	#	#	#	#	#	#	#	#	#	#	#	#
+			print(Time(),"\tPlotting Figure (4)...")
+			# 4A param plots in s1m126			
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
+			matcolors = ["gray" for arr in master_list] 	# other 	## hopefully removing
+			matcolors[7] = "pink"				# s12
+			matcolors[13] = "lightgreen"				# s123
+			matcolors[14] = "black"				# sT123
+			matcolors[7]="gray"		# changed order of these two bc they plotted in
+			matcolors[12]="pink"		#  a different order so 7 doesnt get covered
+			for matind,matrix in enumerate(master_list):
+				if matind==0: continue	# don't plot s1
+				elif matind==7: matind=12
+				elif matind==12: matind==7
+				for r in matrix: # s1m126 window acc to table 2
+					if 100<r[24] and r[24]<140:	#cull st only pts which on plot are pltd
+						ptcolor = "lightgray"
+						if 124<r[24] and r[24]<128:
+							ptcolor = "pink"
+							if matind == 13: ptcolor = "lightgreen"
+						if matind == 14: ptcolor = "black"
+						# i don't have ggF sigma due to processing
+						ax.scatter( r[19], r[24], alpha=1., color=ptcolor, 
+							    s=30, marker='.', linewidths=0)
+			plt.title(file_prefix+" : (4a) s1mass v lambda in s1m126")
+			plt.ylabel("s1mass")
+			plt.xlabel("lambda")
+			plt.xlim(0,1)
+			plt.ylim(100,140)
+			plt.savefig("{}{}/s1mass_v_lambda_s1m126.png".format(DIR, save_dir_name))
+			plt.close()
+			# 4B param plots in s1m126
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
+			for matind,matrix in enumerate(master_list):
+				if matind==0: continue	# don't plot s1
+				elif matind==7: matind=12
+				elif matind==12: matind==7
+				for r in matrix: # s1m126 window acc to table 2
+					if 100<r[24] and r[24]<140:	#cull st only pts which on plot are pltd
+						ptcolor = "lightgray"
+						if 124<r[24] and r[24]<128:
+							ptcolor = "pink"
+							if matind == 13: ptcolor = "lightgreen"
+						if matind == 14: ptcolor = "black"
+						# i don't have ggF sigma due to processing
+						ax.scatter( r[20], r[24], alpha=1., color=ptcolor, 
+							    s=30, label="s1mass", marker='.', linewidths=0)
+			plt.title(file_prefix+" : (4b) s1mass v kappa in s1m126")
+			plt.ylabel("s1mass")
+			plt.xlabel("kappa")
+			plt.xlim(0,1)
+			plt.ylim(100,140)
+			plt.savefig("{}{}/s1mass_v_kappa_s1m126.png".format(DIR, save_dir_name))
+			plt.close()
+			# 4C param plots in s1m126
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
+			for matind,matrix in enumerate(master_list):
+				if matind==0: continue	# don't plot s1
+				elif matind==7: matind=12
+				elif matind==12: matind==7
+				for r in matrix: # s1m126 window acc to table 2
+					if 100<r[24] and r[24]<140:	#cull st only pts which on plot are pltd
+						ptcolor = "lightgray"
+						if 124<r[24] and r[24]<128:
+							ptcolor = "pink"
+							if matind == 13: ptcolor = "lightgreen"
+						if matind == 14: ptcolor = "black"
+						# i don't have ggF sigma due to processing
+						ax.scatter( r[1], r[24], alpha=1., color=ptcolor, 
+							    s=30, label="s1mass", marker='.', linewidths=0)
+			plt.title(file_prefix+" : (4c) s1mass v tanB in s1m126")
+			plt.ylabel("s1mass")
+			plt.xlabel("tanB")
+			plt.xlim(0,10)
+			plt.ylim(100,140)
+			plt.savefig("{}{}/s1mass_v_tanB_s1m126.png".format(DIR, save_dir_name))
+			plt.close()
+			# 4D param plots in s1m126
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
+			for matind,matrix in enumerate(master_list):
+				if matind==0: continue	# don't plot s1
+				elif matind==7: matind=12
+				elif matind==12: matind==7
+				for r in matrix: # s1m126 window acc to table 2
+					if 100<r[24] and r[24]<140:	#cull st only pts which on plot are pltd
+						ptcolor = "lightgray"
+						if 124<r[24] and r[24]<128:
+							ptcolor = "pink"
+							if matind == 13: ptcolor = "lightgreen"
+						if matind == 14: ptcolor = "black"
+						# i don't have ggF sigma due to processing
+						ax.scatter( r[23], r[24], alpha=1., color=ptcolor, 
+							    s=30, label="s1mass", marker='.', linewidths=0)
+			plt.title(file_prefix+" : (4d) s1mass v mueff in s1m126")
+			plt.ylabel("s1mass")
+			plt.xlabel("mueff")
+			plt.xlim(0,1000)
+			plt.ylim(100,140)
+			plt.savefig("{}{}/s1mass_v_mueff_s1m126.png".format(DIR, save_dir_name))
+			plt.close()
+	#	#	#	#	#	#	#	#	#	#	#	#	#
+			print(Time(),"\tPlotting Figure (5)...")
+			# 5A param plots in s1m126
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
+			for matind,matrix in enumerate(master_list):
+				if matind==0: continue	# don't plot s1
+				elif matind==7: matind=12
+				elif matind==12: matind==7
+				for r in matrix: # s1m126 window acc to table 2
+					ptcolor = "lightgray"
+					if 124<r[24] and r[24]<128:
+						ptcolor = "pink"
+						if r[36]>r[24]/2 and True: ptcolor = "lightgreen"
+						if r[36]>r[24]/2 and False: ptcolor = "red"
+						if r[36]<r[24]/2: ptcolor = "magenta"
+					if matind == 14: ptcolor = "black"
+					# i don't have ggF sigma due to processing
+					ax.scatter( r[43], r[19], alpha=1., color=ptcolor, 
+						    s=30, label="", marker='.', linewidths=0)
+			plt.title(file_prefix+" : (5a) lambda v MA in s1m126")
+			plt.ylabel("lambda")
+			plt.xlabel("MA")
+			plt.xlim(0,200)
+			plt.ylim(0,1)
+			plt.savefig("{}{}/lambda_v_MA_s1m126.png".format(DIR, save_dir_name))
+			plt.close()
+			# 5B param plots in s1m126
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
+			for matind,matrix in enumerate(master_list):
+				if matind==0: continue	# don't plot s1
+				elif matind==7: matind=12
+				elif matind==12: matind==7
+				for r in matrix: # s1m126 window acc to table 2
+					ptcolor = "lightgray"
+					if 124<r[24] and r[24]<128:
+						ptcolor = "pink"
+						if r[36]>r[24]/2 and True: ptcolor = "lightgreen"
+						if r[36]>r[24]/2 and False: ptcolor = "red"
+						if r[36]<r[24]/2: ptcolor = "magenta"
+					if matind == 14: ptcolor = "black"
+					# i don't have ggF sigma due to processing
+					ax.scatter( r[43], r[20], alpha=1., color=ptcolor, 
+						    s=30, label="", marker='.', linewidths=0)
+			plt.title(file_prefix+" : (5b) kappa v MA in s1m126")
+			plt.ylabel("kappa")
+			plt.xlabel("MA")
+			plt.xlim(0,200)
+			plt.ylim(0,1)
+			plt.savefig("{}{}/kappa_v_MA_s1m126.png".format(DIR, save_dir_name))
+			plt.close()
+			# 5C param plots in s1m126
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
+			for matind,matrix in enumerate(master_list):
+				if matind==0: continue	# don't plot s1
+				elif matind==7: matind=12
+				elif matind==12: matind==7
+				for r in matrix: # s1m126 window acc to table 2
+					ptcolor = "lightgray"
+					if 124<r[24] and r[24]<128:
+						ptcolor = "pink"
+						if r[36]>r[24]/2 and True: ptcolor = "lightgreen"
+						if r[36]>r[24]/2 and False: ptcolor = "red"
+						if r[36]<r[24]/2: ptcolor = "magenta"
+					if matind == 14: ptcolor = "black"
+					# i don't have ggF sigma due to processing
+					ax.scatter( r[20], r[19], alpha=1., color=ptcolor, 
+						    s=30, label="", marker='.', linewidths=0)
+			plt.title(file_prefix+" : (5c) lambda v kappa in s1m126")
+			plt.ylabel("lambda")
+			plt.xlabel("kappa")
+			plt.xlim(0,1)
+			plt.ylim(0,1)
+			plt.savefig("{}{}/lambda_v_kappa_s1m126.png".format(DIR, save_dir_name))
+			plt.close()
+			# 5D param plots in s1m126
+			# 5E param plots in s1m126
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
+			for matind,matrix in enumerate(master_list):
+				if matind==0: continue	# don't plot s1
+				elif matind==7: matind=12
+				elif matind==12: matind==7
+				for r in matrix: # s1m126 window acc to table 2
+					if (r[23]<600 and -700<r[21] and r[21]<250):	#cull
+						ptcolor = "lightgray"
+						if 124<r[24] and r[24]<128:
+							ptcolor = "pink"
+							if r[36]>r[24]/2 and True: ptcolor = "lightgreen"
+							if r[36]>r[24]/2 and False: ptcolor = "red"
+							if r[36]<r[24]/2: ptcolor = "magenta"
+						if matind == 14: ptcolor = "black"
+						# i don't have ggF sigma due to processing
+						ax.scatter( r[23], r[21], alpha=1., 
+							color=ptcolor, s=30, label="", marker='.', linewidths=0)
+			plt.title(file_prefix+" : (5e) Alambda v mueff in s1m126")
+			plt.ylabel("Alambda")
+			plt.xlabel("mueff")
+			plt.xlim(100,600)
+			plt.ylim(-700,250)
+			plt.savefig("{}{}/Alambda_v_mueff_s1m126.png".format(DIR, save_dir_name))
+			plt.close()
+			# 5F param plots in s1m126
+			pltctr+=1
+			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
+			for matind,matrix in enumerate(master_list):
+				if matind==0: continue	# don't plot s1
+				elif matind==7: matind=12
+				elif matind==12: matind==7
+				for r in matrix: # s1m126 window acc to table 2
+					if (r[23]<600 and -1200<r[22] and r[22]<250):	#cull
+						ptcolor = "lightgray"
+						if 124<r[24] and r[24]<128:
+							ptcolor = "pink"
+							if r[36]>r[24]/2 and True: ptcolor = "lightgreen"
+							if r[36]>r[24]/2 and False: ptcolor = "red"
+							if r[36]<r[24]/2: ptcolor = "magenta"
+						if matind == 14: ptcolor = "black"
+						# i don't have ggF sigma due to processing
+						ax.scatter( r[23], r[22], alpha=1., 
+							color=ptcolor, s=30, label="", marker='.', linewidths=0)
+			plt.title(file_prefix+" : (5f) Akappa v mueff in s1m126")
+			plt.ylabel("Akappa")
+			plt.xlabel("mueff")
+			plt.xlim(100,600)
+			plt.ylim(-1200,250)
+			plt.savefig("{}{}/Akappa_v_mueff_s1m126.png".format(DIR, save_dir_name))
+			plt.close()
+	#	#	#	#	#	#	#	#	#	#	#	#	#
+	#	#	#	END OF 13032113 REPL	#	#	#	#	#	#	#
+	#	#	#	#	#	#	#	#	#	#	#	#	#	
+
+	#keeping for templating
+	#		pltctr+=1
+	#		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
+	#		for matrix in master_list:
+	#			for r in matrix:
+	#				if r[28]>122 and r[28]<128:
+	#					ax.scatter( r[42], r[36], alpha=.5, color="magenta", 
+	#						    s=1, label="p1mass", marker=',', linewidths=0)
+	#					ax.scatter( r[42], r[39], alpha=.5, color="orange", 
+	#						    s=1, label="p2mass", marker=',', linewidths=0)
+	#					ax.scatter( r[42], r[42], alpha=.5, color="cyan", 
+	#						    s=1, label="cmass", marker=',', linewidths=0)
+	#		plt.title(file_prefix+" : ")
+	#		plt.ylabel("")
+	#		plt.xlabel("")
+	#		plt.xlim(,)
+	#		plt.ylim(,)
+	#		plt.savefig("{}{}/_v_.png".format(DIR, save_dir_name))
+	#		plt.close()
+
+		elif "108035020" in file_prefix:
 			print(Time(),"\t108035020-specific plots.")
 			pltctr+=1
 			HeatPlot(pltctr, "mneu1", 44, "viridis",
@@ -531,7 +878,7 @@ for file_index,out_file_name in enumerate(file_names):
 						reject_row = True
 						break
 				if len(row)>last_element: break
-			if not reject_row: file_matrices[file_index % 4].append(row)
+			if not reject_row: file_matrices[file_index % len(file_tags)].append(row)
 			if not MASSTRK: continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
 			
 			params = row[1:24]+[row[43]]
@@ -689,7 +1036,7 @@ if CMYK:
 # args (DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 if SAVEPLOTS: 
 	if DEBUG_MODE: print(Time(),"\tStarting to plot...")
-	GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
+	GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL)
 
 if MASSTRK:
 	print("\nSorting by lightest SCALAR")
