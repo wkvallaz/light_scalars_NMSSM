@@ -2445,7 +2445,12 @@ c      CALL FTPAR(PAR,0)
        WRITE(17,*)
        WRITE(17,*)"I NUMPROB(I)"
        DO I=1,88
-        IF(NUMPROB(I).NE.0)WRITE(17,*)I,NUMPROB(I)
+        IF(I.EQ.47 .OR. I.EQ.48 .OR. I.EQ.49
+     .  .OR. I.EQ.50 .OR. I.EQ.54)THEN
+         WRITE(17,*)I,"         --"
+        ELSE
+         WRITE(17,*)I,NUMPROB(I)
+        ENDIF
        ENDDO
 
       ENDIF

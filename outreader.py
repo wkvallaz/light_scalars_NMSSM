@@ -16,14 +16,14 @@ argv = sys.argv
 
 DEBUG_MODE = 0 #enables print statements used for tracking
 MASSTRK = 0 #enables tracking masses near LHC and of light s/o
-DO_PARAM = 1
-DO_MASS = 1
+DO_PARAM = 0
+DO_MASS = 0
 DO_COMP = 0
-DO_HEAT = 0 
+DO_HEAT = 1 
 DO_MISC = 0
 DO_REPL = 0
 
-threshold_lighthiggs = 50 # GeV
+threshold_lighthiggs = 10 # GeV
 file_prefix = argv[1] #=-=# file_prefix = "--"# widep
 file_tags = ['THY','LEP','LHC','BKF']#file_tags = ["","con1","con3","con2"]
 file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
@@ -257,11 +257,12 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 	par_list = [("MA",43)] + par_list
 	if "108035020" in file_prefix: par_list = [("AU3",5),("M1",2),("M2",3),("M3",4)] + par_list
 	mass_list = [ ("s1mass",24), ("s2mass",28), ("s3mass",32), ("p1mass",36), ("p2mass",39), ("cmass",42) ]
+	if "PQ" in file_prefix: mass_list = [("neu1mass",44)] + mass_list
 		# after edits to nmhdecay_rand.f these comps are matrix elems not true compositions, ned **2
 		# comps also used to just be called comp, but specifically called as singlet comp, change filenm
 	comp_list = [ ("s1scomp",27), ("s2scomp",31), ("s3scomp",35), ("p1scomp",38), ("p2scomp",41) ]
 	heatmap_list = [#"viridis", "plasma", 
-			"inferno", "magma", #"cividis",
+			"inferno", #"magma", "cividis",
 			"brg", "rainbow","jet","turbo"] # viridis, plasma, cividis read poorly
 
 	if DO_PARAM:
@@ -319,12 +320,45 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
 						"lambda", 19, 0, 0,
 						"kappa", 20, 0, 0, Size, DPI, "Heatmap", "")
-			if c_par != "kappa" and c_par != "Akappa":
+			if c_par != "kappa":
+				pltctr+=1
+				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
+						"s1mass", 24, 110, 130,
+						"kappa", 20, 0, 0, Size, DPI, "Heatmap", "s1mass")
+				pltctr+=1
+				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
+						"s2mass", 28, 0, 500,
+						"kappa", 20, 0, 0, Size, DPI, "Heatmap", "s2mass")
+			if c_par != "Akappa":
+				pltctr+=1
+				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
+						"s1mass", 24, 110, 130,
+						"Akappa", 22, 0, 0, Size, DPI, "Heatmap", "s1mass")
+				pltctr+=1
+				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
+						"s2mass", 28, 0, 500,
+						"Akappa", 22, 0, 0, Size, DPI, "Heatmap", "s2mass")
+			if "108035020" in file_prefix and c_par != "kappa" and c_par != "Akappa":
 				pltctr+=1
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
 						"kappa", 20, 0, 0,
 						"Akappa", 22, 0, 0, Size, DPI, "Heatmap", "108035020")
-
+			if ("neu1mass", 44) in mass_list:
+				if c_par != "kappa":
+					pltctr+=1
+					HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
+						"neu1mass", 44, 0, 500,
+						"kappa", 20, 0, 0, Size, DPI, "Heatmap", "neu1mass")
+				if c_par != "lambda":
+					pltctr+=1
+					HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
+						"neu1mass", 44, 0, 500,
+						"lambda", 19, 0, 0, Size, DPI, "Heatmap", "neu1mass")
+				if c_par != "mueff":
+					pltctr+=1
+					HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
+						"neu1mass", 44, 0, 500,
+						"mueff", 23, 0, 0, Size, DPI, "Heatmap", "neu1mass")
 	if DO_MISC:
 		print(Time(),"\tComparing LO p1mamss")
 		pltctr+=1
@@ -869,6 +903,7 @@ for file_index,out_file_name in enumerate(file_names):
 			
 			reject_row = False
 			if "108035020" in file_prefix: last_element=73	#trunc out after neu5scomp
+			elif "PQ" in file_prefix: last_element=44	#		 neu1mass
 			else: last_element=43				#                MA
 
 			for indexelem,val in enumerate(fullrow):
