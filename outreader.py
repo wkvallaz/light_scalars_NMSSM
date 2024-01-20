@@ -188,8 +188,6 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 		LEN = len(master_list)
 		relevant_matrix = master_list[LEN-6]+master_list[LEN-5]+master_list[LEN-4]+master_list[LEN-3]+master_list[LEN-2]+master_list[LEN-1]
 
-	
-
 	if "comp" in ypar: y_expon = 2
 	else: y_expon = 1
 	if "comp" in cpar: c_expon = 2
@@ -305,6 +303,24 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 	if DO_HEAT:
 		print(Time(),"\tBeginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
 		for n,(c_par,c_ix) in enumerate(par_list+comp_list):# params as heatmap choice
+			print(Time(),"\tColoring with",c_par)
+			for xind,(x_par,x_ix) in enumerate(mass_list+par_list):	#                     not sure
+				if x_par == "s1mass": (x_min, x_max) = (110,130)#                     what to cull
+				elif x_par[-4:] == "mass": (x_min, x_max) = (0, 500)
+				else: (x_min, x_max) = (0, 0)
+				for yind,(y_par,y_ix) in enumerate(mass_list+par_list):
+					if xind >= yind or c_par == y_par or c_par == x_par: continue
+	
+					if y_par == "s1mass": (y_min, y_max) = (110,130)
+					elif y_par[-4:] == "mass": (y_min, y_max) = (0, 500)
+					else: (y_min, y_max) = (0, 0)
+
+					pltctr+=1
+					HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
+						x_par, x_ix, x_min, x_max,
+						y_par, y_ix, y_min, y_max, Size, DPI, "Heatmap",c_par)
+			continue # rewriting below to be loop over x y c --- be limited, don't want On^3?
+			# BELOW TO BE DELETED
 			if c_par != "tanB": 	# heatmaps for s1mass @ lo tanB region, LHC blob (exclude tanB)
 				pltctr+=1
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
@@ -329,6 +345,10 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
 						"s2mass", 28, 0, 500,
 						"kappa", 20, 0, 0, Size, DPI, "Heatmap", "s2mass")
+				pltctr+=1
+				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
+						"p1mass", 36, 0, 500,
+						"kappa", 20, 0, 0, Size, DPI, "Heatmap", "p1mass")
 			if c_par != "Akappa":
 				pltctr+=1
 				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
