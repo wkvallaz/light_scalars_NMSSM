@@ -18,7 +18,7 @@ DEBUG_MODE = 0 		#enables print statements used for tracking
 MASSTRKFILE = 0 	#enables tracking masses near LHC and of light s/o
 MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
 DO_PARAM = 0
-DO_MASS = 0
+DO_MASS = 1
 DO_COMP = 0
 DO_HEAT = 0 
 DO_MISC = 0
@@ -91,55 +91,44 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 
 	def Col(index,matrix): #array generator statement which pulls column 'index' from  ea row of 'matrix'
 		return [r[index] for r in matrix]
-	if "comp" in ypar:
-		y_expon = 2
-	else:
-		y_expon = 1
-	if "comp" in xpar:
-		x_expon = 2
-	else:
-		x_expon = 1
-	#fig,ax = plt.subplots
+	if "comp" in ypar: y_expon = 2
+	else: y_expon = 1
+	if "comp" in xpar: x_expon = 2
+	else: x_expon = 1
+	
 	plt.figure(pltctr)		#   vvv used to be file_matrices, changed to master_list for m.ex.sets
 	if CMYK: relevant_matrix = master_list
 	else: relevant_matrix = file_matrices	
 	extralegelem=0	
 	for fx,out_file_matrix in enumerate(relevant_matrix): # file_matrices for RGB, master_list for CMYK
-		if (ypar == "rt n 3 k Ak mueff div lambda"  or (xpar == "MA") or 
-#		  (xpar == "s1mass" and ypar == "s2mass")  or		
-#		  (xpar == "s2mass" and ypar == "s3mass")  or
-#		  (xpar == "p1mass" and ypar == "p2mass")  or
-		  (xpar[-4:] == "mass" and ypar[-4:] == "mass")	):
-			if fx==0 and (xpar != "MA"): #only plot line y = x on the first iter of loop & don't
-				extralegelem=1	     #				put y=x for the MA stuff
-				plt.plot([0,max(Col(xind,file_matrices[0]))],
-					 [0,max(Col(xind,file_matrices[0]))],
-				 	 	color="black", alpha=1.0, linestyle="solid", linewidth=0.30,
-						 label = "y = x")#lw0.15@dpi480
-			# y values described by fn_arr (function array)
-			if ypar == "rt n 3 k Ak mueff div lambda":	
-				fn_arr = [np.real(cmath.sqrt(
-	-3*r[20]*r[22]*r[23]/r[19]						)) for r in out_file_matrix]
-			else:
-				fn_arr = Col(yind, out_file_matrix)
-			# x values descd by fnxarr
-			if xpar == "xnopyt": #THIS USED TO BE if xpar == "MA" but it innaccurate for MA value
-				fnxarr = [np.real(cmath.sqrt(
-	2*r[23]*(r[19]*r[21]+r[20]*r[23])/(r[19]*np.sin(2*np.arctan(r[1])))	)) for r in out_file_matrix]
-			else:
-				fnxarr = [r[xind]**x_expon for r in out_file_matrix]
-			plt.scatter(fnxarr, fn_arr,
-				alpha=Alpha[fx],color=Color[fx],s=Size[fx],
-				label=Label[fx],marker=',',linewidths=0)
+		
+		if ypar == "rt n 3 k Ak mueff div lambda":
+			extralegelem=1
+			plt.plot([0,max(Col(xind,file_matrices[-1]))],
+				 [0,max(Col(xind,file_matrices[-1]))],
+			 		color="black", alpha=1.0, linestyle="solid",
+					linewidth=0.20, label = "y = x")#lw0.15@dpi480
+			fn_arr = [np.real(cmath.sqrt(-3*r[20]*r[22]*r[23]/r[19])) or r in out_file_matrix]
 		elif ypar=="neu3Hcomp":
-			plt.scatter([r[xind]**x_expon for r in out_file_matrix], [r[59]**2+r[60]**2 for r in out_file_matrix], alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], marker=',', linewidths=0)
+			fn_arr = [r[59]**2+r[60]**2 for r in out_file_matrix]
 		elif ypar=="neu4Hcomp":
-			plt.scatter([r[xind]**x_expon for r in out_file_matrix], [r[65]**2+r[66]**2 for r in out_file_matrix], alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], marker=',', linewidths=0)
+			fn_arr = [r[65]**2+r[66]**2 for r in out_file_matrix]
 		else:
-			plt.scatter([r[xind]**x_expon for r in out_file_matrix],
-				[r[yind]**y_expon for r in out_file_matrix],
-				alpha=Alpha[fx], color=Color[fx], s=Size[fx],
-				label=Label[fx], marker=',', linewidths=0)
+			fn_arr = [r[yind]**y_expon for r in out_file_matrix]
+	
+		if xpar == "rt n 3 k Ak mueff div lambda":
+			fnxarr = [np.real(cmath.sqrt(-3*r[20]*r[22]*r[23]/r[19])) or r in out_file_matrix]
+		elif xpar=="neu3Hcomp":
+			fnxarr = [r[59]**2+r[60]**2 for r in out_file_matrix]
+		elif xpar=="neu4Hcomp":
+			fnxarr = [r[65]**2+r[66]**2 for r in out_file_matrix]
+		else:
+			fnxarr = [r[xind]**x_expon for r in out_file_matrix]
+
+		plt.scatter(fnxarr, fn_arr,
+			alpha=Alpha[fx],color=Color[fx],s=Size[fx],
+			label=Label[fx],marker=',',linewidths=0)
+	
 	plt.title(file_prefix+" : "+ypar+" v "+xpar)
 	plt.ylabel(ypar)
 	
@@ -201,13 +190,35 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	else: c_expon = 1		
 	if "comp" in xpar: x_expon = 1
 	else: x_expon = 1
-	if "108035020" in file_prefix and "k div l" == xpar:
-		plt.scatter([r[20]/r[19] for r in relevant_matrix],[r[yind]**y_expon for r in relevant_matrix],			c=[r[cind]**c_expon for r in relevant_matrix], cmap=cmap_n, s=Size[-1],marker=',',linewidths=0)
+	if "k div l" == cpar: Norm="log"
+	else: Norm = "linear"
+	
+	if xpar == "k div l":
+		x_arr = [r[20]/r[19] for r in relevant_matrix]
+	elif xpar == "rt n 3 k Ak mueff div lambda":
+		x_arr = [np.real(cmath.sqrt( -3*r[20]*r[22]*r[23]/r[19] )) for r in relevant_matrix]
 	else:
-		plt.scatter([r[xind]**x_expon for r in relevant_matrix], 
-				[r[yind]**y_expon for r in relevant_matrix],
-			 	c=[r[cind]**c_expon for r in relevant_matrix],
-				cmap=cmap_n, s=Size[-1],marker=',',linewidths=0)
+		x_arr = [r[xind]**x_expon for r in relevant_matrix]
+	
+	if ypar == "k div l":
+		y_arr = [r[20]/r[19] for r in relevant_matrix]
+	elif ypar == "rt n 3 k Ak mueff div lambda":
+		y_arr = [np.real(cmath.sqrt( -3*r[20]*r[22]*r[23]/r[19] )) for r in relevant_matrix]
+	else:
+		y_arr = [r[yind]**y_expon for r in relevant_matrix]
+
+	if cpar == "k div l":
+		c_arr = [r[20]/r[19] for r in relevant_matrix]
+	elif cpar == "rt n 3 k Ak mueff div lambda":
+		c_arr = [np.real(cmath.sqrt( -3*r[20]*r[22]*r[23]/r[19] )) for r in relevant_matrix]
+	else:
+		c_arr = [r[cind]**c_expon for r in relevant_matrix]
+
+	plt.scatter(x_arr,y_arr,c=c_arr,cmap=cmap_n,norm=Norm,s=Size[-1],marker=',',linewidths=0)
+
+	plt.xscale("log")
+	plt.yscale("log")
+	
 	plt.title(file_prefix+" : "+ypar+" v "+xpar+" c "+cpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
@@ -267,8 +278,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 	#par_list = [("MA",43)] + par_list
 	if "108035020" in file_prefix: par_list = [("AU3",5),("M1",2),("M2",3),("M3",4)] + par_list
 	elif "PQv8" in file_prefix: par_list = [("AD3",6),("AU3",5)] + par_list
-	elif "PQv9" in file_prefix: par_list = [("AU3",5)]+par_list
-	
+	elif "PQv9" in file_prefix or "PQv10" == file_prefix: par_list = [("AU3",5)]+par_list
 	mass_list = [ ("s1mass",24), ("s2mass",28), ("s3mass",32), ("p1mass",36), ("p2mass",39), ("cmass",42) ]
 	if "PQ" in file_prefix: mass_list = [("neu1mass",44)] + mass_list
 		# after edits to nmhdecay_rand.f these comps are matrix elems not true compositions, ned **2
@@ -294,6 +304,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp,
 				pltctr+=1			# , just c_l is h v all comps
 				if "s1" in h_mass: (mmin, mmax) = (110.0, 130.0)#LHC window
+				if "p1" in h_mass: (mmin, mmax) = (0,100)
 				else: (mmin, mmax) = (0, 500)
 			#	if "Akappa" == param: (ymin,ymax) = (-800,0)
 			#	else: 
@@ -321,20 +332,24 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp", h_comp)
 	if DO_HEAT:
 		print(Time(),"Beginning heat map plots")
-		for n,(c_par,c_ix) in enumerate(par_list+comp_list):# params as heatmap choice
+		coloring_list = par_list+comp_list
+		if "PQp1" in file_index: coloring_list+=[("k div l", 0)]
+		x_axes_list = mass_list+par_list+comp_list
+		y_axes_list = mass_list+par_list+comp_list
+		for n,(c_par,c_ix) in enumerate(coloring_list): #params as heatmap choice
 			print(Time(),"Coloring with",c_par)
-			for xind,(x_par,x_ix) in enumerate(mass_list+par_list+comp_list):
+			for xind,(x_par,x_ix) in enumerate(x_axes_list):
 				if x_par == "s1mass": (x_min, x_max) = (0,50)
-				elif x_par == "p1mass": (x_min, x_max) = (0,150)
+				elif x_par == "p1mass": (x_min, x_max) = (0,100)
 				elif x_par[-4:] == "mass": (x_min, x_max) = (0,500)
 				#elif x_par == "Akappa": (x_min, x_max) = (-800,0)
 				else: (x_min, x_max) = (0, 0)
 
-				for yind,(y_par,y_ix) in enumerate(mass_list+par_list+comp_list):
+				for yind,(y_par,y_ix) in enumerate(y_axes_list):
 					if xind >= yind or c_par == y_par or c_par == x_par: continue
 	
 					if y_par == "s1mass": (y_min, y_max) = (0,50)
-					elif y_par == "p1mass": (y_min, y_max) = (0,150)
+					elif y_par == "p1mass": (y_min, y_max) = (0,100)
 					elif y_par[-4:] == "mass": (y_min, y_max) = (0,500)
 					#elif y_par == "Akappa": (y_min, y_max) = (-800,0)
 					else: (y_min, y_max) = (0, 0)
@@ -351,12 +366,18 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 						x_par, x_ix, x_min, x_max,
 						y_par, y_ix, y_min, y_max, Size, DPI, "Heatmap",sub_dir)
 	if DO_MISC:
-		print(Time(),"Comparing LO p1mamss")
+		print(Time(),"Comparing LO p1mass")
 		pltctr+=1
-		SinglePlot(pltctr, "p1mass", 36, 0,1000,
-				"rt n 3 k Ak mueff div lambda", 0, 0,1000,
-			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
-
+		SinglePlot(pltctr, "p1mass", 36, 0,100,
+				"rt n 3 k Ak mueff div lambda", 0, 0,100,
+				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
+		coloring_list = par_list+comp_list
+		if "PQp1" in file_prefix: coloring_list+=[("k div l", 0)]
+		for (c_par,c_ix) in coloring_list:
+			HeatPlot(pltctr,c_par, c_ix, "turbo",
+				"p1mass",36,0,100,
+				"rt n 3 k Ak mueff div lambda", 0, 0, 100, Size, DPI, "Heatmap","")
+		
 		ahH_list=list()		  # calculate its alpha value (h-H mixing)
 		for r in master_list[-1]: #for each event in the set...
 			M2A = 2*r[23]*(r[19]*r[21]+r[20]*r[23])/(r[19]*np.sin(2*np.arctan(r[1]))) #DOESN'T WORK
