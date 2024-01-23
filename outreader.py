@@ -14,12 +14,13 @@ import gc
 ## currently have CMYK automatically set as True, not needed in arguments
 argv = sys.argv
 
-DEBUG_MODE = 0 #enables print statements used for tracking
-MASSTRK = 0 #enables tracking masses near LHC and of light s/o
+DEBUG_MODE = 0 		#enables print statements used for tracking
+MASSTRKFILE = 0 	#enables tracking masses near LHC and of light s/o
+MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
 DO_PARAM = 0
 DO_MASS = 0
 DO_COMP = 0
-DO_HEAT = 1 
+DO_HEAT = 0 
 DO_MISC = 0
 DO_REPL = 0
 
@@ -54,7 +55,8 @@ CMYK = True
 num_files = len(file_names)
 
 def Time(): #current runtime to 10ms place
-	return round(time() - start_time,2)
+	elap = time() - start_time
+	return "{:02d}:{:0>{}}".format(int(elap/60), round(elap%60,1), 4)
 
 def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,  
 		Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, folder, subfolder): 
@@ -93,6 +95,10 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 		y_expon = 2
 	else:
 		y_expon = 1
+	if "comp" in xpar:
+		x_expon = 2
+	else:
+		x_expon = 1
 	#fig,ax = plt.subplots
 	plt.figure(pltctr)		#   vvv used to be file_matrices, changed to master_list for m.ex.sets
 	if CMYK: relevant_matrix = master_list
@@ -121,16 +127,17 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 				fnxarr = [np.real(cmath.sqrt(
 	2*r[23]*(r[19]*r[21]+r[20]*r[23])/(r[19]*np.sin(2*np.arctan(r[1])))	)) for r in out_file_matrix]
 			else:
-				fnxarr = Col(xind,out_file_matrix)
+				fnxarr = [r[xind]**x_expon for r in out_file_matrix]
 			plt.scatter(fnxarr, fn_arr,
 				alpha=Alpha[fx],color=Color[fx],s=Size[fx],
 				label=Label[fx],marker=',',linewidths=0)
 		elif ypar=="neu3Hcomp":
-			plt.scatter([r[xind] for r in out_file_matrix], [r[59]**2+r[60]**2 for r in out_file_matrix], alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], marker=',', linewidths=0)
+			plt.scatter([r[xind]**x_expon for r in out_file_matrix], [r[59]**2+r[60]**2 for r in out_file_matrix], alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], marker=',', linewidths=0)
 		elif ypar=="neu4Hcomp":
-			plt.scatter([r[xind] for r in out_file_matrix], [r[65]**2+r[66]**2 for r in out_file_matrix], alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], marker=',', linewidths=0)
+			plt.scatter([r[xind]**x_expon for r in out_file_matrix], [r[65]**2+r[66]**2 for r in out_file_matrix], alpha=Alpha[fx], color=Color[fx], s=Size[fx], label=Label[fx], marker=',', linewidths=0)
 		else:
-			plt.scatter(Col(xind,out_file_matrix), [r[yind]**y_expon for r in out_file_matrix],
+			plt.scatter([r[xind]**x_expon for r in out_file_matrix],
+				[r[yind]**y_expon for r in out_file_matrix],
 				alpha=Alpha[fx], color=Color[fx], s=Size[fx],
 				label=Label[fx], marker=',', linewidths=0)
 	plt.title(file_prefix+" : "+ypar+" v "+xpar)
@@ -192,14 +199,19 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	else: y_expon = 1
 	if "comp" in cpar: c_expon = 2
 	else: c_expon = 1		
+	if "comp" in xpar: x_expon = 1
+	else: x_expon = 1
 	if "108035020" in file_prefix and "k div l" == xpar:
 		plt.scatter([r[20]/r[19] for r in relevant_matrix],[r[yind]**y_expon for r in relevant_matrix],			c=[r[cind]**c_expon for r in relevant_matrix], cmap=cmap_n, s=Size[-1],marker=',',linewidths=0)
 	else:
-		plt.scatter([r[xind] for r in relevant_matrix], [r[yind]**y_expon for r in relevant_matrix],		 	c=[r[cind]**c_expon for r in relevant_matrix], cmap=cmap_n, s=Size[-1],marker=',',linewidths=0)
+		plt.scatter([r[xind]**x_expon for r in relevant_matrix], 
+				[r[yind]**y_expon for r in relevant_matrix],
+			 	c=[r[cind]**c_expon for r in relevant_matrix],
+				cmap=cmap_n, s=Size[-1],marker=',',linewidths=0)
 	plt.title(file_prefix+" : "+ypar+" v "+xpar+" c "+cpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
-	plt.colorbar(label=cpar)
+	plt.colorbar(label=cpar) #norm keyword
 		
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
 		if xpar in ["lambda"]: plt.xlim(LMIN,LMAX)
@@ -242,29 +254,33 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 			(0,0,0)]
 
 		Alpha = [1 for x in range(NC)]
-		dot_size = 0.2;	Size= [dot_size for x in range(NC-1)]+[8*dot_size]#.25 when doing 8 colors
+		dot_size = 0.1;	Size= [dot_size for x in range(NC-1)]+[10*dot_size]#.25 when doing 8 colors
 		
 		if "13032113" in file_prefix: Size = [10*s for s in Size]
 		elif "108035020" in file_prefix: Size = [10*s for s in Size] 
 		LOC = "center"
 		BBOX_TO_ANCHOR = [0.475,1.105]
-		DPI = 360 #for very long time operating at 480 DPI, @1730_14dec23 changed to 240
+		DPI = 240 #for very long time operating at 480 DPI, @1730_14dec23 changed to 240
 		######## IF DPI @ 480, SIZE OF 0.04 OK. IF DPI @ 240, DOTS DO NOT RENDER @ THAT SIZE. INC TO 0.1
 	pltctr = 0
 	par_list = [ ("lambda",19), ("kappa",20), ("Alambda",21), ("mueff",23), ("Akappa",22), ("tanB",1) ]
-	par_list = [("MA",43)] + par_list
+	#par_list = [("MA",43)] + par_list
 	if "108035020" in file_prefix: par_list = [("AU3",5),("M1",2),("M2",3),("M3",4)] + par_list
+	elif "PQv8" in file_prefix: par_list = [("AD3",6),("AU3",5)] + par_list
+	elif "PQv9" in file_prefix: par_list = [("AU3",5)]+par_list
+	
 	mass_list = [ ("s1mass",24), ("s2mass",28), ("s3mass",32), ("p1mass",36), ("p2mass",39), ("cmass",42) ]
 	if "PQ" in file_prefix: mass_list = [("neu1mass",44)] + mass_list
 		# after edits to nmhdecay_rand.f these comps are matrix elems not true compositions, ned **2
 		# comps also used to just be called comp, but specifically called as singlet comp, change filenm
 	comp_list = [ ("s1scomp",27), ("s2scomp",31), ("s3scomp",35), ("p1scomp",38), ("p2scomp",41) ]
 	heatmap_list = [#"viridis", "plasma", 
-			"inferno", #"magma", "cividis",
-			"brg", "rainbow","jet","turbo"] # viridis, plasma, cividis read poorly
+			#"inferno", "magma", "cividis",
+			#"brg", "rainbow","jet",
+			"turbo"] # some read poorly
 
 	if DO_PARAM:
-		print(Time(),"\tBeginning parameter plots")
+		print(Time(),"Beginning parameter plots")
 		for i,(xpar,xind) in enumerate(par_list): # ALL PARAM VS
 			for j,(ypar,yind) in enumerate(par_list): #PARAM
 				if j<=i: continue
@@ -272,115 +288,70 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 				SinglePlot(pltctr, xpar, xind, 0, 0, ypar, yind, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
 	if DO_MASS:
-		print(Time(),"\tBeginning mass plots") # PLOT ea Higgs' mass against each parameter also its singlet comp
+		print(Time(),"Beginning mass plots") # PLOT ea Higgs' mass against each parameter also its singlet comp
 		for h,(h_mass,hix) in enumerate(mass_list):
-			print("{}\t{}".format(Time(),h_mass))
+			print(Time(),h_mass)
 			for (param,pix) in par_list+comp_list: #c_l[h] does higgs v own comp,
 				pltctr+=1			# , just c_l is h v all comps
 				if "s1" in h_mass: (mmin, mmax) = (110.0, 130.0)#LHC window
 				else: (mmin, mmax) = (0, 500)
+			#	if "Akappa" == param: (ymin,ymax) = (-800,0)
+			#	else: 
+				(ymin,ymax)=(0,0)
 				SinglePlot(pltctr,h_mass, hix, mmin, mmax,
-						param, pix, 0, 0,
+						param, pix, ymin, ymax,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)
 			for yit,(y_higg,yix) in enumerate(mass_list):	 #for mass v mass plots
 				if yit <= h: continue
 				if "s1" in h_mass: (xmin, xmax) = (110, 130)
 				else: (xmin, xmax) = (0, 500)
-				if "s1" in y_higg: (ymin, ymax) = (110, 130) # should never trigger
+				if "s1" in y_higg: (ymin, ymax) = (110, 130)
 				else: (ymin, ymax) = (0, 500)
 				SinglePlot(pltctr, h_mass, hix, xmin, xmax,
 						y_higg, yix, ymin, ymax,
 						Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass", "")
 	if DO_COMP:
-		print(Time(),"\tBeginning composition plots") # PLOT each Higgs' singlet comp against each parameter
+		print(Time(),"Beginning composition plots") # PLOT each Higgs' singlet comp against each parameter
 		for (h_comp,cix) in comp_list:
-			print("{}\t{}".format(Time(),h_comp))
+			print(Time(),h_comp)
 			for (param,pix) in par_list:
 				pltctr+=1
 				SinglePlot(pltctr,param,pix,0,0,
 						h_comp, cix, 0,0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp", h_comp)
 	if DO_HEAT:
-		print(Time(),"\tBeginning heat map plots") #heatmaps for s1 to look @ tanB region underneath main LHC blob
+		print(Time(),"Beginning heat map plots")
 		for n,(c_par,c_ix) in enumerate(par_list+comp_list):# params as heatmap choice
-			print(Time(),"\tColoring with",c_par)
-			for xind,(x_par,x_ix) in enumerate(mass_list+par_list):	#                     not sure
-				if x_par == "s1mass": (x_min, x_max) = (110,130)#                     what to cull
-				elif x_par[-4:] == "mass": (x_min, x_max) = (0, 500)
+			print(Time(),"Coloring with",c_par)
+			for xind,(x_par,x_ix) in enumerate(mass_list+par_list+comp_list):
+				if x_par == "s1mass": (x_min, x_max) = (0,50)
+				elif x_par == "p1mass": (x_min, x_max) = (0,150)
+				elif x_par[-4:] == "mass": (x_min, x_max) = (0,500)
+				#elif x_par == "Akappa": (x_min, x_max) = (-800,0)
 				else: (x_min, x_max) = (0, 0)
-				for yind,(y_par,y_ix) in enumerate(mass_list+par_list):
+
+				for yind,(y_par,y_ix) in enumerate(mass_list+par_list+comp_list):
 					if xind >= yind or c_par == y_par or c_par == x_par: continue
 	
-					if y_par == "s1mass": (y_min, y_max) = (110,130)
-					elif y_par[-4:] == "mass": (y_min, y_max) = (0, 500)
+					if y_par == "s1mass": (y_min, y_max) = (0,50)
+					elif y_par == "p1mass": (y_min, y_max) = (0,150)
+					elif y_par[-4:] == "mass": (y_min, y_max) = (0,500)
+					#elif y_par == "Akappa": (y_min, y_max) = (-800,0)
 					else: (y_min, y_max) = (0, 0)
+
+					if "mass" in x_par and "mass" in y_par: sub_dir = "mass v mass"
+					elif "mass" in x_par: sub_dir = x_par
+					elif "mass" in y_par: sub_dir = y_par
+					elif "comp" in x_par and "comp" in y_par: sub_dir = "comp v comp"
+					elif "comp" in x_par or "comp" in y_par: sub_dir = "comp"
+					else: sub_dir = "Parameter"
 
 					pltctr+=1
 					HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
 						x_par, x_ix, x_min, x_max,
-						y_par, y_ix, y_min, y_max, Size, DPI, "Heatmap",c_par)
-			continue # rewriting below to be loop over x y c --- be limited, don't want On^3?
-			# BELOW TO BE DELETED
-			if c_par != "tanB": 	# heatmaps for s1mass @ lo tanB region, LHC blob (exclude tanB)
-				pltctr+=1
-				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"s1mass", 24, 110, 130,
-						"tanB", 1, 0, 0, Size, DPI, "Heatmap","s1mass")
-			if c_par != "s1scomp":
-				pltctr+=1	# s1scomp v s1mass, what drives survival (exclude s1comp)
-				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"s1mass", 24, 0, 50,
-						"s1scomp", 27, .96, 1, Size, DPI, "Heatmap", "s1mass")	
-			if c_par != "kappa" and c_par != "lambda":
-				pltctr+=1
-				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"lambda", 19, 0, 0,
-						"kappa", 20, 0, 0, Size, DPI, "Heatmap", "")
-			if c_par != "kappa":
-				pltctr+=1
-				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"s1mass", 24, 110, 130,
-						"kappa", 20, 0, 0, Size, DPI, "Heatmap", "s1mass")
-				pltctr+=1
-				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"s2mass", 28, 0, 500,
-						"kappa", 20, 0, 0, Size, DPI, "Heatmap", "s2mass")
-				pltctr+=1
-				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"p1mass", 36, 0, 500,
-						"kappa", 20, 0, 0, Size, DPI, "Heatmap", "p1mass")
-			if c_par != "Akappa":
-				pltctr+=1
-				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"s1mass", 24, 110, 130,
-						"Akappa", 22, 0, 0, Size, DPI, "Heatmap", "s1mass")
-				pltctr+=1
-				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"s2mass", 28, 0, 500,
-						"Akappa", 22, 0, 0, Size, DPI, "Heatmap", "s2mass")
-			if "108035020" in file_prefix and c_par != "kappa" and c_par != "Akappa":
-				pltctr+=1
-				HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"kappa", 20, 0, 0,
-						"Akappa", 22, 0, 0, Size, DPI, "Heatmap", "108035020")
-			if ("neu1mass", 44) in mass_list:
-				if c_par != "kappa":
-					pltctr+=1
-					HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"neu1mass", 44, 0, 500,
-						"kappa", 20, 0, 0, Size, DPI, "Heatmap", "neu1mass")
-				if c_par != "lambda":
-					pltctr+=1
-					HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"neu1mass", 44, 0, 500,
-						"lambda", 19, 0, 0, Size, DPI, "Heatmap", "neu1mass")
-				if c_par != "mueff":
-					pltctr+=1
-					HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
-						"neu1mass", 44, 0, 500,
-						"mueff", 23, 0, 0, Size, DPI, "Heatmap", "neu1mass")
+						y_par, y_ix, y_min, y_max, Size, DPI, "Heatmap",sub_dir)
 	if DO_MISC:
-		print(Time(),"\tComparing LO p1mamss")
+		print(Time(),"Comparing LO p1mamss")
 		pltctr+=1
 		SinglePlot(pltctr, "p1mass", 36, 0,1000,
 				"rt n 3 k Ak mueff div lambda", 0, 0,1000,
@@ -395,7 +366,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 			ahH_list.append(ahH)
 		
 		for (smass, sindex) in [("s1mass",24),("s2mass",28),("s3mass",32)]:
-			print(Time(),"\t{}(u,d,s)comp v {}".format(smass[0:2],smass))
+			print(Time(),"{}(u,d,s)comp v {}".format(smass[0:2],smass))
 			pltctr+=1
 			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
 			comp_color_scheme = [(.9,0,.9),(0,.85,.85),(.9,.9,0)]
@@ -416,7 +387,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 			plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/{}/{}udscomp_v_{}_zoom.png".format(save_dir_name,smass,smass[0:2],smass),dpi=DPI)
 			plt.close()		
 
-			print(Time(),"\t{}(h,H,s)comp v {}".format(smass[0:2],smass))
+			print(Time(),"{}(h,H,s)comp v {}".format(smass[0:2],smass))
 			pltctr+=1
 			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
 	
@@ -451,7 +422,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 			plt.close()		
 # END OF SUDSCOMP LOOP
 # DONT BOTHER TO LOOP P1 AND P2 COMPS, ITS JUST TWO PLOTS AND EASIER THIS WAY
-		print(Time(),"\tp1(A,s)comp v p1mass")
+		print(Time(),"p1(A,s)comp v p1mass")
 		pltctr+=1
 		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
 	
@@ -469,7 +440,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 		plt.savefig("/home/wolf/NMSSMTools_6.0.0/calculations/{}/Mass/p1mass/p1Ascomp_v_p1mass_zoom.png".format(save_dir_name),dpi=DPI)
 		plt.close()		
 	
-		print(Time(),"\tp2(A,s)comp v p2mass")
+		print(Time(),"p2(A,s)comp v p2mass")
 		pltctr+=1
 		fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
 	
@@ -490,7 +461,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 ### START OF S123U , S123D, S123S COMPS LOOP, possibly sep flag
 		for scalarmass,scalarindex in [("s1mass",24),("s2mass",28),("s3mass",32)]:#x axis, then full plt
 			for sindx,(jcomp, cstep) in enumerate([("ucomp",1),("dcomp",2),("scomp",3)]): #fore jcomp
-				print(Time(),"\ts123{} v {}".format(jcomp,scalarmass))
+				print(Time(),"s123{} v {}".format(jcomp,scalarmass))
 				pltctr+=1
 				fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
 				comp_color_scheme = [(.9,0,.9),(0,.85,.85),(.9,.9,0)]
@@ -521,7 +492,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 
 	if DO_REPL: # for the very specific plots in replic trials
 		if "13032113" in file_prefix:
-			print(Time(),"\tPlotting Figure (3)...")
+			print(Time(),"Plotting Figure (3)...")
 			# 3A cmass v s1mass,s2mass,s3mass in s1m126
 			pltctr+=1
 			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
@@ -605,7 +576,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 			plt.close()
 	#		# 3F cm v p1p2cm
 	#	#	#	#	#	#	#	#	#	#	#	#	#
-			print(Time(),"\tPlotting Figure (4)...")
+			print(Time(),"Plotting Figure (4)...")
 			# 4A param plots in s1m126			
 			pltctr+=1
 			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)	
@@ -709,7 +680,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 			plt.savefig("{}{}/s1mass_v_mueff_s1m126.png".format(DIR, save_dir_name))
 			plt.close()
 	#	#	#	#	#	#	#	#	#	#	#	#	#
-			print(Time(),"\tPlotting Figure (5)...")
+			print(Time(),"Plotting Figure (5)...")
 			# 5A param plots in s1m126
 			pltctr+=1
 			fig,ax=plt.subplots(nrows=1,ncols=1,sharex=True,sharey=True)
@@ -863,7 +834,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 	#		plt.close()
 
 		elif "108035020" in file_prefix:
-			print(Time(),"\t108035020-specific plots.")
+			print(Time(),"108035020-specific plots.")
 			pltctr+=1
 			HeatPlot(pltctr, "mneu1", 44, "viridis",
 					"k div l", 0, -.2, .2,
@@ -915,7 +886,7 @@ for file_index,out_file_name in enumerate(file_names):
 	with open("{}{}.dat".format(DIR, out_file_name)) as f:
 		f_reader = csv.reader(f, delimiter=" ")
 		ctr_lighthiggs = 0
-		print("{}\tReading in\t{}".format(Time(), out_file_name))
+		print(Time(),"Reading in\t{}".format(out_file_name))
 		for indexrow,fullrow in enumerate(f_reader):
 			if DEBUG_MODE: 
 				if indexrow%100000==0: print(indexrow)
@@ -934,7 +905,7 @@ for file_index,out_file_name in enumerate(file_names):
 						break
 				if len(row)>last_element: break
 			if not reject_row: file_matrices[file_index % len(file_tags)].append(row)
-			if not MASSTRK: continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
+			if not MASSTRKFILE: continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
 			
 			params = row[1:24]+[row[43]]
 			shiggs = row[24:32+1:4] # s1mass s2mass s3mass
@@ -957,7 +928,7 @@ for file_index,out_file_name in enumerate(file_names):
 
 
 if CMYK:
-	print(Time(),"\tSplitting into mutually exclusive sets...")
+	print(Time(),"Splitting into mutually exclusive sets...")
 	
 	def Set(List): # fn is List to set of tuples conversion
 		return set(map(tuple, List))
@@ -997,103 +968,134 @@ if CMYK:
 		bs3 = Set(file_matrices[3])
 		master_list = [None for i in range(15)]
 
-		print(Time(),"\tbsT\t",int(len(bsT)),end="\t|")
-		print("bs1\t",int(len(bs1)),end="\t|")
-		print("bs2\t",int(len(bs2)),end="\t|")
-		print("bs3\t",int(len(bs3)))
+		print(Time(),"bsT    ",int(len(bsT)),end="\t|")
+		print("bs1    ",int(len(bs1)),end="\t|")
+		print("bs2    ",int(len(bs2)),end="\t|")
+		print("bs3    ",int(len(bs3)))
 
 		bT1 = bsT & bs1
-		print(Time(),"\tbT1\t",len(bT1))
+		if DEBUG_MODE: print(Time(),"bT1    ",len(bT1))
 		bT2 = bsT & bs2
-		print(Time(),"\tbT2\t",len(bT2))
+		if DEBUG_MODE: print(Time(),"bT2    ",len(bT2))
 		b23 = bs2 & bs3
-		print(Time(),"\tb23\t",len(b23))
+		if DEBUG_MODE: print(Time(),"b23    ",len(b23))
 		b12 = bs1 & bs2
-		print(Time(),"\tb12\t",len(b12))
+		if DEBUG_MODE: 	print(Time(),"b12    ",len(b12))
 		b13 = bs1 & bs3
-		print(Time(),"\tb13\t",len(b13))
+		if DEBUG_MODE: 	print(Time(),"b13    ",len(b13))
 		bT3 = bsT & bs3
-		print(Time(),"\tbT3\t",len(bT3))
+		if DEBUG_MODE: 	print(Time(),"bT3    ",len(bT3))
+		
+		print(Time(),"bT1    ",int(len(bT1)),end="\t|")
+		print("bT2    ",int(len(bT2)),end="\t|")
+		print("bT3    ",int(len(bT3)),end="\t|")
+		print("b12    ",int(len(b12)),end="\t|")
+		print("b13    ",int(len(b13)),end="\t|")
+		print("b23    ",int(len(b23)))
+		
 		sT123 = bT1 & b23
 		master_list[14]=List(sT123)
-		print(Time(),"\t*sT123*\t",len(sT123))
+		leftfacingarrows = ""
+		for i in range(20): leftfacingarrows+="<---"
+		print(Time(),"*sT123*",len(sT123),"\t{}".format(leftfacingarrows))
 		sT12m = bT1 & b12
 		sT12 = sT12m.difference(sT123)
 		master_list[10] = List(sT12)
 		del sT12m
-		print(Time(),"\tsT12\t",len(sT12))
+		if DEBUG_MODE: 	print(Time(),"sT12   ",len(sT12))
 		sT1m3 = bT1 & bT3
 		sT13 = sT1m3.difference(sT123)
 		master_list[11] = List(sT13)
 		del sT1m3
-		print(Time(),"\tsT13\t",len(sT13))
+		if DEBUG_MODE: 	print(Time(),"sT13   ",len(sT13))
 		sTm23 = bT3 & b23
 		sT23 = sTm23.difference(sT123)
 		del sTm23
 		master_list[12] = List(sT23)
-		print(Time(),"\tsT23\t",len(sT23))
+		if DEBUG_MODE: 	print(Time(),"sT23   ",len(sT23))
 		sm123 = b12 & b23
 		s123 = sm123.difference(sT123)
 		master_list[13] = List(s123)
 		del sm123
-		print(Time(),"\ts123\t",len(s123))
+		if DEBUG_MODE: 	print(Time(),"s123   ",len(s123))
+		
+		print(Time(),"sT12   ",int(len(sT12)),end="\t|")
+		print("sT13   ",int(len(sT13)),end="\t|")
+		print("sT23   ",int(len(sT23)),end="\t|")
+		print("s123   ",int(len(s123)))
+		
 		sT1 = bT1.difference(sT12,sT123,sT13)
 		master_list[4] = List(sT1)
-		print(Time(),"\tsT1\t",len(sT1))
+		if DEBUG_MODE: print(Time(),"sT1    ",len(sT1))
 		s23 = b23.difference(sT23,sT123,s123)
 		master_list[9] = List(s23)
-		print(Time(),"\ts23\t",len(s23))		
+		if DEBUG_MODE: print(Time(),"s23    ",len(s23))		
 		s12 = b12.difference(sT12,sT123,s123)
 		master_list[7] = List(s12)
 		del b12
-		print(Time(),"\ts12\t",len(s12)) # KILLED after this print
+		if DEBUG_MODE: print(Time(),"s12    ",len(s12)) # KILLED after this print
 		sT3 = bT3.difference(sT23,sT123,sT13)
 		del bT3
 		master_list[6] = List(sT3)
-		print(Time(),"\tsT3\t",len(sT3))
+		if DEBUG_MODE: print(Time(),"sT3    ",len(sT3))
 		sT2 = bT2.difference(sT12,sT123,sT23)
 		master_list[5] = List(sT2)
-		print(Time(),"\tsT2\t",len(sT2))
+		if DEBUG_MODE: print(Time(),"sT2    ",len(sT2))
 		del bT2
 		s13 = b13.difference(sT13,sT123,s123)
 		master_list[8] = List(s13)
-		print(Time(),"\ts13\t",len(s13))
+		if DEBUG_MODE: print(Time(),"s13    ",len(s13))
 		del b13
 		del sT123
+	
+		print(Time(),"sT1    ",int(len(sT1)),end="\t|")
+		print("sT2    ",int(len(sT2)),end="\t|")
+		print("sT3    ",int(len(sT3)),end="\t|")
+		print("s12    ",int(len(s12)),end="\t|")
+		print("s13    ",int(len(s13)),end="\t|")
+		print("s23    ",int(len(s23)))
+	
 		sT = bsT.difference(bT1,sT2,sT23,sT3)
 		master_list[0] = List(sT)
-		print(Time(),"\tsT\t",len(sT))
+		if DEBUG_MODE: print(Time(),"sT     ",len(sT))
 		del bsT
 		del sT23
 		s1 = bs1.difference(bT1,s12,s123,s13)
 		master_list[1] = List(s1)
-		print(Time(),"\ts1\t",len(s1))
+		if DEBUG_MODE: print(Time(),"s1     ",len(s1))
 		del bs1
 		del bT1
 		del s123
 		s2 = bs2.difference(b23,sT2,sT12,s12)
 		master_list[2] = List(s2)
-		print(Time(),"\ts2\t",len(s2))
+		if DEBUG_MODE: print(Time(),"s2     ",len(s2))
 		del bs2
 		del sT2
 		del sT12
 		del s12
 		s3 = bs3.difference(b23,sT3,sT13,s13)
 		master_list[3] = List(s3)
-		print(Time(),"\ts3\t",len(s3))
+		if DEBUG_MODE: print(Time(),"s3     ",len(s3))
 		del bs3
 		del b23
+		print(Time(),"sT     ",int(len(sT)),end="\t|")
+		print("s1     ",int(len(s1)),end="\t|")
+		print("s2     ",int(len(s2)),end="\t|")
+		print("s3     ",int(len(s3)))
 		del s3
 		del sT3
 		del sT13
 		del s13
+		del s1
+		del s2
+		del sT
 
 # args (DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 if SAVEPLOTS: 
-	if DEBUG_MODE: print(Time(),"\tStarting to plot...")
+	if DEBUG_MODE: print(Time(),"Starting to plot...")
 	GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL)
 
-if MASSTRK:
+if MASSTRKFILE:
 	print("\nSorting by lightest SCALAR")
 	print("tanB\tlambda\t\tkappa\t\tAlambda\tAkappa\t\tmueff\tMass")
 	for file_index,out_file_matrix in enumerate(file_matrices):
@@ -1136,12 +1138,34 @@ if MASSTRK:
 		print("\nLight p in:\tNone\tp1\tp1&2",end="\n\t\t")
 		for lp in lp_trk[file_index]: print(lp,end="\t")
 		print("\n")
-#if not MASSTRK: #ln656 temp for spam runs to filter output
+if MASSTRKBOUNDS:
 	ls_ctr = 0
 	lp_ctr = 0
 	for r in master_list[-1]:
 		if r[24]<threshold_lighthiggs: ls_ctr+=1
 		if r[36]<threshold_lighthiggs: lp_ctr+=1
 	print("Light Mass Threshold:\t{}\n# Light Scalars:\t{}\n# Light Pseudoscalars:\t{}".format(threshold_lighthiggs,ls_ctr,lp_ctr))
-print("Runtime(s):\t{}\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#".format(Time()))
+	
+	(t_lo, t_hi) = (master_list[-1][0][1], master_list[-1][0][1]) 
+	(l_lo, l_hi) = (master_list[-1][0][19],master_list[-1][0][19])
+	(k_lo, k_hi) = (master_list[-1][0][20],master_list[-1][0][20])
+	(Al_lo,Al_hi)= (master_list[-1][0][21],master_list[-1][0][21])
+	(Ak_lo,Ak_hi)= (master_list[-1][0][22],master_list[-1][0][22])
+	(mu_lo,mu_hi)= (master_list[-1][0][23],master_list[-1][0][23])
+	for r in master_list[-1]: 
+		(t_lo, t_hi) = (min(t_lo, r[1]), max(t_hi, r[1]))
+		(l_lo, l_hi) = (min(l_lo, r[19]),max(l_hi, r[19]))
+		(k_lo, k_hi) = (min(k_lo, r[20]),max(k_hi, r[20]))
+		(Al_lo,Al_hi)= (min(Al_lo,r[21]),max(Al_hi,r[21]))
+		(Ak_lo,Ak_hi)= (min(Ak_lo,r[22]),max(Ak_hi,r[22]))
+		(mu_lo,mu_hi)= (min(mu_lo,r[23]),max(mu_hi,r[23]))
+	print("Parameter bounds: ( min ~~ max )")
+	print("tanB   ({: >8} ~~ {: >8} )".format(t_lo, t_hi))
+	print("lambda ({:.2E} ~~ {:.2E} )".format(l_lo, l_hi))  
+	print("kappa  ({:.2E} ~~ {:.2E} )".format(k_lo, k_hi))  
+	print("Alambda({: >8} ~~ {: >8} )".format(Al_lo,Al_hi)) 
+	print("Akappa ({: >8} ~~ {: >8} )".format(Ak_lo,Ak_hi))
+	print("mueff  ({: >8} ~~ {: >8} )".format(mu_lo,mu_hi))
+#{:0>{}}
+print("Runtime:\t{}\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#".format(Time()))
 #sys.exit()
