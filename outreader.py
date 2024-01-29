@@ -17,10 +17,10 @@ argv = sys.argv
 DEBUG_MODE = 0		#enables print statements used for tracking
 MASSTRKFILE = 0		#enables tracking masses near LHC and of light s/o
 MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
-DO_PARAM = 0
+DO_PARAM = 1
 DO_MASS = 0
 DO_COMP = 0
-DO_HEAT = 1 
+DO_HEAT = 0
 DO_MISC = 0
 DO_REPL = 0
 
@@ -384,11 +384,11 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 	if DO_HEAT:
 		print(Time(),"Beginning heat map plots")
 		# (C, X, Y)
-		DO_SCOMP = (0,0,0)	# Plot singlet comps (of scalars and pseudoscalars)
-		DO_UCOMP = (0,0,0)	#	   u-Higgs comps of scalars
-		DO_DCOMP = (0,0,0)		#	   d-Higgs comps .	.
-		DO_SHMIX = (1,0,0)	#	   Hsm/Hbsm mixing of Hu and Hd
-		DO_ACOMP = (0,0,0)	#	   A_MSSM comps of pseudoscalars
+		DO_SCOMP = (1,0,0)	# Plot singlet comps (of scalars and pseudoscalars)
+		DO_UCOMP = (1,0,0)	#	   u-Higgs comps of scalars
+		DO_DCOMP = (1,0,0)		#	   d-Higgs comps .	.
+		DO_SHMIX = (0,0,0)	#	   Hsm/Hbsm mixing of Hu and Hd
+		DO_ACOMP = (1,0,0)	#	   A_MSSM comps of pseudoscalars
 		DO_NCOMP = (0,0,0)	#	   Neutralino comps
 		DO_PARS  = (0,1,1)
 		DO_MASS  = (0,1,1)
@@ -1003,6 +1003,10 @@ for file_index,out_file_name in enumerate(file_names):
 						break
 				elif "PQp1v4" == file_prefix and len(row)==21:
 					if row[20]/row[19] > 1:
+						reject_row = True
+						break
+				elif "PQp1v4" == file_prefix and len(row)==28:	#addl filter to pick s1 s-dom event
+					if abs(row[27]) < 0.9:
 						reject_row = True
 						break
 				if len(row)>last_element: break

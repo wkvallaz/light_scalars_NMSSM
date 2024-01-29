@@ -2176,10 +2176,10 @@ c      CALL FTPAR(PAR,0)
       IF(IFAIL.NE.0)RETURN
 
       IRES=23
-      WADD=27
+      WADD=57
       NRES=49+IRES
       MRES=WADD+NRES
-! WADD is number of things Wolf added (6 new elems of scomp, 2 of pcomp, 1 MA) - wolf
+! WADD is number of things Wolf added - wolf
 ! - WOLF
       RES(1)=PAR(3)           !TB
       RES(2)=PAR(20)          !M1
@@ -2231,18 +2231,27 @@ c      CALL FTPAR(PAR,0)
        RES(IRES+19+6*I)=NEU(I,4) ! D
        RES(IRES+20+6*I)=NEU(I,5) ! S
       ENDDO
-      RES(IRES+24+WADD)=DABS(MCHA(1))
-      RES(IRES+25+WADD)=MGL
-      RES(IRES+26+WADD)=MIN(MUL,MUR,MDL,MDR)
-      RES(IRES+27+WADD)=MST1
-      RES(IRES+28+WADD)=MSB1
-      RES(IRES+29+WADD)=MLL
-      RES(IRES+30+WADD)=MNL
-      RES(IRES+31+WADD)=MSL1
-      RES(IRES+32+WADD)=MSNT
-      RES(IRES+33+WADD)=MWNMSSM
-      RES(IRES+34+WADD)=delmagmu
-      RES(IRES+35+WADD)=csPsi
+      RES(IRES+24+27)=DABS(MCHA(1))
+      RES(IRES+25+27)=MGL
+      RES(IRES+26+27)=MIN(MUL,MUR,MDL,MDR)
+      RES(IRES+27+27)=MST1
+      RES(IRES+28+27)=MSB1
+      RES(IRES+29+27)=MLL
+      RES(IRES+30+27)=MNL
+      RES(IRES+31+27)=MSL1
+      RES(IRES+32+27)=MSNT
+      RES(IRES+33+27)=MWNMSSM
+      RES(IRES+34+27)=delmagmu
+      RES(IRES+35+27)=csPsi
+! WADD=27 prior to this edit, now adding C(U,D,V,J,G,B) for h(1,2,3)+a(1,2) which is +30->57
+      DO I=1,5                   ! (h1,h2,h3,a1,a2) Reduced coupling to...
+       RES(IRES+57+6*I)=CU(I)    ! up type fermions,
+       RES(IRES+58+6*I)=CD(I)    ! down type fermions,
+       RES(IRES+59+6*I)=CV(I)    ! gauge bosons,
+       RES(IRES+60+6*I)=CJ(I)    ! gluons,
+       RES(IRES+61+6*I)=CG(I)    ! photons,
+       RES(IRES+62+6*I)=CB(I)    ! to b-quarks including DELMB corrections
+      ENDDO
       RES(IRES+36+WADD)=BRHHH(1)
       RES(IRES+37+WADD)=BRBB(1)
       RES(IRES+38+WADD)=BRLL(1)
