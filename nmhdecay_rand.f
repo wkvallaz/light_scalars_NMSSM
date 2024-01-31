@@ -1857,9 +1857,9 @@ c      CALL FTPAR(PAR,0)
       IMPLICIT NONE
 
       CHARACTER CHAN*20
-! add mres and WADD - wolf
+! add mres and WADDetc - wolf
       INTEGER NBIN,I,NRES,IRES,GRFLAG,NSUSY,NGUT,NMES,IMAX,IFAIL,
-     . MRES,WADD
+     . MRES,WADD,WADDSCOMP,WADDPCOMP,WADDMA,WADDNEU,WADDCOUP,WADDBR
       PARAMETER (NSUSY=14,NGUT=21,NMES=21,IMAX=200)
 
       DOUBLE PRECISION RES(IMAX),PAR(*),PROB(*),SIG(5,8),R
@@ -2176,10 +2176,16 @@ c      CALL FTPAR(PAR,0)
       IF(IFAIL.NE.0)RETURN
 
       IRES=23
-      WADD=57
       NRES=49+IRES
+      WADDSCOMP=6
+      WADDPCOMP=2
+      WADDMA=1
+      WADDNEU=18
+      WADDCOUP=30
+      WADDBR=8
+      WADD=0
       MRES=WADD+NRES
-! WADD is number of things Wolf added - wolf
+! WADD is number of things Wolf added - wolf - EDITed purpose, cumsum
 ! - WOLF
       RES(1)=PAR(3)           !TB
       RES(2)=PAR(20)          !M1
@@ -2212,46 +2218,51 @@ c      CALL FTPAR(PAR,0)
        RES(IRES-1+4*I)=SCOMP(I,2)
        RES(IRES+4*I)=SCOMP(I,3)
       ENDDO
+      WADD = WADD + WADDSCOMP
 ! correction to pmass component, used to be 1 and 1,2 - wolf
 ! outs now (mass Acomp Scomp) not just (mass Scomp) - wolf
 ! edit comp outputs to not squared, now is matrix elems, not "composition" as thought normally - wolf
       DO I=1,2
-       RES(IRES+12-2+3*I)=PMASS(I)
-       RES(IRES+12-1+3*I)=PCOMP(I,1)
-       RES(IRES+12+3*I)=PCOMP(I,2)
+       RES(IRES+6+WADD-2+3*I)=PMASS(I)
+       RES(IRES+6+WADD-1+3*I)=PCOMP(I,1)
+       RES(IRES+6+WADD+3*I)=PCOMP(I,2)
       ENDDO
-      RES(IRES+18+1)=CMASS
+      WADD = WADD + WADDPCOMP
+      RES(IRES+6+4+WADD+1)=CMASS
 ! added MA to outs after CMASS - wolf
-      RES(IRES+18+2)=PAR(23)
+      RES(IRES+6+4+WADD+2)=PAR(23)
+      WADD = WADD + WADDMA
       DO I=1,5
-       RES(IRES+15+6*I)=DABS(MNEU(I))
-       RES(IRES+16+6*I)=NEU(I,1) !NEUI BINO
-       RES(IRES+17+6*I)=NEU(I,2) !WINO
-       RES(IRES+18+6*I)=NEU(I,3) ! U
-       RES(IRES+19+6*I)=NEU(I,4) ! D
-       RES(IRES+20+6*I)=NEU(I,5) ! S
+       RES(IRES+11+WADD-5+6*I)=DABS(MNEU(I))
+       RES(IRES+11+WADD-4+6*I)=NEU(I,1) !NEUI BINO
+       RES(IRES+11+WADD-3+6*I)=NEU(I,2) !WINO
+       RES(IRES+11+WADD-2+6*I)=NEU(I,3) ! U
+       RES(IRES+11+WADD-1+6*I)=NEU(I,4) ! D
+       RES(IRES+11+WADD+6*I)=NEU(I,5) ! S
       ENDDO
-      RES(IRES+24+27)=DABS(MCHA(1))
-      RES(IRES+25+27)=MGL
-      RES(IRES+26+27)=MIN(MUL,MUR,MDL,MDR)
-      RES(IRES+27+27)=MST1
-      RES(IRES+28+27)=MSB1
-      RES(IRES+29+27)=MLL
-      RES(IRES+30+27)=MNL
-      RES(IRES+31+27)=MSL1
-      RES(IRES+32+27)=MSNT
-      RES(IRES+33+27)=MWNMSSM
-      RES(IRES+34+27)=delmagmu
-      RES(IRES+35+27)=csPsi
+      WADD = WADD + WADDNEU
+      RES(IRES+23+WADD+1)=DABS(MCHA(1))
+      RES(IRES+23+WADD+2)=MGL
+      RES(IRES+23+WADD+3)=MIN(MUL,MUR,MDL,MDR)
+      RES(IRES+23+WADD+4)=MST1
+      RES(IRES+23+WADD+5)=MSB1
+      RES(IRES+23+WADD+6)=MLL
+      RES(IRES+23+WADD+7)=MNL
+      RES(IRES+23+WADD+8)=MSL1
+      RES(IRES+23+WADD+9)=MSNT
+      RES(IRES+23+WADD+10)=MWNMSSM
+      RES(IRES+23+WADD+11)=delmagmu
+      RES(IRES+23+WADD+12)=csPsi
 ! WADD=27 prior to this edit, now adding C(U,D,V,J,G,B) for h(1,2,3)+a(1,2) which is +30->57
       DO I=1,5                   ! (h1,h2,h3,a1,a2) Reduced coupling to...
-       RES(IRES+57+6*I)=CU(I)    ! up type fermions,
-       RES(IRES+58+6*I)=CD(I)    ! down type fermions,
-       RES(IRES+59+6*I)=CV(I)    ! gauge bosons,
-       RES(IRES+60+6*I)=CJ(I)    ! gluons,
-       RES(IRES+61+6*I)=CG(I)    ! photons,
-       RES(IRES+62+6*I)=CB(I)    ! to b-quarks including DELMB corrections
+       RES(IRES+35+WADD-5+6*I)=CU(I)    ! up type fermions,
+       RES(IRES+35+WADD-4+6*I)=CD(I)    ! down type fermions,
+       RES(IRES+35+WADD-3+6*I)=CV(I)    ! gauge bosons,
+       RES(IRES+35+WADD-2+6*I)=CJ(I)    ! gluons,
+       RES(IRES+35+WADD-1+6*I)=CG(I)    ! photons,
+       RES(IRES+35+WADD+6*I)=CB(I)    ! to b-quarks including DELMB corrections
       ENDDO
+      WADD = WADD + WADDCOUP
       RES(IRES+36+WADD)=BRHHH(1)
       RES(IRES+37+WADD)=BRBB(1)
       RES(IRES+38+WADD)=BRLL(1)
@@ -2276,8 +2287,8 @@ c      CALL FTPAR(PAR,0)
       RES(IRES+49+WADD+6)=brneutzneut(3,1)   ! wolf - neu(3)> z+neu1
       RES(IRES+49+WADD+7)=brcharwneut(1,1)   ! wolf - cha1>w +neu1
       RES(IRES+49+WADD+8)=brcharhcneut(1,1)  ! wolf - cha1>hc+neu1
-
-      WRITE(16,11)(RES(I),I=1,MRES+8)
+      WADD = WADD + WADDBR
+      WRITE(16,11)(RES(I),I=1,NRES+WADD)
  11   FORMAT(200E14.6)
 
       END
