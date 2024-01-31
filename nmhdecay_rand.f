@@ -2261,14 +2261,23 @@ c      CALL FTPAR(PAR,0)
       RES(IRES+42+WADD)=brcharsnt1(1)  ! BR(cha1 -> tau snutau)
       RES(IRES+43+WADD)=2d0*brcharsne1(1)  ! BR(cha1 -> l snul)
       RES(IRES+44+WADD)=brcharwneut(1,1)+2d0*brnupdb(1,1)+brntopbb(1,1)
-     .          +brnelnue(1,1)+brnmunumu(1,1)+brntaunut(1,1)  ! BR(cha1 -> neu1 W)
+     .          +brnelnue(1,1)+brnmunumu(1,1)+brntaunut(1,1)  ! BR(cha1 -> neu1 W) ! wolf - WANT?
       RES(IRES+45+WADD)=brcharstau1(1)  ! BR(cha1 ->  stau nutau)
       RES(IRES+46+WADD)=2d0*brcharsel(1)  ! BR(cha1 -> sel nu)
-      RES(IRES+47+WADD)=brneutHneut(2,1,1)  ! BR(neu2 -> neu1 H1)
+      RES(IRES+47+WADD)=brneutHneut(2,1,1)  ! BR(neu2 -> neu1 H1) ! wolf - WANT THIS
       RES(IRES+48+WADD)=SIG(1,8)
       RES(IRES+49+WADD)=R
+! wolf - adding 8 things without incrementing WADD
+      RES(IRES+49+WADD+1)=brneutHneut(2,1,1) ! wolf - neu(2)>h1+neu1
+      RES(IRES+49+WADD+2)=brneutHneut(3,1,1) ! wolf - neu(3)>h1+neu1
+      RES(IRES+49+WADD+3)=brneutAneut(2,1,1) ! wolf - neu(2)>A1+neu1
+      RES(IRES+49+WADD+4)=brneutAneut(3,1,1) ! wolf - neu(3)>A1+neu1
+      RES(IRES+49+WADD+5)=brneutzneut(2,1)   ! wolf - neu(2)> z+neu1
+      RES(IRES+49+WADD+6)=brneutzneut(3,1)   ! wolf - neu(3)> z+neu1
+      RES(IRES+49+WADD+7)=brcharwneut(1,1)   ! wolf - cha1>w +neu1
+      RES(IRES+49+WADD+8)=brcharhcneut(1,1)  ! wolf - cha1>hc+neu1
 
-      WRITE(16,11)(RES(I),I=1,MRES)
+      WRITE(16,11)(RES(I),I=1,MRES+8)
  11   FORMAT(200E14.6)
 
       END
