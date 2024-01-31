@@ -20,7 +20,7 @@ MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
 DO_PARAM = 1
 DO_MASS = 0
 DO_COMP = 0
-DO_HEAT = 0
+DO_HEAT = 1
 DO_MISC = 0
 DO_REPL = 0
 
@@ -154,7 +154,7 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 			alpha=Alpha[fx],color=Color[fx],s=Size[fx],
 			label=Label[fx],marker=',',linewidths=0)
 	
-	plt.title(file_prefix+" : "+ypar+" v "+xpar)
+	plt.title(save_dir_name+" : "+ypar+" v "+xpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
 
@@ -233,7 +233,7 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 
 	plt.scatter(x_arr,y_arr,c=c_arr,cmap=cmap_n,norm=Norm,s=Size[-1],marker=',',linewidths=0)
 	
-	plt.title(file_prefix+" : "+ypar+" v "+xpar+" c "+cpar)
+	plt.title(save_dir_name+" : "+ypar+" v "+xpar+" c "+cpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
 	plt.colorbar(label=cpar) #norm keyword
@@ -385,42 +385,42 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 		print(Time(),"Beginning heat map plots")
 		# (C, X, Y)
 		DO_SCOMP = (1,0,0)	# Plot singlet comps (of scalars and pseudoscalars)
-		DO_UCOMP = (1,0,0)	#	   u-Higgs comps of scalars
-		DO_DCOMP = (1,0,0)		#	   d-Higgs comps .	.
-		DO_SHMIX = (0,0,0)	#	   Hsm/Hbsm mixing of Hu and Hd
-		DO_ACOMP = (1,0,0)	#	   A_MSSM comps of pseudoscalars
+		DO_UCOMP = (0,0,0)	#	   u-Higgs comps of scalars
+		DO_DCOMP = (0,0,0)		#	   d-Higgs comps .	.
+		DO_SHMIX = (1,0,0)	#	   Hsm/Hbsm mixing of Hu and Hd
+		DO_ACOMP = (0,0,0)	#	   A_MSSM comps of pseudoscalars
 		DO_NCOMP = (0,0,0)	#	   Neutralino comps
 		DO_PARS  = (0,1,1)
 		DO_MASS  = (0,1,1)
 		c_pars_list = []
 		x_axes_list = []
 		y_axes_list = []
+		if DO_MASS[0]: x_axes_list += mass_list
+		if DO_PARS[0]: x_axes_list += par_list 
 		if DO_SCOMP[0]: c_pars_list += scomp_list
 		if DO_UCOMP[0]: c_pars_list += ucomp_list
 		if DO_DCOMP[0]: c_pars_list += dcomp_list
 		if DO_SHMIX[0]: c_pars_list += shmix_list
 		if DO_ACOMP[0]: c_pars_list += Acomp_list
 		if DO_NCOMP[0]: c_pars_list += neucomp_list
-		if DO_PARS[0]: x_axes_list += par_list 
-		if DO_MASS[0]: x_axes_list += mass_list
 
+		if DO_MASS[1]: x_axes_list += mass_list
+		if DO_PARS[1]: x_axes_list += par_list 
 		if DO_SCOMP[1]: x_axes_list += scomp_list
 		if DO_UCOMP[1]: x_axes_list += ucomp_list
 		if DO_DCOMP[1]: x_axes_list += dcomp_list
 		if DO_SHMIX[1]: x_axes_list += shmix_list
 		if DO_ACOMP[1]: x_axes_list += Acomp_list
 		if DO_NCOMP[1]: x_axes_list += neucomp_list
-		if DO_PARS[1]: x_axes_list += par_list 
-		if DO_MASS[1]: x_axes_list += mass_list
-
+			
+		if DO_MASS[2]: y_axes_list += mass_list
+		if DO_PARS[2]: y_axes_list += par_list 
 		if DO_SCOMP[2]: y_axes_list += scomp_list
 		if DO_UCOMP[2]: y_axes_list += ucomp_list
 		if DO_DCOMP[2]: y_axes_list += dcomp_list
 		if DO_SHMIX[2]: y_axes_list += shmix_list
 		if DO_ACOMP[2]: y_axes_list += Acomp_list
 		if DO_NCOMP[2]: y_axes_list += neucomp_list
-		if DO_PARS[2]: y_axes_list += par_list 
-		if DO_MASS[2]: y_axes_list += mass_list
 
 		for n,(c_par,c_ix) in enumerate(c_pars_list): #params as heatmap choice
 			print(Time(),"Coloring with",c_par)
@@ -437,11 +437,11 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 					else: (y_min, y_max) = (0, 0)
 
 					if "mass" in x_par and "mass" in y_par: sub_dir = "mass v mass"
+					elif "mass" in x_par and "comp" in y_par: sub_dir = "comp v "+x_par
 					elif "mass" in x_par: sub_dir = x_par
-					elif "mass" in y_par: sub_dir = y_par
 					elif "comp" in x_par and "comp" in y_par: sub_dir = "comp v comp"
 					elif "comp" in x_par or "comp" in y_par: sub_dir = "comp"
-					else: sub_dir = "Parameter"
+					else: sub_dir = "Parameter" #above has some redundancy in comp and/or
 
 					pltctr+=1
 					HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
@@ -1005,7 +1005,7 @@ for file_index,out_file_name in enumerate(file_names):
 					if row[20]/row[19] > 1:
 						reject_row = True
 						break
-				elif "PQp1v4" == file_prefix and len(row)==28:	#addl filter to pick s1 s-dom event
+				elif "s1scomp_ge_p9" in save_dir_name and len(row)==28:	#addl filter to pick s1 s-dom event
 					if abs(row[27]) < 0.9:
 						reject_row = True
 						break
