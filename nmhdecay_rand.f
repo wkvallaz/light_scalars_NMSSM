@@ -2253,7 +2253,7 @@ c      CALL FTPAR(PAR,0)
       RES(IRES+23+WADD+10)=MWNMSSM
       RES(IRES+23+WADD+11)=delmagmu
       RES(IRES+23+WADD+12)=csPsi
-! WADD=27 prior to this edit, now adding C(U,D,V,J,G,B) for h(1,2,3)+a(1,2) which is +30->57
+
       DO I=1,5                   ! (h1,h2,h3,a1,a2) Reduced coupling to...
        RES(IRES+35+WADD-5+6*I)=CU(I)    ! up type fermions,
        RES(IRES+35+WADD-4+6*I)=CD(I)    ! down type fermions,
@@ -2278,7 +2278,7 @@ c      CALL FTPAR(PAR,0)
       RES(IRES+47+WADD)=brneutHneut(2,1,1)  ! BR(neu2 -> neu1 H1) ! wolf - WANT THIS
       RES(IRES+48+WADD)=SIG(1,8)
       RES(IRES+49+WADD)=R
-! wolf - adding 8 things without incrementing WADD
+
       RES(IRES+49+WADD+1)=brneutHneut(2,1,1) ! wolf - neu(2)>h1+neu1
       RES(IRES+49+WADD+2)=brneutHneut(3,1,1) ! wolf - neu(3)>h1+neu1
       RES(IRES+49+WADD+3)=brneutAneut(2,1,1) ! wolf - neu(2)>A1+neu1
