@@ -456,12 +456,12 @@
         PAR(1)=LMIN*(LMAX/LMIN)**RAN2(IDUM)
        ENDIF
       ENDIF
-
       IF(KMIN.EQ.KMAX)THEN
        PAR(2)=KMIN
       ELSE
        IF(NK.EQ.0)THEN
         PAR(2)=KMIN+(KMAX-KMIN)*RAN2(IDUM)
+!        PAR(2)=0.15d0*PAR(1)*RAN2(IDUM)    ! wolf - alt gen acc to k/l ratio
        ELSE
         PAR(2)=KMIN*(KMAX/KMIN)**RAN2(IDUM)
        ENDIF
