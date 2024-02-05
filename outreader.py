@@ -17,16 +17,17 @@ argv = sys.argv
 DEBUG_MODE = 0		#enables print statements used for tracking
 MASSTRKFILE = 0		#enables tracking masses near LHC and of light s/o
 MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
-DO_PARAM = 1
+DO_PARAM = 0
 DO_MASS = 0
 DO_COMP = 0
 DO_HEAT = 1
+DO_BR   = 0
 DO_MISC = 0
 DO_REPL = 0
 
 NEU_INFO = 1
 SHMIX_INFO = 1
-threshold_lighthiggs = 25# GeV
+threshold_lighthiggs = 10# GeV
 M2Z = 91.187**2
 file_prefix = argv[1] #=-=# file_prefix = "--"# widep
 file_tags = ['THY','LEP','LHC','BKF']#file_tags = ["","con1","con3","con2"]
@@ -39,7 +40,7 @@ for ie in range(N_EXTRA):
 
 if "108035020" in file_prefix: (KMIN, KMAX, LMIN, LMAX) = (-.015, .015, 0, .1)	#def plot axis window
 elif "s" == file_prefix[0]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.5)
-elif "PQp1v4" == file_prefix: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.5)
+elif file_prefix in ["PQp1v4","PQp1v5"]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.5)
 elif "PQ" == file_prefix[0:2]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.7)
 else: (KMIN, KMAX, LMIN, LMAX) = (0, 1, 0, 1)
 (S1MMIN,S1MMAX,P1MMIN,P1MMAX) = (110,130,0,25)
@@ -254,7 +255,7 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 		plt.close("all")
 	return
 
-def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
+def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_MISC, DO_REPL):
 	if not CMYK:
 		Label = [file_prefix + x for x in file_names]
 		#Color = ['darkgray', 'cyan', 'yellow', 'magenta']		#CYM COLORING
@@ -297,7 +298,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 	mass_list = [ ("s1mass",24), ("s2mass",28), ("s3mass",32), ("p1mass",36), ("p2mass",39), ("cmass",42) ]
 	if NEU_INFO:
 		mass_list = [	("neu1mass",44), ("neu2mass",50), ("neu3mass",56), 
-				("neu4mass",62), ("neu5mass",68) ] + mass_list
+				("neu4mass",62), ("neu5mass",68), ("cha1mass",74) ] + mass_list
 	elif "PQ" in file_prefix: mass_list = [("neu1mass",44)] + mass_list
 	# after edits to nmhdecay_rand.f these comps are matrix elems not true compositions, ned **2
 	# comps also used to just be called comp, but specifically called as singlet comp, change filenm
@@ -306,7 +307,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 	dcomp_list = [ ("s1dcomp",26), ("s2dcomp",30), ("s3dcomp",34) ]
 	Acomp_list = [ ("p1Acomp",37), ("p2Acomp",40) ]
 	if SHMIX_INFO: 
-		shmix_list	= [ ("s1(hsm)comp",0), ("s1(Hbsm)comp",0),
+		shmix_list = [  ("s1(hsm)comp",0), ("s1(Hbsm)comp",0),
 				("s2(hsm)comp",0), ("s2(Hbsm)comp",0),
 				("s3(hsm)comp",0), ("s3(Hbsm)comp",0) ]
 	else:	shmix_list = []
@@ -315,12 +316,9 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 				("neu2Bcomp",51), ("neu2Wcomp",52),("neu2Hcomp",0), ("neu2scomp",55),
 				("neu3Bcomp",57), ("neu3Wcomp",58),("neu3Hcomp",0), ("neu3scomp",61),
 				("neu4Bcomp",63), ("neu4Wcomp",64),("neu4Hcomp",0), ("neu4scomp",67),
-				("neu5Bcomp",69), ("neu5Wcomp",70),("neu5Hcomp",0), ("neu5scomp",73),]
+				("neu5Bcomp",69), ("neu5Wcomp",70),("neu5Hcomp",0), ("neu5scomp",73) ]
 	else:	neucomp_list=[]
-	heatmap_list = [#"viridis", "plasma", 
-			#"inferno", "magma", "cividis",
-			#"brg", "rainbow","jet",
-			"turbo"] # some read poorly
+	heatmap_list = ["turbo"]# #"viridis", "plasma",	#"inferno", "magma", "cividis",	#"brg", "rainbow","jet",
 
 	if DO_PARAM:
 		print(Time(),"Beginning parameter plots")
@@ -333,14 +331,13 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 	if DO_MASS:
 		print(Time(),"Beginning mass plots") # PLOT ea Higgs' mass against each parameter also its singlet comp
 		for h,(h_mass,hix) in enumerate(mass_list):
-			if "neu" not in h_mass: continue
 			print(Time(),h_mass)
 			
 			if "s1" in h_mass: (xmin, xmax) = (S1MMIN,S1MMAX)
 			elif "p1" in h_mass: (xmin, xmax) = (P1MMIN,P1MMAX)
 			else: (xmin, xmax) = (0, 0)
-
-			for (param,pix) in par_list+comp_list: #c_l[h] does hig v own cmp, jus c_l h v all comps
+								#neucomp usually not here
+			for (param,pix) in par_list + scomp_list +neucomp_list: #c_l[h] does hig v own cmp, jus c_l h v all comp
 				(ymin, ymax) = (0,0)
 				
 				pltctr+=1
@@ -364,7 +361,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 		DO_DCOMP = 0	#	   d-Higgs comps .	.
 		DO_SHMIX = 1	#	   Hsm/Hbsm mixing of Hu and Hd
 		DO_ACOMP = 0	#	   A_MSSM comps of pseudoscalars
-		DO_NCOMP = 0	#	   Neutralino comps
+		DO_NCOMP = 1	#	   Neutralino comps
 		print(Time(),"Beginning composition plots") # PLOT ea Higgs comps vs each parameter
 		for (h_comp,cix) in scomp_list +ucomp_list +dcomp_list +shmix_list +Acomp_list +neucomp_list:
 			if not DO_SCOMP and (h_comp,cix) in scomp_list: continue
@@ -384,13 +381,13 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 	if DO_HEAT:
 		print(Time(),"Beginning heat map plots")
 		# (C, X, Y)
-		DO_SCOMP = (1,0,0)	# Plot singlet comps (of scalars and pseudoscalars)
+		DO_SCOMP = (0,0,0)	# Plot singlet comps (of scalars and pseudoscalars)
 		DO_UCOMP = (0,0,0)	#	   u-Higgs comps of scalars
-		DO_DCOMP = (0,0,0)		#	   d-Higgs comps .	.
-		DO_SHMIX = (1,0,0)	#	   Hsm/Hbsm mixing of Hu and Hd
+		DO_DCOMP = (0,0,0)	#	   d-Higgs comps .	.
+		DO_SHMIX = (0,0,0)	#	   Hsm/Hbsm mixing of Hu and Hd
 		DO_ACOMP = (0,0,0)	#	   A_MSSM comps of pseudoscalars
-		DO_NCOMP = (0,0,0)	#	   Neutralino comps
-		DO_PARS  = (0,1,1)
+		DO_NCOMP = (1,0,0)	#	   Neutralino comps
+		DO_PARS  = (0,0,0)
 		DO_MASS  = (0,1,1)
 		c_pars_list = []
 		x_axes_list = []
@@ -412,7 +409,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 		if DO_SHMIX[1]: x_axes_list += shmix_list
 		if DO_ACOMP[1]: x_axes_list += Acomp_list
 		if DO_NCOMP[1]: x_axes_list += neucomp_list
-			
+				
 		if DO_MASS[2]: y_axes_list += mass_list
 		if DO_PARS[2]: y_axes_list += par_list 
 		if DO_SCOMP[2]: y_axes_list += scomp_list
@@ -421,7 +418,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 		if DO_SHMIX[2]: y_axes_list += shmix_list
 		if DO_ACOMP[2]: y_axes_list += Acomp_list
 		if DO_NCOMP[2]: y_axes_list += neucomp_list
-
+	
 		for n,(c_par,c_ix) in enumerate(c_pars_list): #params as heatmap choice
 			print(Time(),"Coloring with",c_par)
 			for xind,(x_par,x_ix) in enumerate(x_axes_list):
@@ -447,6 +444,75 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL):
 					HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
 						x_par, x_ix, x_min, x_max,
 						y_par, y_ix, y_min, y_max, Size, DPI, "Heatmap",sub_dir)
+	if DO_BR:
+		br_list = [ ("br_neu2_s1neu1", 130), ("br_neu3_s1neu1", 131),
+				("br_neu2_p1neu1", 132), ("br_neu3_p1neu1", 133),
+				("br_neu2_zneu1", 134), ("br_neu3_zneu1", 135),
+				("br_cha1_wneu1", 136), ("br_cha1_hcneu1", 137) ]
+		print(Time(),"Beginning BR plots")
+		for (br,brix) in br_list:
+			print(Time(),"Evaluating {}...".format(br))
+			for (par,pix) in par_list:
+				pltctr+=1
+				SinglePlot(pltctr, par, pix, 0, 0,
+					br, brix, 0, 0,
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "BR","Parameter")
+				for (mass,mix) in [("s1mass",24),("p1mass",36),("neu1mass",44)]:
+					pltctr+=1
+					HeatPlot(pltctr, mass, mix,"turbo",
+					par, pix, 0, 0,
+					br, brix, 0, 0, Size, DPI, "Heatmap","BR")
+
+			for (mass,mix) in [("s1mass",24),("p1mass",36),("neu1mass",44)]:
+				pltctr+=1
+				SinglePlot(pltctr, mass, mix, 0, 0,
+						br, brix, 0, 0,
+						Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "BR","Mass")
+				for (comp,cix) in neucomp_list:
+					pltctr+=1
+					HeatPlot(pltctr, comp, cix,"turbo",
+					mass,mix,0,0,
+					br,brix,0,0,
+					Size, DPI, "Heatmap","BR")
+			pltctr+=1
+			HeatPlot(pltctr, br, brix,"turbo",
+				"neu1mass",44,0,0,
+				"cha1mass",74,0,0,
+				 Size, DPI, "Heatmap","BR")
+		
+			# this coup stuff should be in a DO_COUP block but no time
+		coup_list =[    ("XIs1u", 86), ("XIs2u", 92),("XIs3u",  98), ("XIp1u", 104),("XIp2u", 110),
+				("XIs1d", 87), ("XIs2d", 93),("XIs3d",  99), ("XIp1d", 105),("XIp2d", 111),
+				("XIs1z", 88), ("XIs2z", 94),("XIs3z", 100), ("XIp1z", 106),("XIp2z", 112),
+				("XIs1gl",89), ("XIs2gl",95),("XIs3gl",101), ("XIp1gl",107),("XIp2gl",113),
+				("XIs1ga",90), ("XIs2ga",96),("XIs3ga",102), ("XIp1ga",108),("XIp2ga",114),
+				("XIs1b", 91), ("XIs2b", 97),("XIs3b", 103), ("XIp1b", 109),("XIp2b", 115) ]
+		print(Time(),"Beginning XI plots")
+		for (coup,cix) in coup_list:
+			print(Time(),"Evaluating {}...".format(coup))
+			for (par,pix) in par_list:		
+				pltctr+=1
+				SinglePlot(pltctr, par, pix, 0, 0,
+						coup, cix, 0, 0,
+						Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "XI","Parameter")
+				for (mass,mix,mmin,mmax) in [("s1mass",24,0,50),("p1mass",36,0,25),("neu1mass",44,0,0)]:		
+					pltctr+=1
+					HeatPlot(pltctr, mass, mix,"turbo",
+						par, pix, 0, 0,
+						coup, cix, 0, 0, Size, DPI, "Heatmap","XI v par c mass")
+					pltctr+=1
+					HeatPlot(pltctr, par,pix,"turbo",
+						mass,mix, mmin, mmax,
+						coup, cix, 0, 0, Size, DPI, "Heatmap","XI v mass c par")
+
+			for (mass,pix) in [("s1mass",24),("p1mass",36),("neu1mass",44)]:		
+				pltctr+=1
+				SinglePlot(pltctr, mass, pix, 0, 0,
+						coup,cix, 0, 0,
+						Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "XI","Mass")
+
+
+
 	if DO_MISC:
 		print(Time(),"Comparing LO p1mass")
 		pltctr+=1
@@ -986,7 +1052,8 @@ for file_index,out_file_name in enumerate(file_names):
 			row = [0] # trim out strange spacing ---> this used to be the event number
 			
 			reject_row = False
-			if "108035020" in file_prefix: last_element=73	#trunc out after neu5scomp
+			if "108035020" in file_prefix: last_element=74	#trunc out after MCHA(1)
+			elif DO_BR or "PQp1v5" == file_prefix: last_element=1000	#(don't trunc)
 			elif NEU_INFO: last_element=74			#		 MCHA(1)
 			elif "PQ" in file_prefix: last_element=44	#		 neu1mass
 			else: last_element=43				#		 MA
@@ -1001,7 +1068,7 @@ for file_index,out_file_name in enumerate(file_names):
 					if row[20]/row[19] > 2:
 						reject_row = True
 						break
-				elif "PQp1v4" == file_prefix and len(row)==21:
+				elif file_prefix in ["PQp1v4", "PQp1v5"] and len(row)==21:
 					if row[20]/row[19] > 1:
 						reject_row = True
 						break
@@ -1010,6 +1077,8 @@ for file_index,out_file_name in enumerate(file_names):
 						reject_row = True
 						break
 				if len(row)>last_element: break
+			
+			if not reject_row and last_element > 128: row[128]=0 # SCUFFED MANUAL OVERWRITE OF GGF H SIGMA
 			if not reject_row: file_matrices[file_index % len(file_tags)].append(row)
 			if not MASSTRKFILE: continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
 			
@@ -1204,7 +1273,7 @@ if CMYK:
 # args (DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 if SAVEPLOTS: 
 	if DEBUG_MODE: print(Time(),"Starting to plot...")
-	GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC, DO_REPL)
+	GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_MISC, DO_REPL)
 
 if MASSTRKFILE:
 	print("\nSorting by lightest SCALAR")
@@ -1250,12 +1319,17 @@ if MASSTRKFILE:
 		for lp in lp_trk[file_index]: print(lp,end="\t")
 		print("\n")
 if MASSTRKBOUNDS:
-	for threshold_lighthiggs in [5,10,25,50]:
+	for threshold_lighthiggs in [9]:
 		ls_ctr = 0
 		lp_ctr = 0
 		for r in master_list[-1]:
-			if r[24]<threshold_lighthiggs: ls_ctr+=1
-			if r[36]<threshold_lighthiggs: lp_ctr+=1
+			if r[24]<threshold_lighthiggs:
+				ls_ctr+=1
+				print("s1mass {: >4} < {: >2} : ".format(round(r[24],1),threshold_lighthiggs), r[1], r[19], r[20], r[21], r[22], r[23])
+			if r[36]<threshold_lighthiggs:
+				lp_ctr+=1
+				print("p1mass {: >4} < {: >2} : ".format(round(r[36],1),threshold_lighthiggs), r[1], r[19], r[20], r[21], r[22], r[23])
+
 		print("Light Mass Threshold:\t{}\n# Light Scalars:\t{}\n# Light Pseudoscalars:\t{}".format(threshold_lighthiggs,ls_ctr,lp_ctr))
 	
 	(t_lo, t_hi) = (master_list[-1][0][1], master_list[-1][0][1]) 
