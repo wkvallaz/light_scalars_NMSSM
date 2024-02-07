@@ -16,7 +16,7 @@ argv = sys.argv
 
 DEBUG_MODE = 0		#enables print statements used for tracking
 MASSTRKFILE = 0		#enables tracking masses near LHC and of light s/o
-MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
+MASSTRKBOUNDS = 1	# At the end, count higgses below threshold_lighthiggs
 DO_PARAM = 0
 DO_MASS = 0
 DO_COMP = 0
@@ -381,19 +381,19 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_MISC, DO_REPL):
 	if DO_HEAT:
 		print(Time(),"Beginning heat map plots")
 		# (C, X, Y)
-		DO_SCOMP = (0,0,0)	# Plot singlet comps (of scalars and pseudoscalars)
+		DO_SCOMP = (1,1,1)	# Plot singlet comps (of scalars and pseudoscalars)
 		DO_UCOMP = (0,0,0)	#	   u-Higgs comps of scalars
 		DO_DCOMP = (0,0,0)	#	   d-Higgs comps .	.
 		DO_SHMIX = (0,0,0)	#	   Hsm/Hbsm mixing of Hu and Hd
 		DO_ACOMP = (0,0,0)	#	   A_MSSM comps of pseudoscalars
-		DO_NCOMP = (1,0,0)	#	   Neutralino comps
+		DO_NCOMP = (1,1,1)	#	   Neutralino comps
 		DO_PARS  = (0,0,0)
-		DO_MASS  = (0,1,1)
+		DO_MASS  = (1,1,1)
 		c_pars_list = []
 		x_axes_list = []
 		y_axes_list = []
-		if DO_MASS[0]: x_axes_list += mass_list
-		if DO_PARS[0]: x_axes_list += par_list 
+		if DO_MASS[0]: c_pars_list += mass_list
+		if DO_PARS[0]: c_pars_list += par_list 
 		if DO_SCOMP[0]: c_pars_list += scomp_list
 		if DO_UCOMP[0]: c_pars_list += ucomp_list
 		if DO_DCOMP[0]: c_pars_list += dcomp_list
@@ -463,7 +463,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_MISC, DO_REPL):
 					par, pix, 0, 0,
 					br, brix, 0, 0, Size, DPI, "Heatmap","BR")
 
-			for (mass,mix) in [("s1mass",24),("p1mass",36),("neu1mass",44)]:
+			for i,(mass,mix) in enumerate([("neu1mass",44),("p1mass",36),("s1mass",24),("cha1mass",74)]):
 				pltctr+=1
 				SinglePlot(pltctr, mass, mix, 0, 0,
 						br, brix, 0, 0,
@@ -474,6 +474,14 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_MISC, DO_REPL):
 					mass,mix,0,0,
 					br,brix,0,0,
 					Size, DPI, "Heatmap","BR")
+				for j,(mass2,mix2) in enumerate([("neu1mass",44),("p1mass",36),("s1mass",24),("cha1mass",74)]):
+					if j<=i: continue
+					pltctr+=1
+					HeatPlot(pltctr, mass2, mix2,"turbo",
+					mass,mix,0,0,
+					br,brix,0,0,
+					Size, DPI, "Heatmap","BR")
+
 			pltctr+=1
 			HeatPlot(pltctr, br, brix,"turbo",
 				"neu1mass",44,0,0,
@@ -1060,6 +1068,7 @@ for file_index,out_file_name in enumerate(file_names):
 
 			for indexelem,val in enumerate(fullrow):
 				if val != "": row.append(float(val))
+				# THIS WHERE TO ENFORCE CUTS AND FILTERS
 				if "108035020" in file_prefix and len(row)==21:
 					if abs(row[20])/row[19] > 0.15: #outside of allowed kappa/lambda ratio
 						reject_row = True
@@ -1353,5 +1362,12 @@ if MASSTRKBOUNDS:
 	print("Akappa ({: >8} ~~ {: >8} )".format(Ak_lo,Ak_hi))
 	print("mueff  ({: >8} ~~ {: >8} )".format(mu_lo,mu_hi))
 #{:0>{}}
-print("Runtime:\t{}\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#".format(Time()))
+	BENCH_CHECK = True
+	if BENCH_CHECK:
+		print("BENCHMARK POINTS BY VALUES:     tanB    lambda        kappa  Alambda    Akappa    mueff")
+		for i,r in enumerate(master_list[-1]):
+			if r[24]<122 and r[36]<15: #lowish s1 p1 masses
+				if FunctionArr("neu1Hcomp",0,0,master_list[-1])[i] < 0.5:
+					print("s1mass {: >5.1f} & p1mass {: >4}: {: >8.5f} {: >9} {: >12} {: >8} {: >9} {: >8}".format(round(r[24],1),round(r[36],1),r[1],r[19],r[20],r[21],r[22],r[23]))
+print("{}\tFinished.\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#".format(Time()))
 #sys.exit()
