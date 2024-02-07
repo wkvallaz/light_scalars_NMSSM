@@ -22,6 +22,7 @@ DO_MASS = 0
 DO_COMP = 0
 DO_HEAT = 1
 DO_BR   = 0
+DO_COUP = 0
 DO_MISC = 0
 DO_REPL = 0
 
@@ -255,7 +256,7 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 		plt.close("all")
 	return
 
-def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_MISC, DO_REPL):
+def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, DO_REPL):
 	if not CMYK:
 		Label = [file_prefix + x for x in file_names]
 		#Color = ['darkgray', 'cyan', 'yellow', 'magenta']		#CYM COLORING
@@ -319,7 +320,19 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_MISC, DO_REPL):
 				("neu5Bcomp",69), ("neu5Wcomp",70),("neu5Hcomp",0), ("neu5scomp",73) ]
 	else:	neucomp_list=[]
 	heatmap_list = ["turbo"]# #"viridis", "plasma",	#"inferno", "magma", "cividis",	#"brg", "rainbow","jet",
-
+	if DO_BR or "PQp1v5"==file_prefix:
+		br_list = [ ("br_neu2_s1neu1", 130), ("br_neu3_s1neu1", 131),
+				("br_neu2_p1neu1", 132), ("br_neu3_p1neu1", 133),
+				("br_neu2_zneu1", 134), ("br_neu3_zneu1", 135),
+				("br_cha1_wneu1", 136), ("br_cha1_hcneu1", 137) ]
+	else: br_list = []
+	if DO_COUP or "PQp1v5" == file_prefix:
+		coup_list =[    ("XIs1u", 86), ("XIs2u", 92),("XIs3u",  98), ("XIp1u", 104),("XIp2u", 110),
+				("XIs1d", 87), ("XIs2d", 93),("XIs3d",  99), ("XIp1d", 105),("XIp2d", 111),
+				("XIs1z", 88), ("XIs2z", 94),("XIs3z", 100), ("XIp1z", 106),("XIp2z", 112),
+				("XIs1gl",89), ("XIs2gl",95),("XIs3gl",101), ("XIp1gl",107),("XIp2gl",113),
+				("XIs1ga",90), ("XIs2ga",96),("XIs3ga",102), ("XIp1ga",108),("XIp2ga",114),
+				("XIs1b", 91), ("XIs2b", 97),("XIs3b", 103), ("XIp1b", 109),("XIp2b", 115) ]
 	if DO_PARAM:
 		print(Time(),"Beginning parameter plots")
 		for i,(xpar,xind) in enumerate(par_list): # ALL PARAM VS
@@ -445,10 +458,6 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_MISC, DO_REPL):
 						x_par, x_ix, x_min, x_max,
 						y_par, y_ix, y_min, y_max, Size, DPI, "Heatmap",sub_dir)
 	if DO_BR:
-		br_list = [ ("br_neu2_s1neu1", 130), ("br_neu3_s1neu1", 131),
-				("br_neu2_p1neu1", 132), ("br_neu3_p1neu1", 133),
-				("br_neu2_zneu1", 134), ("br_neu3_zneu1", 135),
-				("br_cha1_wneu1", 136), ("br_cha1_hcneu1", 137) ]
 		print(Time(),"Beginning BR plots")
 		for (br,brix) in br_list:
 			print(Time(),"Evaluating {}...".format(br))
@@ -488,13 +497,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_MISC, DO_REPL):
 				"cha1mass",74,0,0,
 				 Size, DPI, "Heatmap","BR")
 		
-			# this coup stuff should be in a DO_COUP block but no time
-		coup_list =[    ("XIs1u", 86), ("XIs2u", 92),("XIs3u",  98), ("XIp1u", 104),("XIp2u", 110),
-				("XIs1d", 87), ("XIs2d", 93),("XIs3d",  99), ("XIp1d", 105),("XIp2d", 111),
-				("XIs1z", 88), ("XIs2z", 94),("XIs3z", 100), ("XIp1z", 106),("XIp2z", 112),
-				("XIs1gl",89), ("XIs2gl",95),("XIs3gl",101), ("XIp1gl",107),("XIp2gl",113),
-				("XIs1ga",90), ("XIs2ga",96),("XIs3ga",102), ("XIp1ga",108),("XIp2ga",114),
-				("XIs1b", 91), ("XIs2b", 97),("XIs3b", 103), ("XIp1b", 109),("XIp2b", 115) ]
+	if DO_COUP:
 		print(Time(),"Beginning XI plots")
 		for (coup,cix) in coup_list:
 			print(Time(),"Evaluating {}...".format(coup))
@@ -1282,7 +1285,7 @@ if CMYK:
 # args (DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 if SAVEPLOTS: 
 	if DEBUG_MODE: print(Time(),"Starting to plot...")
-	GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_MISC, DO_REPL)
+	GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, DO_REPL)
 
 if MASSTRKFILE:
 	print("\nSorting by lightest SCALAR")
