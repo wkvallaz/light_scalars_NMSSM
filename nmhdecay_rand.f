@@ -1859,7 +1859,8 @@ c      CALL FTPAR(PAR,0)
       CHARACTER CHAN*20
 ! add mres and WADDetc - wolf
       INTEGER NBIN,I,NRES,IRES,GRFLAG,NSUSY,NGUT,NMES,IMAX,IFAIL,
-     . MRES,WADD,WADDSCOMP,WADDPCOMP,WADDMA,WADDNEU,WADDCOUP,WADDBR
+     . MRES,WADD,WADDSCOMP,WADDPCOMP,WADDMA,WADDNEU,WADDCOUP,WADDBR,
+     . WADDDC
       PARAMETER (NSUSY=14,NGUT=21,NMES=21,IMAX=200)
 
       DOUBLE PRECISION RES(IMAX),PAR(*),PROB(*),SIG(5,8),R
@@ -2182,7 +2183,8 @@ c      CALL FTPAR(PAR,0)
       WADDMA=1
       WADDNEU=18
       WADDCOUP=30
-      WADDBR=8
+      WADDBR=10
+      WADDDC=6
       WADD=0
       MRES=WADD+NRES
 ! WADD is number of things Wolf added - wolf - EDITed purpose, cumsum
@@ -2279,15 +2281,26 @@ c      CALL FTPAR(PAR,0)
       RES(IRES+48+WADD)=SIG(1,8)
       RES(IRES+49+WADD)=R
 
-      RES(IRES+49+WADD+1)=brneutHneut(2,1,1) ! wolf - neu(2)>h1+neu1
-      RES(IRES+49+WADD+2)=brneutHneut(3,1,1) ! wolf - neu(3)>h1+neu1
-      RES(IRES+49+WADD+3)=brneutAneut(2,1,1) ! wolf - neu(2)>A1+neu1
-      RES(IRES+49+WADD+4)=brneutAneut(3,1,1) ! wolf - neu(3)>A1+neu1
-      RES(IRES+49+WADD+5)=brneutzneut(2,1)   ! wolf - neu(2)> z+neu1
-      RES(IRES+49+WADD+6)=brneutzneut(3,1)   ! wolf - neu(3)> z+neu1
-      RES(IRES+49+WADD+7)=brcharwneut(1,1)   ! wolf - cha1>w +neu1
-      RES(IRES+49+WADD+8)=brcharhcneut(1,1)  ! wolf - cha1>hc+neu1
+      RES(IRES+49+WADD+1)=brneutHneut(2,1,1)  ! wolf - neu(2)>h1+neu1
+      RES(IRES+49+WADD+2)=brneutHneut(2,2,1)  ! wolf - neu(2)>h2+neu1
+      RES(IRES+49+WADD+3)=brneutAneut(2,1,1)  ! wolf - neu(2)>A1+neu1
+      RES(IRES+49+WADD+4)=brneutzneut(2,1)    ! wolf - neu(2)> z+neu1
+      RES(IRES+49+WADD+5)=brneutHneut(3,1,1)  ! wolf - neu(3)>h1+neu1
+      RES(IRES+49+WADD+6)=brneutHneut(3,2,1)  ! wolf - neu(3)>h2+neu1
+      RES(IRES+49+WADD+7)=brneutAneut(3,1,1)  ! wolf - neu(3)>A1+neu1
+      RES(IRES+49+WADD+8)=brneutzneut(3,1)    ! wolf - neu(3)> z+neu1
+      RES(IRES+49+WADD+9)=brcharwneut(1,1)    ! wolf - cha1>w +neu1
+      RES(IRES+49+WADD+10)=brcharhcneut(1,1)  ! wolf - cha1>hc+neu1
       WADD = WADD + WADDBR
+
+      RES(IRES+49+WADD+1)= WIDTH(1)   ! wolf - s1 decay width
+      RES(IRES+49+WADD+2)= WIDTH(2)   ! wolf - s2 decay width
+      RES(IRES+49+WADD+3)= WIDTH(4)   ! wolf - p1 decay width
+      RES(IRES+49+WADD+4)= neuttot(2) ! wolf - neu2 decay width
+      RES(IRES+49+WADD+5)= neuttot(3) ! wolf - neu3 decay width
+      RES(IRES+49+WADD+6)= chartot(1) ! wolf - cha1 decay width
+      WADD = WADD + WADDDC
+
       WRITE(16,11)(RES(I),I=1,NRES+WADD)
  11   FORMAT(200E14.6)
 
