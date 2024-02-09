@@ -268,6 +268,11 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	return
 
 def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,DO_REPL):
+	# MAJOR IDEAS FOR REFACTORING
+	# - REINFORCE THE HEATMAP GENERATION BEING ITS OWN UNIQUE LOOP STRUCTURE
+	# -- WOULD POSSIBLY REQUIRE MULTIPLE RUNS FOR TWO DIFFERENT TYPES OF HEATMAPS
+	# - COULD POSSIBLY ARCHITECTURE S.T. SINGLEPLOT LOOPS SIMILARLY TO HEATPLOT THRU DO_HEAT
+	#    BUT WOULD HAVE TO FIND MORE PRECISE/ELEGANT WAY OF GENERATING X,Y PAIRS RATHER THAN ALL PAIRS
 	if not CMYK:
 		Label = [file_prefix + x for x in file_names]
 		#Color = ['darkgray', 'cyan', 'yellow', 'magenta']		#CYM COLORING
@@ -356,7 +361,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				("XIs1b", 91), ("XIs2b", 97),("XIs3b", 103), ("XIp1b", 109),("XIp2b", 115) ]
 	else: coup_list = []
 
-	if True:
+	if DO_DC:
 		dc_list = [("s1dw",140),("s2dw",141),("p1dw",142),("neu2dw",143),("neu3dw",144),("cha1dw",145)]
 	else: dc_list = []
 
@@ -370,7 +375,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				SinglePlot(pltctr, xpar, xind, 0, 0, ypar, yind, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
 	if DO_MASS:
-		print(Time(),"Beginning mass plots") # PLOT ea mass against each parameter also its singlet comp
+		print(Time(),"Beginning mass plots") # PLOT ea mass against chosen params and other masses
 		for h,(h_mass,hix) in enumerate(neumass_list[:3]+hmass_list+[neumass_list[-1]]):
 			print(Time(),h_mass)
 			
@@ -429,7 +434,8 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		DO_ACOMP = (0,0,0)	#	   A_MSSM comps of pseudoscalars
 		DO_NCOMP = (1,0,0)	#	   Neutralino comps
 		DO_PARS  = (0,0,0)	#	   Core parameters
-		DO_MASS  = (1,1,1)	#	   Neu and H masses
+		DO_MASSC = (1,1,1)	#	   Neu and H masses
+		DO_DECAY = (1,0,1)	#	   decay widths
 		c_pars_list = []
 		x_axes_list = []
 		y_axes_list = []
@@ -442,6 +448,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		c_pars_list += shmix_list
 		c_pars_list += Acomp_list
 		c_pars_list += neucomp_list[:12]
+		c_pars_list += dc_list
 
 		x_axes_list += par_list 
 		x_axes_list += mass_list
@@ -451,7 +458,8 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		x_axes_list += shmix_list
 		x_axes_list += Acomp_list
 		x_axes_list += neucomp_list[:12]
-				
+		x_axes_list += dc_list
+
 		y_axes_list += par_list 
 		y_axes_list += mass_list
 		y_axes_list += scomp_list
@@ -460,29 +468,32 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		y_axes_list += shmix_list
 		y_axes_list += Acomp_list
 		y_axes_list += neucomp_list[:12]
+		y_axes_list += dc_list
 	
 		for n,(c_par,c_ix) in enumerate(c_pars_list):
 			if (c_par,c_ix) in par_list and not DO_PARS[0]: continue
-			if (c_par,c_ix) in mass_list and not DO_MASS[0]: continue
+			if (c_par,c_ix) in mass_list and not DO_MASSC[0]: continue
 			if (c_par,c_ix) in scomp_list and not DO_SCOMP[0]: continue
 			if (c_par,c_ix) in ucomp_list and not DO_UCOMP[0]: continue
 			if (c_par,c_ix) in dcomp_list and not DO_DCOMP[0]: continue
 			if (c_par,c_ix) in shmix_list and not DO_SHMIX[0]: continue
 			if (c_par,c_ix) in Acomp_list and not DO_ACOMP[0]: continue
 			if (c_par,c_ix) in neucomp_list and not DO_NCOMP[0]: continue
+			if (c_par,c_ix) in dc_list and not DO_DECAY[0]: continue
 
 			print(Time(),"Coloring with",c_par)
 
 			for xind,(x_par,x_ix) in enumerate(x_axes_list):
 				if (x_par,x_ix) in par_list and not DO_PARS[1]: continue
-				if (x_par,x_ix) in mass_list and not DO_MASS[1]: continue
+				if (x_par,x_ix) in mass_list and not DO_MASSC[1]: continue
 				if (x_par,x_ix) in scomp_list and not DO_SCOMP[1]: continue
 				if (x_par,x_ix) in ucomp_list and not DO_UCOMP[1]: continue
 				if (x_par,x_ix) in dcomp_list and not DO_DCOMP[1]: continue
 				if (x_par,x_ix) in shmix_list and not DO_SHMIX[1]: continue
 				if (x_par,x_ix) in Acomp_list and not DO_ACOMP[1]: continue
-				if (x_par,x_ix)in neucomp_list and not DO_NCOMP[1]: continue
-				
+				if (x_par,x_ix) in neucomp_list and not DO_NCOMP[1]: continue
+				if (x_par,x_ix) in dc_list and not DO_DECAY[1]: continue
+
 				if x_par == c_par: continue
 				
 				if x_par == "s1mass": (x_min, x_max) = (S1MMIN,S1MMAX)
@@ -496,7 +507,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 							if par_list.index((y_par,y_ix))<=par_list.index((x_par,x_ix)):
 								continue
 					if (y_par,y_ix) in mass_list:
-						if not DO_MASS[2]: continue
+						if not DO_MASSC[2]: continue
 						if (x_par,x_ix) in mass_list:
 							if mass_list.index((y_par,y_ix))<=mass_list.index((x_par,x_ix)):
 								continue
@@ -531,6 +542,13 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 							if (neucomp_list.index((y_par,y_ix))
 							<=neucomp_list.index((x_par,x_ix))):
 								continue
+					if (y_par,y_ix) in dc_list:
+						if not DO_DECAY[2]: continue
+						if (x_par,x_ix) in dc_list:
+							if (dc_list.index((y_par,y_ix))
+							<=dc_list.index((x_par,x_ix))):
+								continue
+
 					
 					if y_par == x_par or y_par == c_par: continue
 					
@@ -543,6 +561,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 					elif "mass" in x_par: sub_dir = x_par
 					elif "comp" in x_par and "comp" in y_par: sub_dir = "comp v comp"
 					elif "comp" in x_par or "comp" in y_par: sub_dir = "comp"
+					elif "dw" in x_par or "dw" in y_par: sub_dir = "dw (v dw)"
 					else: sub_dir = "Parameter" #above has some redundancy in comp and/or
 
 					pltctr+=1
