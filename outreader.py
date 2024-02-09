@@ -19,7 +19,7 @@ MASSTRKFILE = 0		#enables tracking masses near LHC and of light s/o
 MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
 
 DO_PARAM = 0
-DO_MASS = 1
+DO_MASS = 0
 DO_COMP = 0
 DO_HEAT = 0
 DO_COUP = 1
@@ -670,6 +670,16 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 
 
 	if DO_COUP:
+# FOR VISUAL REFERENCE, DELETE ONCE READY TO RUN #
+#	coup_list =[    ("XIs1u", 86), ("XIs2u", 92),("XIs3u",  98), ("XIp1u", 104),("XIp2u", 110),
+#				("XIs1d", 87), ("XIs2d", 93),("XIs3d",  99), ("XIp1d", 105),("XIp2d", 111),
+#				("XIs1z", 88), ("XIs2z", 94),("XIs3z", 100), ("XIp1z", 106),("XIp2z", 112),
+#				("XIs1gl",89), ("XIs2gl",95),("XIs3gl",101), ("XIp1gl",107),("XIp2gl",113),
+#				("XIs1ga",90), ("XIs2ga",96),("XIs3ga",102), ("XIp1ga",108),("XIp2ga",114),
+#				("XIs1b", 91), ("XIs2b", 97),("XIs3b", 103), ("XIp1b", 109),("XIp2b", 115) ]
+#	dc_masses = [	("s1mass",24),("s2mass",28),("p1mass",36),("neu2mass",50),("neu3mass",56)]		
+#	dc_list = [("s1dw",140),("s2dw",141),("p1dw",142),("neu2dw",143),("neu3dw",144),("cha1dw",145)]
+##################################################
 		print(Time(),"Beginning XI plots")
 		for (coup,cix) in coup_list:
 			print(Time(),"Evaluating {}...".format(coup))
@@ -690,11 +700,32 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 
 			for (mass,pix) in [("s1mass",24),("p1mass",36)]:#,("neu1mass",44)]:		
 				pltctr+=1
-				SinglePlot(pltctr, mass, pix, 0, 0,
-						coup,cix, 0, 0,
-						Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "XI","Mass")
+				SinglePlot(pltctr, mass, pix, 0, 0,coup,cix, 0, 0,
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "XI","Mass")
+			
+			if DO_DC: #definitely a more pretty wy to do this, but plot each particles coup against its decay width
+				if coup[2:4]=="s1":
+					pltctr+=1
+					SinglePlot(pltctr, "s1mass", 24, 0, 0,coup,cix, 0, 0,
+						Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI,"XI","DC")
+				elif coup[2:4]=="s2":
+					pltctr+=1
+					SinglePlot(pltctr, "s2mass", 28, 0, 0,coup,cix, 0, 0,
+						Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI,"XI","DC")
+			#	elif coup[2:4]=="s3":
+			#		pltctr+=1
+			#		SinglePlot(pltctr, "s3mass", 32, 0, 0,coup,cix, 0, 0,
+			#			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI,"XI","DC")
+				elif coup[2:4]=="p1":
+					pltctr+=1
+					SinglePlot(pltctr, "p1mass", 36, 0, 0,coup,cix, 0, 0,
+						Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI,"XI","DC")
+			#	elif coup[2:4]=="p2":
+			#		pltctr+=1
+			#		SinglePlot(pltctr, "mass", , 0, 0,coup,cix, 0, 0,
+			#			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI,"XI","DC")
 
-
+	
 
 	if DO_MISC:
 		print(Time(),"Comparing LO p1mass")
