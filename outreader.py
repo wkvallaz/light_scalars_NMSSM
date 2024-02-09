@@ -16,20 +16,24 @@ argv = sys.argv
 
 DEBUG_MODE = 0		#enables print statements used for tracking
 MASSTRKFILE = 0		#enables tracking masses near LHC and of light s/o
-MASSTRKBOUNDS = 1	# At the end, count higgses below threshold_lighthiggs
+MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
+
 DO_PARAM = 0
-DO_MASS = 0
+DO_MASS = 1
 DO_COMP = 0
 DO_HEAT = 0
-DO_BR   = 1
-DO_COUP = 0
+DO_COUP = 1
+DO_BR = 0
+DO_DC = 1
 DO_MISC = 0
 DO_REPL = 0
 
 NEU_INFO = 1
 SHMIX_INFO = 1
 threshold_lighthiggs = 10# GeV
-M2Z = 91.187**2
+MZ = 91.187
+M2Z = MZ**2
+
 file_prefix = argv[1] #=-=# file_prefix = "--"# widep
 file_tags = ['THY','LEP','LHC','BKF']#file_tags = ["","con1","con3","con2"]
 file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
@@ -160,8 +164,12 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	plt.title(save_dir_name+" : "+ypar+" v "+xpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
-	if "p1dw" == ypar: plt.yscale("log")
+	if "dw" == ypar[-2:]: plt.yscale("log")
+	elif "XI" == ypar[:2]: plt.yscale("log")
 	else: plt.yscale("linear")
+	if "dw" == xpar[-2:]: plt.xscale("log")
+	elif "XI" == xpar[:2]: plt.xscale("log")
+	else: plt.xscale("linear")
 
 	if (len(Label)+extralegelem) <= 4: Ncols = len(Label)+extralegelem
 	else: Ncols = np.ceil( (len(Label)+extralegelem)/2 )
@@ -259,7 +267,7 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 		plt.close("all")
 	return
 
-def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, DO_REPL):
+def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,DO_REPL):
 	if not CMYK:
 		Label = [file_prefix + x for x in file_names]
 		#Color = ['darkgray', 'cyan', 'yellow', 'magenta']		#CYM COLORING
@@ -306,7 +314,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, 
 				("neu4mass",62), ("neu5mass",68), ("cha1mass",74) ]
 	elif "PQ" in file_prefix: neumass_list = [("neu1mass",44)]
 	else: neumass_list = []
-	mass_list = neumass_list + hmass_list
+	mass_list = neumass_list[:3] + hmass_list + [("cha1mass",74)]
 	
 	# after edits to nmhdecay_rand.f these comps are matrix elems not true compositions, ned **2
 	# comps also used to just be called comp, but specifically called as singlet comp, change filenm
@@ -351,6 +359,8 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, 
 	if True:
 		dc_list = [("s1dw",140),("s2dw",141),("p1dw",142),("neu2dw",143),("neu3dw",144),("cha1dw",145)]
 	else: dc_list = []
+
+	
 	if DO_PARAM:
 		print(Time(),"Beginning parameter plots")
 		for i,(xpar,xind) in enumerate(par_list): # ALL PARAM VS
@@ -360,22 +370,22 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, 
 				SinglePlot(pltctr, xpar, xind, 0, 0, ypar, yind, 0, 0,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
 	if DO_MASS:
-		print(Time(),"Beginning mass plots") # PLOT ea Higgs' mass against each parameter also its singlet comp
-		for h,(h_mass,hix) in enumerate(hmass_list):
+		print(Time(),"Beginning mass plots") # PLOT ea mass against each parameter also its singlet comp
+		for h,(h_mass,hix) in enumerate(neumass_list[:3]+hmass_list+[neumass_list[-1]]):
 			print(Time(),h_mass)
 			
 			if "s1" in h_mass: (xmin, xmax) = (S1MMIN,S1MMAX)
 			elif "p1" in h_mass: (xmin, xmax) = (P1MMIN,P1MMAX)
 			else: (xmin, xmax) = (0, 0)
-								#neucomp usually not here
-			for (param,pix) in par_list + scomp_list +neucomp_list: #c_l[h] does hig v own cmp, jus c_l h v all comp
+
+			for (param,pix) in neucomp_list[:12]:
 				(ymin, ymax) = (0,0)
 				
 				pltctr+=1
 				SinglePlot(pltctr,h_mass, hix, xmin, xmax,
 						param, pix, ymin, ymax,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)
-			for yit,(y_higg,yix) in enumerate(mass_list):	 #for mass v mass plots
+			for yit,(y_higg,yix) in enumerate(neumass_list[:3]+hmass_list+[neumass_list[-1]]):
 				if yit <= h: continue
 				
 				if "s1" in y_higg: (ymin, ymax) = (S1MMIN,S1MMAX)
@@ -417,7 +427,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, 
 		DO_DCOMP = (0,0,0)	#	   d-Higgs comps .	.
 		DO_SHMIX = (0,0,0)	#	   Hsm/Hbsm mixing of Hu and Hd
 		DO_ACOMP = (0,0,0)	#	   A_MSSM comps of pseudoscalars
-		DO_NCOMP = (1,0,1)	#	   Neutralino comps
+		DO_NCOMP = (1,0,0)	#	   Neutralino comps
 		DO_PARS  = (0,0,0)	#	   Core parameters
 		DO_MASS  = (1,1,1)	#	   Neu and H masses
 		c_pars_list = []
@@ -574,7 +584,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, 
 			HeatPlot(pltctr, br, brix,"turbo",
 				"neu1mass",44,0,0,
 				"cha1mass",74,0,0,
-				 Size, DPI, "Heatmap","BR")
+				 Size, DPI, "Heatmap","Mass v mass c BR")
 		
 	
 		print(Time(),"Starting neu2 BRs by channel") ##################################################
@@ -630,8 +640,8 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, 
 				[r[131]+r[133] for r in master_list[-1]],
 				color="black", alpha=1, s=1, marker=',', linewidths=0)
 		plt.title(save_dir_name+" : neu2 BR sums")
-		plt.xlabel("br_neu2_(s2/z)neu1")
-		plt.ylabel("br_neu2_(s1/p1)neu1")
+		plt.xlabel("br_neu2_(s1/p1)neu1")
+		plt.ylabel("br_neu2_(s2/z)neu1")
 		plt.savefig("{}/{}/BR/neu2 BR sums.png".format(DIR,save_dir_name),dpi=DPI)
 		plt.close()
 
@@ -641,15 +651,24 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, 
 				[r[135]+r[137] for r in master_list[-1]],
 				color="black", alpha=1, s=1, marker=',', linewidths=0)
 		plt.title(save_dir_name+" : neu3 BR sums")
-		plt.xlabel("br_neu3_(s2/z)neu1")
-		plt.ylabel("br_neu3_(s1/p1)neu1")
+		plt.xlabel("br_neu3_(s1/p1)neu1")
+		plt.ylabel("br_neu3_(s2/z)neu1")
 		plt.savefig("{}/{}/BR/neu3 BR sums.png".format(DIR,save_dir_name),dpi=DPI)
 		plt.close()
 
-		print(Time(),"p1 decay width plot") ##################################################
-		pltctr+=1
-		SinglePlot(pltctr, "p1mass", 36,0,0,"p1dw", 142, 0,0,
-					Label, Color, Alpha, Size,LOC, BBOX_TO_ANCHOR, DPI, "", "")
+	if DO_DC:
+		print(Time(),"Doing decay width plots") ##################################################
+		dc_masses = [	("s1mass",24),("s2mass",28),("p1mass",36),
+				("neu2mass",50),("neu3mass",56),("cha1mass",74)	]
+
+		for i,(dw,dwix) in enumerate(dc_list):
+			pltctr+=1
+			SinglePlot(pltctr, dc_masses[i][0], dc_masses[i][1], 0, 0, dw, dwix, 0, 0,
+				    	Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "", "")
+			SinglePlot(pltctr, "tanB", 1, 0, 0, dw, dwix, 0, 0,
+				    	Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "", "")
+
+
 	if DO_COUP:
 		print(Time(),"Beginning XI plots")
 		for (coup,cix) in coup_list:
@@ -659,7 +678,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, 
 				SinglePlot(pltctr, par, pix, 0, 0,
 						coup, cix, 0, 0,
 						Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "XI","Parameter")
-				for (mass,mix,mmin,mmax) in [("s1mass",24,0,50),("p1mass",36,0,25),("neu1mass",44,0,0)]:		
+				for (mass,mix,mmin,mmax) in [("s1mass",24,0,50),("p1mass",36,0,25)]:#,("neu1mass",44,0,0)]:		
 					pltctr+=1
 					HeatPlot(pltctr, mass, mix,"turbo",
 						par, pix, 0, 0,
@@ -669,7 +688,7 @@ def GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, 
 						mass,mix, mmin, mmax,
 						coup, cix, 0, 0, Size, DPI, "Heatmap","XI v mass c par")
 
-			for (mass,pix) in [("s1mass",24),("p1mass",36),("neu1mass",44)]:		
+			for (mass,pix) in [("s1mass",24),("p1mass",36)]:#,("neu1mass",44)]:		
 				pltctr+=1
 				SinglePlot(pltctr, mass, pix, 0, 0,
 						coup,cix, 0, 0,
@@ -1217,7 +1236,8 @@ for file_index,out_file_name in enumerate(file_names):
 			
 			reject_row = False
 			if "108035020" in file_prefix: last_element=74	#trunc out after MCHA(1)
-			elif DO_BR or "PQp1v5" == file_prefix: last_element=1000	#(don't trunc)
+			elif DO_DC or "PQp1v5" == file_prefix: last_element=1000	#(don't trunc)
+			elif DO_BR: last_element = 140
 			elif NEU_INFO: last_element=74			#		 MCHA(1)
 			elif "PQ" in file_prefix: last_element=44	#		 neu1mass
 			else: last_element=43				#		 MA
@@ -1251,10 +1271,12 @@ for file_index,out_file_name in enumerate(file_names):
 					elif "_s2sm" in save_dir_name and len(row)==29 and not NearSM(row[28]):
 						reject_row = True
 						break
-					elif "_compress" in save_dir_name and len(row)==75 and row[74]-row[50]>np.sqrt(M2Z):
+					elif ("_compress" in save_dir_name and len(row)==75 
+					and row[74]-row[44]>=10	):
 						reject_row = True
 						break
-					elif "_spread" in save_dir_name and len(row)==75 and row[74]-row[50]<np.sqrt(M2Z):
+					elif ("_spread" in save_dir_name and len(row)==75
+					and row[74]-row[44]<10):
 						reject_row = True
 						break
 				if len(row)>last_element: break
@@ -1454,7 +1476,7 @@ if CMYK:
 # args (DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 if SAVEPLOTS: 
 	if DEBUG_MODE: print(Time(),"Starting to plot...")
-	GeneratePlots(DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_BR, DO_COUP, DO_MISC, DO_REPL)
+	GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,DO_REPL)
 
 if MASSTRKFILE:
 	print("\nSorting by lightest SCALAR")
@@ -1534,11 +1556,13 @@ if MASSTRKBOUNDS:
 	print("Akappa ({: >8} ~~ {: >8} )".format(Ak_lo,Ak_hi))
 	print("mueff  ({: >8} ~~ {: >8} )".format(mu_lo,mu_hi))
 #{:0>{}}
-	BENCH_CHECK = True
+	BENCH_CHECK = False
 	if BENCH_CHECK:
 		print("BENCHMARK POINTS BY VALUES:     tanB    lambda        kappa  Alambda    Akappa    mueff")
 		for i,r in enumerate(master_list[-1]):
-			if r[136]+r[137]<1:	#br_cha1_wneu1 + _hcneu1
+	#		if r[130]+r[131]+r[132]+r[133] < 1: #brneu2tot
+	#		if r[134]+r[135]+r[136]+r[137] < 1: #brneu3tot
+	#		if r[138]+r[139]<1:	#br_cha1_wneu1 + _hcneu1
 	#		if r[24]<122 and r[36]<15: #lowish s1 p1 masses
 	#			if FunctionArr("neu1Hcomp",0,0,master_list[-1])[i] < 0.5:
 				print("s1mass {: >5.1f} & p1mass {: >4}: {: >8.5f} {: >9} {: >12} {: >8} {: >9} {: >8}".format(round(r[24],1),round(r[36],1),r[1],r[19],r[20],r[21],r[22],r[23]))
