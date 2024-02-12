@@ -17,14 +17,15 @@ argv = sys.argv
 DEBUG_MODE = 0		#enables print statements used for tracking
 MASSTRKFILE = 0		#enables tracking masses near LHC and of light s/o
 MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
+BENCH_CHECK = 0
 
 DO_PARAM = 0
 DO_MASS = 0
-DO_COMP = 0
+DO_COMP = 1
 DO_HEAT = 0
-DO_COUP = 1
+DO_COUP = 0
 DO_BR = 0
-DO_DC = 1
+DO_DC = 0
 DO_MISC = 0
 DO_REPL = 0
 
@@ -39,14 +40,14 @@ file_tags = ['THY','LEP','LHC','BKF']#file_tags = ["","con1","con3","con2"]
 file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
 save_dir_name = argv[2]
 
-N_EXTRA = 0 # number of extra seeds for files (x4 for actual num extra files)
+N_EXTRA = 9 # number of extra seeds for files (x4 for actual num extra files)
 for ie in range(N_EXTRA):
-	extra_names = ["{}_{}{}randout".format(file_prefix, ie+2, tag) for tag in file_tags]
+	extra_names = ["{}_{:0>2}{}randout".format(file_prefix, ie+2, tag) for tag in file_tags]
 	file_names = file_names + extra_names
 
 if "108035020" in file_prefix: (KMIN, KMAX, LMIN, LMAX) = (-.015, .015, 0, .1)	#def plot axis window
 elif "s" == file_prefix[0]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.5)
-elif file_prefix in ["PQp1v4","PQp1v5"]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.5)
+elif file_prefix[:6] in ["PQp1v4","PQp1v5"]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.5)
 elif "PQ" == file_prefix[0:2]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.7)
 else: (KMIN, KMAX, LMIN, LMAX) = (0, 1, 0, 1)
 (S1MMIN,S1MMAX,P1MMIN,P1MMAX) = (110,130,0,25)
@@ -101,6 +102,8 @@ def FunctionArr(par,expon,ind,matrix):
 		return [(r[33]*np.cos(AlphaMix(r)) - r[34]*np.sin(AlphaMix(r)))**2 for i,r in enumerate(matrix)]
 	elif par=="s3(Hbsm)comp":
 		return [(r[33]*np.sin(AlphaMix(r)) + r[34]*np.cos(AlphaMix(r)))**2 for i,r in enumerate(matrix)]
+	elif par=="mcha1 - mneu1":
+		return [r[74]-r[44]		for r in matrix]
 	else:
 		return [r[ind]**expon		for r in matrix]
 	
@@ -231,15 +234,24 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	else: x_expon = 1
 	
 	if cpar == "k div l": Norm = "linear"#Norm="log"# log norm for PQp1v2 and v3 but for v4 try linear
+	elif "dw" == cpar[-2:]: Norm = "log"
+	elif "XI" == cpar[:2]: Norm = "log"
 	else: Norm = "linear"
 
 	if xpar == "p1mass": plt.xscale("linear")#"log")
 	elif xpar == "rt n 3 k Ak mueff div lambda": plt.xscale("linear")#"log")
+	elif "dw" == xpar[-2:]: plt.xscale("log")
+	elif "XI" == xpar[:2]: plt.xscale("log")
 	else: plt.xscale("linear")
+
 	if ypar == "p1mass": plt.yscale("linear")#"log")
 	elif ypar == "rt n 3 k Ak mueff div lambda": plt.yscale("linear")#"log")
+	elif "dw" == ypar[-2:]: plt.yscale("log")
+	elif "XI" == ypar[:2]: plt.yscale("log")
 	else: plt.yscale("linear")
+	
 
+	
 	x_arr = FunctionArr(xpar,x_expon,xind,relevant_matrix)
 	y_arr = FunctionArr(ypar,y_expon,yind,relevant_matrix)
 	c_arr = FunctionArr(cpar,c_expon,cind,relevant_matrix)
@@ -250,7 +262,7 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
 	plt.colorbar(label=cpar) #norm keyword
-		
+	
 	if xpar in ["lambda","kappa"] or ypar in ["lambda","kappa"]:		# If L or K is involved,
 		if xpar == "lambda": plt.xlim(LMIN,LMAX)
 		elif ypar == "lambda": plt.ylim(LMIN,LMAX)			#  let first plot be 
@@ -361,7 +373,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				("XIs1b", 91), ("XIs2b", 97),("XIs3b", 103), ("XIp1b", 109),("XIp2b", 115) ]
 	else: coup_list = []
 
-	if DO_DC:
+	if DO_DC or file_prefix == "PQp1v5":
 		dc_list = [("s1dw",140),("s2dw",141),("p1dw",142),("neu2dw",143),("neu3dw",144),("cha1dw",145)]
 	else: dc_list = []
 
@@ -376,21 +388,25 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
 	if DO_MASS:
 		print(Time(),"Beginning mass plots") # PLOT ea mass against chosen params and other masses
-		for h,(h_mass,hix) in enumerate(neumass_list[:3]+hmass_list+[neumass_list[-1]]):
+		for h,(h_mass,hix) in enumerate(mass_list):
 			print(Time(),h_mass)
 			
 			if "s1" in h_mass: (xmin, xmax) = (S1MMIN,S1MMAX)
 			elif "p1" in h_mass: (xmin, xmax) = (P1MMIN,P1MMAX)
 			else: (xmin, xmax) = (0, 0)
 
-			for (param,pix) in neucomp_list[:12]:
+			for (param,pix) in par_list+scomp_list+ucomp_list+dcomp_list+shmix_list+Acomp_list+neucomp_list[:12]:
 				(ymin, ymax) = (0,0)
-				
+				if (param,pix) not in par_list:
+					if h_mass[:3] in ["neu","cha"] and (param,pix) not in neucomp_list:
+						continue
+					elif h_mass[:2]!=param[:2]: continue
+
 				pltctr+=1
 				SinglePlot(pltctr,h_mass, hix, xmin, xmax,
 						param, pix, ymin, ymax,
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass",h_mass)
-			for yit,(y_higg,yix) in enumerate(neumass_list[:3]+hmass_list+[neumass_list[-1]]):
+			for yit,(y_higg,yix) in enumerate(mass_list):
 				if yit <= h: continue
 				
 				if "s1" in y_higg: (ymin, ymax) = (S1MMIN,S1MMAX)
@@ -408,6 +424,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		DO_SHMIX = 1	#	   Hsm/Hbsm mixing of Hu and Hd
 		DO_ACOMP = 0	#	   A_MSSM comps of pseudoscalars
 		DO_NCOMP = 1	#	   Neutralino comps
+
 		print(Time(),"Beginning composition plots") # PLOT ea Higgs comps vs each parameter
 		for (h_comp,cix) in scomp_list +ucomp_list +dcomp_list +shmix_list +Acomp_list +neucomp_list:
 			if not DO_SCOMP and (h_comp,cix) in scomp_list: continue
@@ -425,6 +442,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 					LOC, BBOX_TO_ANCHOR, DPI, "Comp", h_comp)
 		
 	if DO_HEAT:
+
 		print(Time(),"Beginning heat map plots")
 		# (C, X, Y)
 		DO_SCOMP = (0,0,0)	# Plotting singlet comps (of scalars and pseudoscalars)
@@ -432,45 +450,28 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		DO_DCOMP = (0,0,0)	#	   d-Higgs comps .	.
 		DO_SHMIX = (0,0,0)	#	   Hsm/Hbsm mixing of Hu and Hd
 		DO_ACOMP = (0,0,0)	#	   A_MSSM comps of pseudoscalars
-		DO_NCOMP = (1,0,0)	#	   Neutralino comps
+		DO_NCOMP = (0,0,0)	#	   Neutralino comps
 		DO_PARS  = (0,0,0)	#	   Core parameters
 		DO_MASSC = (1,1,1)	#	   Neu and H masses
+		DO_COUPL = (0,0,1)	#	   reduced couplings
 		DO_DECAY = (1,0,1)	#	   decay widths
-		c_pars_list = []
-		x_axes_list = []
-		y_axes_list = []
-		
-		c_pars_list += par_list 
-		c_pars_list += mass_list
-		c_pars_list += scomp_list
-		c_pars_list += ucomp_list
-		c_pars_list += dcomp_list
-		c_pars_list += shmix_list
-		c_pars_list += Acomp_list
-		c_pars_list += neucomp_list[:12]
-		c_pars_list += dc_list
 
-		x_axes_list += par_list 
-		x_axes_list += mass_list
-		x_axes_list += scomp_list
-		x_axes_list += ucomp_list
-		x_axes_list += dcomp_list
-		x_axes_list += shmix_list
-		x_axes_list += Acomp_list
-		x_axes_list += neucomp_list[:12]
-		x_axes_list += dc_list
+		toggle_list = []		
+		toggle_list += par_list 
+		toggle_list += mass_list
+		toggle_list += scomp_list
+		toggle_list += ucomp_list
+		toggle_list += dcomp_list
+		toggle_list += shmix_list
+		toggle_list += Acomp_list
+		toggle_list += neucomp_list[:12]
+		toggle_list += coup_list
+		toggle_list += dc_list
 
-		y_axes_list += par_list 
-		y_axes_list += mass_list
-		y_axes_list += scomp_list
-		y_axes_list += ucomp_list
-		y_axes_list += dcomp_list
-		y_axes_list += shmix_list
-		y_axes_list += Acomp_list
-		y_axes_list += neucomp_list[:12]
-		y_axes_list += dc_list
+
+		togg_labels = ["par" for par in par_list]+["mass" for mass in mass_list]+["scomp" for scomp in scomp_list]+["ucomp" for ucomp in ucomp_list]+["dcomp" for dcomp in dcomp_list]+["shmix" for shmix in shmix_list]+["Acomp" for Acomp in Acomp_list]+["neucomp" for neucomp in neucomp_list[:12]]+["XI" for XI in coup_list]+["DC" for DC in dc_list]
 	
-		for n,(c_par,c_ix) in enumerate(c_pars_list):
+		for n,(c_par,c_ix) in enumerate(toggle_list):
 			if (c_par,c_ix) in par_list and not DO_PARS[0]: continue
 			if (c_par,c_ix) in mass_list and not DO_MASSC[0]: continue
 			if (c_par,c_ix) in scomp_list and not DO_SCOMP[0]: continue
@@ -479,11 +480,13 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 			if (c_par,c_ix) in shmix_list and not DO_SHMIX[0]: continue
 			if (c_par,c_ix) in Acomp_list and not DO_ACOMP[0]: continue
 			if (c_par,c_ix) in neucomp_list and not DO_NCOMP[0]: continue
+			if (c_par,c_ix) in coup_list and not DO_COUPL[0]: continue
 			if (c_par,c_ix) in dc_list and not DO_DECAY[0]: continue
 
 			print(Time(),"Coloring with",c_par)
 
-			for xind,(x_par,x_ix) in enumerate(x_axes_list):
+			for xind,(x_par,x_ix) in enumerate(toggle_list):
+
 				if (x_par,x_ix) in par_list and not DO_PARS[1]: continue
 				if (x_par,x_ix) in mass_list and not DO_MASSC[1]: continue
 				if (x_par,x_ix) in scomp_list and not DO_SCOMP[1]: continue
@@ -492,15 +495,23 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				if (x_par,x_ix) in shmix_list and not DO_SHMIX[1]: continue
 				if (x_par,x_ix) in Acomp_list and not DO_ACOMP[1]: continue
 				if (x_par,x_ix) in neucomp_list and not DO_NCOMP[1]: continue
+				if (x_par,x_ix) in coup_list and not DO_COUPL[1]: continue
 				if (x_par,x_ix) in dc_list and not DO_DECAY[1]: continue
-
+			
 				if x_par == c_par: continue
-				
+
+				print(Time(),"... Analyzing",x_par)
+
+			#	if c_par not in par_list and x_par not in par_list and (c_par in coup_list+dc_list or x_par in coup_list+dc_list):
+			#		if c_par[:3] in ["neu","cha"] and c_par[:3] != x_par[:3]: continue
+			#		elif c_par[:2] != x_par[:2]: continue
+
+
 				if x_par == "s1mass": (x_min, x_max) = (S1MMIN,S1MMAX)
 				elif x_par == "p1mass": (x_min, x_max) = (P1MMIN,P1MMAX)
 				else: (x_min, x_max) = (0, 0)
 
-				for yind,(y_par,y_ix) in enumerate(y_axes_list):
+				for yind,(y_par,y_ix) in enumerate(toggle_list):
 					if (y_par,y_ix) in par_list:
 						if not DO_PARS[2]: continue
 						if (x_par,x_ix) in par_list:
@@ -542,6 +553,12 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 							if (neucomp_list.index((y_par,y_ix))
 							<=neucomp_list.index((x_par,x_ix))):
 								continue
+					if (y_par,y_ix) in coup_list:
+						if not DO_COUPL[2]: continue
+						if (x_par,x_ix) in coup_list:
+							if (coup_list.index((y_par,y_ix))
+							<=coup_list.index((x_par,x_ix))):
+								continue
 					if (y_par,y_ix) in dc_list:
 						if not DO_DECAY[2]: continue
 						if (x_par,x_ix) in dc_list:
@@ -549,9 +566,19 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 							<=dc_list.index((x_par,x_ix))):
 								continue
 
-					
 					if y_par == x_par or y_par == c_par: continue
 					
+					if DEBUG_MODE: print(Time(),"... ... against",y_par)
+
+				#	if c_par not in par_list and y_par not in par_list and (c_par in coup_list+dc_list or y_par in coup_list+dc_list):
+				#		if c_par[:3] in ["neu","cha"] and c_par[:3] != y_par[:3]: continue
+				#		elif c_par[:2] != y_par[:2]: continue
+				#	if y_par not in par_list and x_par not in par_list and (y_par in coup_list+dc_list or x_par in coup_list+dc_list):
+				#		if y_par[:3] in ["neu","cha"] and y_par[:3] != x_par[:3]: continue
+				#		elif y_par[:2] != x_par[:2]: continue
+
+
+				
 					if y_par == "s1mass": (y_min, y_max) = (S1MMIN,S1MMAX)
 					elif y_par == "p1mass": (y_min, y_max) = (P1MMIN,P1MMAX)
 					else: (y_min, y_max) = (0, 0)
@@ -563,6 +590,8 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 					elif "comp" in x_par or "comp" in y_par: sub_dir = "comp"
 					elif "dw" in x_par or "dw" in y_par: sub_dir = "dw (v dw)"
 					else: sub_dir = "Parameter" #above has some redundancy in comp and/or
+					sub_dir=togg_labels[xind]+" v "+togg_labels[yind]+" c "+togg_labels[n] #<- just overwriting for implementation of testing
+
 
 					pltctr+=1
 					HeatPlot(pltctr, c_par, c_ix, heatmap_list[n%len(heatmap_list)],
@@ -1283,10 +1312,10 @@ for file_index,out_file_name in enumerate(file_names):
 			if DEBUG_MODE: 
 				if indexrow%100000==0: print(indexrow)
 			row = [0] # trim out strange spacing ---> this used to be the event number
-			
+
 			reject_row = False
 			if "108035020" in file_prefix: last_element=74	#trunc out after MCHA(1)
-			elif DO_DC or "PQp1v5" == file_prefix: last_element=1000	#(don't trunc)
+			elif DO_DC or "PQp1v5" == file_prefix[:6]: last_element=1000	#(don't trunc)
 			elif DO_BR: last_element = 140
 			elif NEU_INFO: last_element=74			#		 MCHA(1)
 			elif "PQ" in file_prefix: last_element=44	#		 neu1mass
@@ -1523,7 +1552,6 @@ if CMYK:
 				M2A = r[43]**2
 				ahH[i].append((1/2)*np.arctan((2*r[1]/(1-r[1]**2))*( (M2A+M2Z)/(M2A-M2Z) )	))
 
-# args (DO_PARAM, DO_MASS, DO_COMP, DO_HEAT, DO_MISC)
 if SAVEPLOTS: 
 	if DEBUG_MODE: print(Time(),"Starting to plot...")
 	GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,DO_REPL)
@@ -1606,15 +1634,15 @@ if MASSTRKBOUNDS:
 	print("Akappa ({: >8} ~~ {: >8} )".format(Ak_lo,Ak_hi))
 	print("mueff  ({: >8} ~~ {: >8} )".format(mu_lo,mu_hi))
 #{:0>{}}
-	BENCH_CHECK = False
-	if BENCH_CHECK:
-		print("BENCHMARK POINTS BY VALUES:     tanB    lambda        kappa  Alambda    Akappa    mueff")
-		for i,r in enumerate(master_list[-1]):
-	#		if r[130]+r[131]+r[132]+r[133] < 1: #brneu2tot
-	#		if r[134]+r[135]+r[136]+r[137] < 1: #brneu3tot
-	#		if r[138]+r[139]<1:	#br_cha1_wneu1 + _hcneu1
-	#		if r[24]<122 and r[36]<15: #lowish s1 p1 masses
-	#			if FunctionArr("neu1Hcomp",0,0,master_list[-1])[i] < 0.5:
-				print("s1mass {: >5.1f} & p1mass {: >4}: {: >8.5f} {: >9} {: >12} {: >8} {: >9} {: >8}".format(round(r[24],1),round(r[36],1),r[1],r[19],r[20],r[21],r[22],r[23]))
+if BENCH_CHECK:
+	print("BENCHMARK POINTS BY VALUES:     tanB    lambda        kappa  Alambda    Akappa    mueff")
+	for i,r in enumerate(master_list[-1]):
+#		if r[130]+r[131]+r[132]+r[133] < 1: #brneu2tot
+#		if r[134]+r[135]+r[136]+r[137] < 1: #brneu3tot
+#		if r[138]+r[139]<1:	#br_cha1_wneu1 + _hcneu1
+#		if r[24]<122 and r[36]<15: #lower s1 p1 masses
+		if r[24]<10:			# small s1mass
+#			if FunctionArr("neu1Hcomp",0,0,master_list[-1])[i] < 0.5:
+			print("s1mass {: >5.1f} & p1mass {: >4}: {: >8.5f} {: >9} {: >12} {: >8} {: >9} {: >8}".format(round(r[24],1),round(r[36],1),r[1],r[19],r[20],r[21],r[22],r[23]))
 print("{}\tFinished.\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#".format(Time()))
 #sys.exit()
