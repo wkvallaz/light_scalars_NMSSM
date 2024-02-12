@@ -21,12 +21,12 @@ BENCH_CHECK = 0
 
 DO_PARAM = 0
 DO_MASS = 0
-DO_COMP = 1
-DO_HEAT = 0
+DO_COMP = 0
+DO_HEAT = 1
 DO_COUP = 0
 DO_BR = 0
 DO_DC = 0
-DO_MISC = 0
+DO_MISC = 1
 DO_REPL = 0
 
 NEU_INFO = 1
@@ -104,6 +104,8 @@ def FunctionArr(par,expon,ind,matrix):
 		return [(r[33]*np.sin(AlphaMix(r)) + r[34]*np.cos(AlphaMix(r)))**2 for i,r in enumerate(matrix)]
 	elif par=="mcha1 - mneu1":
 		return [r[74]-r[44]		for r in matrix]
+	elif par=="neu1mass div p1mass":
+		return [r[44]/r[36]		for r in matrix]
 	else:
 		return [r[ind]**expon		for r in matrix]
 	
@@ -450,11 +452,11 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		DO_DCOMP = (0,0,0)	#	   d-Higgs comps .	.
 		DO_SHMIX = (0,0,0)	#	   Hsm/Hbsm mixing of Hu and Hd
 		DO_ACOMP = (0,0,0)	#	   A_MSSM comps of pseudoscalars
-		DO_NCOMP = (0,0,0)	#	   Neutralino comps
-		DO_PARS  = (0,0,0)	#	   Core parameters
-		DO_MASSC = (1,1,1)	#	   Neu and H masses
-		DO_COUPL = (0,0,1)	#	   reduced couplings
-		DO_DECAY = (1,0,1)	#	   decay widths
+		DO_NCOMP = (1,0,1)	#	   Neutralino comps
+		DO_PARS  = (0,1,0)	#	   Core parameters
+		DO_MASSC = (0,0,0)	#	   Neu and H masses
+		DO_COUPL = (0,0,0)	#	   reduced couplings
+		DO_DECAY = (0,0,0)	#	   decay widths
 
 		toggle_list = []		
 		toggle_list += par_list 
@@ -776,6 +778,23 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 	
 
 	if DO_MISC:
+		print(Time(),"Initiating miscellany.")
+
+		pltctr+=1
+		SinglePlot(pltctr, "neu1mass div p1mass", 0, 0, 0, "p1dw", 142, 0, 0,
+				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "DC","")
+
+		pltctr+=1
+		SinglePlot(pltctr, "neu1mass", 44, 0, 0, "neu1Bcomp", 142, 45 0, 0,
+				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Mass","neu1mass")
+			
+		pltctr+=1
+		SinglePlot(pltctr, "k div l", 0, 0, 0, "neu1Bcomp", 142, 45 0, 0,
+				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Comp","")
+
+
+
+		return # EARLY RETURN TO NOT OVERFLOW
 		print(Time(),"Comparing LO p1mass")
 		pltctr+=1
 		SinglePlot(pltctr, "p1mass", 36, P1MMIN,P1MMAX,
@@ -786,7 +805,6 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 			HeatPlot(pltctr,c_par, c_ix, "turbo",
 				"p1mass",36,P1MMIN,P1MMAX,
 				"rt n 3 k Ak mueff div lambda", 0, P1MMIN, P1MMAX, Size, DPI, "Heatmap","")	
-		return # EARLY RETURN TO NOT OVERFLOW
 		for (smass, sindex) in [("s1mass",24),("s2mass",28),("s3mass",32)]:
 			print(Time(),"{}(u,d,s)comp v {}".format(smass[0:2],smass))
 			pltctr+=1
@@ -1350,14 +1368,18 @@ for file_index,out_file_name in enumerate(file_names):
 					elif "_s2sm" in save_dir_name and len(row)==29 and not NearSM(row[28]):
 						reject_row = True
 						break
-					elif ("_compress" in save_dir_name and len(row)==75 
-					and row[74]-row[44]>=10	):
-						reject_row = True
-						break
-					elif ("_spread" in save_dir_name and len(row)==75
-					and row[74]-row[44]<10):
-						reject_row = True
-						break
+					else: # little block for sino/hino/bino separation
+						# corresp to  spread/compress/bino  labels
+				# doing a little analysis before implementing bino elimination
+						if ("_compress" in save_dir_name and (		#compress
+						(len(row)==45 and row[44]<150        )	or	# hino bound 150
+						(len(row)==75 and row[74]-row[44]>=10)	 ) ):	# neu1~cha1 mass
+							reject_row = True
+							break
+						elif ("_spread" in save_dir_name and len(row)==75
+						and row[74]-row[44]<10):
+							reject_row = True
+							break
 				if len(row)>last_element: break
 			
 			if not reject_row and last_element > 128: row[128]=0 # SCUFFED MANUAL OVERWRITE OF GGF H SIGMA
