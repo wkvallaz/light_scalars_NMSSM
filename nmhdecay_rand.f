@@ -2271,13 +2271,14 @@ c      CALL FTPAR(PAR,0)
       RES(IRES+39+WADD)=BRGG(1)
       RES(IRES+40+WADD)=BRHAA(1,1)
       RES(IRES+41+WADD)=BRNEU(1,1,1)
-      RES(IRES+42+WADD)=brcharsnt1(1)  ! BR(cha1 -> tau snutau)
-      RES(IRES+43+WADD)=2d0*brcharsne1(1)  ! BR(cha1 -> l snul)
-      RES(IRES+44+WADD)=brcharwneut(1,1)+2d0*brnupdb(1,1)+brntopbb(1,1)
+      RES(IRES+42+WADD)=BRNEU(3,1,1) ! wolf - actually added this but cmmtd neutHneut since doubled up
+      RES(IRES+43+WADD)=brcharsnt1(1)  ! BR(cha1 -> tau snutau)
+      RES(IRES+44+WADD)=2d0*brcharsne1(1)  ! BR(cha1 -> l snul)
+      RES(IRES+45+WADD)=brcharwneut(1,1)+2d0*brnupdb(1,1)+brntopbb(1,1)
      .          +brnelnue(1,1)+brnmunumu(1,1)+brntaunut(1,1)  ! BR(cha1 -> neu1 W) ! wolf - WANT?
-      RES(IRES+45+WADD)=brcharstau1(1)  ! BR(cha1 ->  stau nutau)
-      RES(IRES+46+WADD)=2d0*brcharsel(1)  ! BR(cha1 -> sel nu)
-      RES(IRES+47+WADD)=brneutHneut(2,1,1)  ! BR(neu2 -> neu1 H1) ! wolf - WANT THIS
+      RES(IRES+46+WADD)=brcharstau1(1)  ! BR(cha1 ->  stau nutau)
+      RES(IRES+47+WADD)=2d0*brcharsel(1)  ! BR(cha1 -> sel nu)
+!      RES(IRES+47+WADD)=brneutHneut(2,1,1)  ! BR(neu2 -> neu1 H1) ! wolf - WANT THIS
       RES(IRES+48+WADD)=SIG(1,8)
       RES(IRES+49+WADD)=R
 
