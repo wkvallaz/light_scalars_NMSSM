@@ -84,6 +84,11 @@
       COMMON/ALS/XLAMBDA,MC0,MB0,MT0,N0
       COMMON/LIGHTADECAYS/GamAGAGA,GamAee,GamAmumu,GamAtata,GamAhadr,
      . GamAcc,GamAbb,GamAinv
+! wolf - storing partial decays in a common as well
+      COMMON/LIGHTADECAYS/GamA3Pi,GamAPi3PiC,GamAEPi3,GamAEPiC,
+     .   GamAEPPi3,GamAEPPiC,GamAPiEE,GamAPiEEP,GamAPiEPEP,GamA3E,
+     .   GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,GamAPiK0,GamAPiKCK0,
+     .   GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,GamARhogam
 
       CM(X)= DCMPLX(MIN(1d3,X)**2,-EPS/4d0)
       FGG(XC)=2d0*XC
