@@ -2281,7 +2281,7 @@ c      WRITE(16,917) " X(2)",(CB(2)/CL(2))**2
 
       WRITE(16,899) "#           PDG          Width"
       WRITE(16,904) PDGH1,WIDTH(1),"Lightest neutral Higgs scalar"
-      IF(BRJJ(1).GT.0d0)
+      IF(BRJJ(1).GT.0d0)THEN
        WRITE(16,905) BRJJ(1),2,21,21,"BR(H_1 -> hadrons)"
        WRITE(16,*) GamHhadr, "                      # GamHhadr"
 ! wolf - GamHhadr also modified but in diff way to GamAhadr
@@ -2297,43 +2297,43 @@ c      WRITE(16,917) " X(2)",(CB(2)/CL(2))**2
        WRITE(16,*) GamH2EP, "                      # + GamH2EP"
        WRITE(16,*) GamHEEP, "                      # + GamHEEP"
       ENDIF
-      IF(BREE(1).GT.0d0)
+      IF(BREE(1).GT.0d0)THEN
        WRITE(16,905) BREE(1),2,11,-11,"BR(H_1 -> e- e+)"
        WRITE(16,*) GamHee, "                      # GamHee"
       ENDIF
-      IF(BRMM(1).GT.0d0)
+      IF(BRMM(1).GT.0d0)THEN
        WRITE(16,905) BRMM(1),2,13,-13,"BR(H_1 -> muon muon)"
        WRITE(16,*) GamHmumu, "                      # GamHmumu"
       ENDIF
-      IF(BRLL(1).GT.0d0)
+      IF(BRLL(1).GT.0d0)THEN
        WRITE(16,905) BRLL(1),2,15,-15,"BR(H_1 -> tau tau)"
        WRITE(16,*) GamHtata, "                      # GamHtata"
       ENDIF
-      IF(BRCC(1).GT.0d0)
+      IF(BRCC(1).GT.0d0)THEN
        WRITE(16,905) BRCC(1),2,4,-4,"BR(H_1 -> c cbar)"
        WRITE(16,*) GamHcc, "                      # GamHcc"
       ENDIF
-      IF(BRBB(1).GT.0d0)
+      IF(BRBB(1).GT.0d0)THEN
        WRITE(16,905) BRBB(1),2,5,-5,"BR(H_1 -> b bbar)"
        WRITE(16,*) GamHbb, "                      # GamHbb"
       ENDIF
       IF(BRTT(1).GT.0d0)
      .  WRITE(16,905) BRTT(1),2,6,-6,"BR(H_1 -> t tbar)"
-      IF(BRWW(1).GT.0d0)
+      IF(BRWW(1).GT.0d0)THEN
        WRITE(16,905) BRWW(1),2,24,-24,"BR(H_1 -> W+ W-)"
        WRITE(16,*) GamHWW, "                      # GamHWW"
       ENDIF
-      IF(BRZZ(1).GT.0d0)
+      IF(BRZZ(1).GT.0d0)THEN
        WRITE(16,905) BRZZ(1),2,23,23,"BR(H_1 -> Z Z)"
        WRITE(16,*) GamHZZ, "                      # GamHZZ"
       ENDIF
-      IF(BRGG(1).GT.0d0)
+      IF(BRGG(1).GT.0d0)THEN
        WRITE(16,905) BRGG(1),2,22,22,"BR(H_1 -> gamma gamma)"
        WRITE(16,*) GamHGAGA, "                      # GamHGAGA"
       ENDIF
       IF(BRZG(1).GT.0d0)
      .  WRITE(16,905) BRZG(1),2,23,22,"BR(H_1 -> Z gamma)"
-      IF(BRHAA(1,1).GT.0d0)
+      IF(BRHAA(1,1).GT.0d0)THEN
        WRITE(16,905) BRHAA(1,1),2,36,36,"BR(H_1 -> A_1 A_1)"
        WRITE(16,*) GamHAA, "                      # GamHAA"
       ENDIF
