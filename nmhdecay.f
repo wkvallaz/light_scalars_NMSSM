@@ -2287,55 +2287,55 @@ c      WRITE(16,917) " X(2)",(CB(2)/CL(2))**2
 ! wolf - GamHhadr also modified but in diff way to GamAhadr
 !      GamHhadr=GamH2Pi+GamH2PiC+GamHPiE+GamHPiEP+GamH2KC+GamH2K0
 !     .         +GamH2E+GamH2EP+GamHEEP
-       WRITE(16,*) GamH2Pi, "                      # = GamH2Pi"
-       WRITE(16,*) GamH2PiC, "                      # + GamH2PiC"
-       WRITE(16,*) GamHPiE, "                      # + GamHPiE"
-       WRITE(16,*) GamHPiEP, "                      # + GamHPiEP"
-       WRITE(16,*) GamH2KC, "                      # + GamH2KC"
-       WRITE(16,*) GamH2K0, "                      # + GamH2K0"
-       WRITE(16,*) GamH2E, "                      # + GamH2E"
-       WRITE(16,*) GamH2EP, "                      # + GamH2EP"
-       WRITE(16,*) GamHEEP, "                      # + GamHEEP"
+       WRITE(16,*) "    ", GamH2Pi, "                  # = GamH2Pi"
+       WRITE(16,*) "    ", GamH2PiC, "                  # + GamH2PiC"
+       WRITE(16,*) "    ", GamHPiE, "                  # + GamHPiE"
+       WRITE(16,*) "    ", GamHPiEP, "                  # + GamHPiEP"
+       WRITE(16,*) "    ", GamH2KC, "                  # + GamH2KC"
+       WRITE(16,*) "    ", GamH2K0, "                  # + GamH2K0"
+       WRITE(16,*) "    ", GamH2E, "                  # + GamH2E"
+       WRITE(16,*) "    ", GamH2EP, "                  # + GamH2EP"
+       WRITE(16,*) "    ", GamHEEP, "                  # + GamHEEP"
       ENDIF
       IF(BREE(1).GT.0d0)THEN
        WRITE(16,905) BREE(1),2,11,-11,"BR(H_1 -> e- e+)"
-       WRITE(16,*) GamHee, "                      # GamHee"
+       WRITE(16,*) "    ", GamHee, "                      # GamHee"
       ENDIF
       IF(BRMM(1).GT.0d0)THEN
        WRITE(16,905) BRMM(1),2,13,-13,"BR(H_1 -> muon muon)"
-       WRITE(16,*) GamHmumu, "                      # GamHmumu"
+       WRITE(16,*) "    ", GamHmumu, "                  # GamHmumu"
       ENDIF
       IF(BRLL(1).GT.0d0)THEN
        WRITE(16,905) BRLL(1),2,15,-15,"BR(H_1 -> tau tau)"
-       WRITE(16,*) GamHtata, "                      # GamHtata"
+       WRITE(16,*) "    ", GamHtata, "                  # GamHtata"
       ENDIF
       IF(BRCC(1).GT.0d0)THEN
        WRITE(16,905) BRCC(1),2,4,-4,"BR(H_1 -> c cbar)"
-       WRITE(16,*) GamHcc, "                      # GamHcc"
+       WRITE(16,*) "    ", GamHcc, "                  # GamHcc"
       ENDIF
       IF(BRBB(1).GT.0d0)THEN
        WRITE(16,905) BRBB(1),2,5,-5,"BR(H_1 -> b bbar)"
-       WRITE(16,*) GamHbb, "                      # GamHbb"
+       WRITE(16,*) "    ", GamHbb, "                  # GamHbb"
       ENDIF
       IF(BRTT(1).GT.0d0)
      .  WRITE(16,905) BRTT(1),2,6,-6,"BR(H_1 -> t tbar)"
       IF(BRWW(1).GT.0d0)THEN
        WRITE(16,905) BRWW(1),2,24,-24,"BR(H_1 -> W+ W-)"
-       WRITE(16,*) GamHWW, "                      # GamHWW"
+       WRITE(16,*) "    ", GamHWW, "                  # GamHWW"
       ENDIF
       IF(BRZZ(1).GT.0d0)THEN
        WRITE(16,905) BRZZ(1),2,23,23,"BR(H_1 -> Z Z)"
-       WRITE(16,*) GamHZZ, "                      # GamHZZ"
+       WRITE(16,*) "    ", GamHZZ, "                  # GamHZZ"
       ENDIF
       IF(BRGG(1).GT.0d0)THEN
        WRITE(16,905) BRGG(1),2,22,22,"BR(H_1 -> gamma gamma)"
-       WRITE(16,*) GamHGAGA, "                      # GamHGAGA"
+       WRITE(16,*) "    ", GamHGAGA, "                  # GamHGAGA"
       ENDIF
       IF(BRZG(1).GT.0d0)
      .  WRITE(16,905) BRZG(1),2,23,22,"BR(H_1 -> Z gamma)"
       IF(BRHAA(1,1).GT.0d0)THEN
        WRITE(16,905) BRHAA(1,1),2,36,36,"BR(H_1 -> A_1 A_1)"
-       WRITE(16,*) GamHAA, "                      # GamHAA"
+       WRITE(16,*) "    ", GamHAA, "                  # GamHAA"
       ENDIF
       IF(BRHAA(1,2).GT.0d0)
      .  WRITE(16,905) BRHAA(1,2),2,36,46,"BR(H_1 -> A_1 A_2)"
@@ -2863,54 +2863,54 @@ c      WRITE(16,917) " X(2)",(CB(2)/CL(2))**2
 !     .   +GamAPiEE+GamAPiEEP+GamAPiEPEP+GamA3E+GamAE2EP+GamAEEP2
 !     .   +GamA3EP+GamAPiKC+GamAPiK0+GamAPiKCK0+GamAEKC+GamAEK0
 !     .   +GamAEPKC+GamAEPK0+GamARhogam
-       WRITE(16,*) GamAhadr, "                      # GamAhadr"
-       WRITE(16,*) GamA3Pi, "                      # = GamA3Pi"
-       WRITE(16,*) GamAPi3PiC, "                      # + GamAPi3PiC"
-       WRITE(16,*) GamAEPi3, "                      # + GamAEPi3"
-       WRITE(16,*) GamAEPiC, "                      # + GamAEPiC"
-       WRITE(16,*) GamAEPPi3, "                      # + GamAEPPi3"
-       WRITE(16,*) GamAEPPiC, "                      # + GamAEPPiC"
-       WRITE(16,*) GamAPiEE, "                      # + GamAPiEE"
-       WRITE(16,*) GamAPiEEP, "                      # + GamAPiEEP"
-       WRITE(16,*) GamAPiEPEP, "                      # + GamAPiEPEP"
-       WRITE(16,*) GamA3E, "                      # + GamA3E"
-       WRITE(16,*) GamAE2EP, "                      # + GamAE2EP"
-       WRITE(16,*) GamAEEP2, "                      # + GamAEEP2"
-       WRITE(16,*) GamA3EP, "                      # + GamA3EP"
-       WRITE(16,*) GamAPiKC, "                      # + GamAPiKC"
-       WRITE(16,*) GamAPiK0, "                      # + GamAPiK0"
-       WRITE(16,*) GamAPiKCK0, "                      # + GamAPiKCK0"
-       WRITE(16,*) GamAEKC, "                      # + GamAEKC"
-       WRITE(16,*) GamAEK0, "                      # + GamAEK0"
-       WRITE(16,*) GamAEPKC, "                      # + GamAEPKC"
-       WRITE(16,*) GamAEPK0, "                      # + GamAEPK0"
-       WRITE(16,*) GamARhogam, "                      # + GamARhogam"
+       WRITE(16,*) "    ", GamAhadr, "                  # GamAhadr"
+       WRITE(16,*) "    ", GamA3Pi, "                  # = GamA3Pi"
+       WRITE(16,*) "    ",GamAPi3PiC,"                  # + GamAPi3PiC"
+       WRITE(16,*) "    ", GamAEPi3, "                  # + GamAEPi3"
+       WRITE(16,*) "    ", GamAEPiC, "                  # + GamAEPiC"
+       WRITE(16,*) "    ", GamAEPPi3, "                  # + GamAEPPi3"
+       WRITE(16,*) "    ", GamAEPPiC, "                  # + GamAEPPiC"
+       WRITE(16,*) "    ", GamAPiEE, "                  # + GamAPiEE"
+       WRITE(16,*) "    ", GamAPiEEP, "                  # + GamAPiEEP"
+       WRITE(16,*) "    ",GamAPiEPEP,"                  # + GamAPiEPEP"
+       WRITE(16,*) "    ", GamA3E, "                  # + GamA3E"
+       WRITE(16,*) "    ", GamAE2EP, "                  # + GamAE2EP"
+       WRITE(16,*) "    ", GamAEEP2, "                  # + GamAEEP2"
+       WRITE(16,*) "    ", GamA3EP, "                  # + GamA3EP"
+       WRITE(16,*) "    ", GamAPiKC, "                  # + GamAPiKC"
+       WRITE(16,*) "    ", GamAPiK0, "                  # + GamAPiK0"
+       WRITE(16,*) "    ",GamAPiKCK0,"                  # + GamAPiKCK0"
+       WRITE(16,*) "    ", GamAEKC, "                  # + GamAEKC"
+       WRITE(16,*) "    ", GamAEK0, "                  # + GamAEK0"
+       WRITE(16,*) "    ", GamAEPKC, "                  # + GamAEPKC"
+       WRITE(16,*) "    ", GamAEPK0, "                  # + GamAEPK0"
+       WRITE(16,*) "    ",GamARhogam,"                  # + GamARhogam"
       ENDIF
       IF(BREE(4).GT.0d0)THEN
        WRITE(16,905) BREE(4),2,11,-11,"BR(A_1 -> e- e+)"
-       WRITE(16,*) GamAee, "                      # GamAee"
+       WRITE(16,*) "    ", GamAee, "                  # GamAee"
       ENDIF
       IF(BRMM(4).GT.0d0)THEN
        WRITE(16,905) BRMM(4),2,13,-13,"BR(A_1 -> muon muon)"
-       WRITE(16,*) GamAmumu, "                      # GamAmumu"
+       WRITE(16,*) "    ", GamAmumu, "                  # GamAmumu"
       ENDIF
       IF(BRLL(4).GT.0d0)THEN
        WRITE(16,905) BRLL(4),2,15,-15,"BR(A_1 -> tau tau)"
-       WRITE(16,*) GamAtata, "                      # GamAtata"
+       WRITE(16,*) "    ", GamAtata, "                      # GamAtata"
       ENDIF
       IF(BRCC(4).GT.0d0)THEN
        WRITE(16,905) BRCC(4),2,4,-4,"BR(A_1 -> c cbar)"
-       WRITE(16,*) GamAcc, "                      # GamAcc"
+       WRITE(16,*) "    ", GamAcc, "                  # GamAcc"
       ENDIF
       IF(BRBB(4).GT.0d0)THEN
        WRITE(16,905) BRBB(4),2,5,-5,"BR(A_1 -> b bbar)"
-       WRITE(16,*) GamAbb, "                      # GamAbb"
+       WRITE(16,*) "    ", GamAbb, "                  # GamAbb"
       ENDIF
       IF(BRTT(4).GT.0d0)
      .  WRITE(16,905) BRTT(4),2,6,-6,"BR(A_1 -> t tbar)"
       IF(BRGG(4).GT.0d0)THEN
        WRITE(16,905) BRGG(4),2,22,22,"BR(A_1 -> gamma gamma)"
-       WRITE(16,*) GamAGAGA, "                      # GamAGAGA"
+       WRITE(16,*) "    ", GamAGAGA, "                  # GamAGAGA"
       ENDIF
       IF(BRZG(4).GT.0d0)
      .  WRITE(16,905) BRZG(4),2,23,22,"BR(A_1 -> Z gamma)"
