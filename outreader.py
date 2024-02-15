@@ -1375,6 +1375,12 @@ for file_index,out_file_name in enumerate(file_names):
 					(len(row)==46 and row[45]**2<0.05) ):		# keep 5%+ Bino
 						reject_row = True
 						break
+					elif ("_H-s" in save_dir_name and (		#Higgsino-Singlino
+					(len(row)==24 and row[23]<400        ) or	# reject low mueff
+					(len(row)==46 and row[45]**2>=0.05   ) or	# reject Bino >=5%
+					(len(row)==75 and row[74]-row[44]<10)  ) ):	# cha1>neu1+10 mass
+						reject_row = True
+						break
 					elif ("_compress" in save_dir_name and (	#compress
 					(len(row)==45 and row[44]<150        ) or	# hino bound 150
 					(len(row)==46 and row[45]**2>=0.05   ) or	# reject binolike 5%+
