@@ -25,8 +25,8 @@ DO_COMP = 0
 DO_HEAT = 0
 DO_COUP = 0
 DO_BR = 0
-DO_DC = 1
-DO_MISC = 0
+DO_DC = 0
+DO_MISC = 1
 DO_REPL = 0
 
 NEU_INFO = 1
@@ -40,7 +40,7 @@ file_tags = ['THY','LEP','LHC','BKF']#file_tags = ["","con1","con3","con2"]
 file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
 save_dir_name = argv[2]
 
-N_EXTRA = 9 # number of extra seeds for files (x4 for actual num extra files)
+N_EXTRA = 0 # number of extra seeds for files (x4 for actual num extra files)
 for ie in range(N_EXTRA):
 	extra_names = ["{}_{:0>2}{}randout".format(file_prefix, ie+2, tag) for tag in file_tags]
 	file_names = file_names + extra_names
@@ -107,6 +107,8 @@ def FunctionArr(par,expon,ind,matrix):
 		return [r[74]-r[44]		for r in matrix]
 	elif par=="neu1mass div p1mass":
 		return [r[44]/r[36]		for r in matrix]
+	elif par=="neu1mass div s1mass":
+		return [r[44]/r[24]		for r in matrix]
 	else:
 		return [r[ind]**expon		for r in matrix]
 	
@@ -172,11 +174,11 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,
 	plt.xlabel(xpar)
 	if "dw" == ypar[-2:]: plt.yscale("log")
 	elif "XI" == ypar[:2]: plt.yscale("log")
-	elif ypar == "neu1mass div p1mass": plt.yscale("log")
+	elif ypar in ["neu1mass div p1mass", "neu1mass div s1mass"]: plt.yscale("log")
 	else: plt.yscale("linear")
 	if "dw" == xpar[-2:]: plt.xscale("log")
 	elif "XI" == xpar[:2]: plt.xscale("log")
-	elif xpar == "neu1mass div p1mass": plt.xscale("log")
+	elif xpar in ["neu1mass div p1mass", "neu1mass div s1mass"]: plt.xscale("log")
 	else: plt.xscale("linear")
 
 	if (len(Label)+extralegelem) <= 4: Ncols = len(Label)+extralegelem
@@ -241,21 +243,21 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, ypar, yind, ymi
 	if cpar == "k div l": Norm = "linear"#Norm="log"# log norm for PQp1v2 and v3 but for v4 try linear
 	elif "dw" == cpar[-2:]: Norm = "log"
 	elif "XI" == cpar[:2]: Norm = "log"
-	elif cpar == "neu1mass div p1mass": Norm = "log"
+	elif cpar in ["neu1mass div p1mass", "neu1mass div s1mass"]: Norm = "log"
 	else: Norm = "linear"
 
 	if xpar == "p1mass": plt.xscale("linear")#"log")
 	elif xpar == "rt n 3 k Ak mueff div lambda": plt.xscale("linear")#"log")
 	elif "dw" == xpar[-2:]: plt.xscale("log")
 	elif "XI" == xpar[:2]: plt.xscale("log")
-	elif xpar == "neu1mass div p1mass": plt.xscale("log")
+	elif xpar in ["neu1mass div p1mass", "neu1mass div s1mass"]: plt.xscale("log")
 	else: plt.xscale("linear")
 
 	if ypar == "p1mass": plt.yscale("linear")#"log")
 	elif ypar == "rt n 3 k Ak mueff div lambda": plt.yscale("linear")#"log")
 	elif "dw" == ypar[-2:]: plt.yscale("log")
 	elif "XI" == ypar[:2]: plt.yscale("log")
-	elif ypar == "neu1mass div p1mass": plt.yscale("log")
+	elif ypar in ["neu1mass div p1mass", "neu1mass div s1mass"]: plt.yscale("log")
 	else: plt.yscale("linear")
 	
 
@@ -370,7 +372,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				("br_neu3_s1neu1", 134),("br_neu3_s2neu1", 135),
 				("br_neu3_p1neu1", 136),("br_neu3_zneu1", 137),
 				("br_cha1_wneu1", 138), ("br_cha1_hcneu1", 139),
-				("br_p1_neu1neu1", 121) ]
+				("br_s1_neu1neu1", 120), ("br_p1_neu1neu1", 121) ]
 	else: br_list = []
 	
 	if DO_COUP or "PQp1v5" == file_prefix:
@@ -747,13 +749,19 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 
 	if DO_MISC:
 		print(Time(),"Initiating miscellany.")
-
 		pltctr+=1
 		SinglePlot(pltctr, "neu1mass div p1mass", 0, 0, 0, "p1dw", 142, 0, 0,
 				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "DC","")
 		pltctr+=1
 		SinglePlot(pltctr, "br_p1_neu1neu1", 121, 0, 0, "p1dw", 142, 0, 0,
 				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "DC","")
+		pltctr+=1
+		SinglePlot(pltctr, "neu1mass div s1mass", 0, 0, 0, "s1dw", 140, 0, 0,
+				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "DC","")
+		pltctr+=1
+		SinglePlot(pltctr, "br_s1_neu1neu1", 120, 0, 0, "s1dw", 140, 0, 0,
+				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "DC","")
+		print(Time(),"p1 heats")
 		pltctr+=1
 		HeatPlot(pltctr, "br_p1_neu1neu1", 121, "turbo",
 			"neu1mass div p1mass", 0,0,0,
@@ -766,6 +774,19 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		HeatPlot(pltctr, "neu1mass div p1mass", 0, "turbo",
 			"p1mass", 36, 0, 0,
 			"br_p1_neu1neu1", 121,0,0, Size, DPI, "Heatmap","")	
+		print(Time(),"s1 heats")
+		pltctr+=1
+		HeatPlot(pltctr, "br_s1_neu1neu1", 120, "turbo",
+			"neu1mass div s1mass", 0,0,0,
+			"s1dw", 140, 0, 0, Size, DPI, "Heatmap","")	
+		pltctr+=1
+		HeatPlot(pltctr, "br_s1_neu1neu1", 120, "turbo",
+			"neu1mass div s1mass", 0,0,0,
+			"s1mass", 24, 0, 0, Size, DPI, "Heatmap","")	
+		pltctr+=1
+		HeatPlot(pltctr, "neu1mass div s1mass", 0, "turbo",
+			"s1mass", 24, 0, 0,
+			"br_s1_neu1neu1", 120,0,0, Size, DPI, "Heatmap","")		
 		print(Time(),"Doing kdl histos")
 		pltctr+=1
 		plt.figure(pltctr)
@@ -1320,7 +1341,6 @@ for file_index,out_file_name in enumerate(file_names):
 			elif NEU_INFO: last_element=74			#		 MCHA(1)
 			elif "PQ" in file_prefix: last_element=44	#		 neu1mass
 			else: last_element=43				#		 MA
-
 			for indexelem,val in enumerate(fullrow):
 				if val != "": row.append(float(val))
 				# THIS WHERE TO ENFORCE CUTS AND FILTERS
@@ -1369,7 +1389,7 @@ for file_index,out_file_name in enumerate(file_names):
 
 				if len(row)>last_element: break
 
-			if not reject_row and last_element > 128: row[128]=0 # SCUFFED MANUAL OVERWRITE OF GGF H SIGMA
+			if not reject_row and last_element > 128: row[128]=0 # SCUFFED MANUAL OVERWRITE OF GGF H SIGMA	
 			if not reject_row: file_matrices[file_index % len(file_tags)].append(row)
 			if not MASSTRKFILE: continue # CONTINUING TO IGNORE COUNTING LIGHT/SMLIKE HIGGS EVENTS
 			
