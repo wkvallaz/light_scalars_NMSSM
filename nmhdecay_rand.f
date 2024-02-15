@@ -2271,7 +2271,7 @@ c      CALL FTPAR(PAR,0)
       RES(IRES+39+WADD)=BRGG(1)
       RES(IRES+40+WADD)=BRHAA(1,1)
       RES(IRES+41+WADD)=BRNEU(1,1,1)
-      RES(IRES+42+WADD)=BRNEU(3,1,1) ! wolf - actually added this but cmmtd neutHneut since doubled up
+      RES(IRES+42+WADD)=BRNEU(4,1,1) ! wolf - actually added this but cmmtd neutHneut since doubled up
       RES(IRES+43+WADD)=brcharsnt1(1)  ! BR(cha1 -> tau snutau)
       RES(IRES+44+WADD)=2d0*brcharsne1(1)  ! BR(cha1 -> l snul)
       RES(IRES+45+WADD)=brcharwneut(1,1)+2d0*brnupdb(1,1)+brntopbb(1,1)

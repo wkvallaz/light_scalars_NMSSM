@@ -17,7 +17,7 @@ argv = sys.argv
 DEBUG_MODE = 0		#enables print statements used for tracking
 MASSTRKFILE = 0		#enables tracking masses near LHC and of light s/o
 MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
-BENCH_CHECK = 0
+BENCH_CHECK = 1
 
 DO_PARAM = 0
 DO_MASS = 0
@@ -52,7 +52,7 @@ elif "PQ" == file_prefix[0:2]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.7)
 else: (KMIN, KMAX, LMIN, LMAX) = (0, 1, 0, 1)
 (S1MMIN,S1MMAX,P1MMIN,P1MMAX) = (110,130,0,25)
 if "_s2sm" in save_dir_name: (S1MMIN,S1MMAX) = (0,0)
-elif "_spread" in save_dir_name: (S1MMIN,S1MMAX) = (0,25)
+elif "_spread" in save_dir_name or "_H-s" in save_dir_name: (S1MMIN,S1MMAX) = (0,25)
 
 
 start_time = time()
@@ -116,18 +116,18 @@ def FunctionArr(par,expon,ind,matrix):
 def SinglePlot(pltctr, xpar, xind, xmin, xmax, ypar, yind, ymin, ymax,	
 		Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, folder, subfolder): 
 	#needs to accept a list of args:
-	#	pltctr		# plot count for figuure - considering subplots/axs?
-	#	xmin, xmax	# if xmin!=xmax do zoomed plot also
-	#	ymin, ymax	#	 ^ analogous
-	#	xpar		# x parameter
-	#	ypar		# y parameter 
-	#	xind		# x par corresponding column number
-	#	yind		# y par corresponding column number
-	#	Color		# Color array
-	#	Alpha		# Alpha array
-	#	Size		# Size array
-	#	Label		# Label array
-	#	LOC		# Legend location
+	#	pltctr		# int		: plot count for figuure - considering subplots/axs?
+	#	xmin, xmax	# float 0	: if xmin!=xmax do zoomed plot also
+	#	ymin, ymax	# int	0	:^ analogous
+	#	xpar		# str x parameter
+	#	ypar		# str	: y parameter 
+	#	xind		# int 0	: x par corresponding column number
+	#	yind		# int 0	: y par corresponding column number
+	#	Color		# [str]	: Color array
+	#	Alpha		# [int]	: Alpha array
+	#	Size		# [int]	: Size array
+	#	Label		# [str]	: Label array
+	#	LOC		# float : Legend location
 	#	BBOX_TO_ANCHOR	# Legend offset from location
 	#	DPI		# Figure dpi
 	
@@ -1670,6 +1670,8 @@ if MASSTRKBOUNDS:
 	print("mueff  ({: >8} ~~ {: >8} )".format(mu_lo,mu_hi))
 #{:0>{}}
 if BENCH_CHECK:
+
+	row = lambda par, i : FunctionArr(par, 0, 0, master_list[-1])[i] #row(par, i)	#for FunctionArr ease
 	print("BENCHMARK POINTS BY VALUES:     tanB    lambda        kappa  Alambda    Akappa    mueff")
 	for i,r in enumerate(master_list[-1]):
 #		if r[130]+r[131]+r[132]+r[133] < 1: #brneu2tot
@@ -1678,7 +1680,8 @@ if BENCH_CHECK:
 #		if r[24]<122 and r[36]<15: #lower s1 p1 masses
 #		if r[24]<10:			# small s1mass
 #			if FunctionArr("neu1Hcomp",0,0,master_list[-1])[i] < 0.5:
-		if r[142]<1E-13:	#tiny p1dw
+#		if r[142]<1E-13:	#tiny p1dw
+		if r[44]/r[36] > 0.5 and r[121]>0: #neu1mass/p1mass > 1/2 but br_p1_neu1neu > 0 despite disallowed
 			print("s1mass {: >5.1f} & p1mass {: >4}: {: >8.5f} {: >9} {: >12} {: >8} {: >9} {: >8}".format(round(r[24],1),round(r[36],1),r[1],r[19],r[20],r[21],r[22],r[23]))
 print("{}\tFinished.\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#".format(Time()))
 #sys.exit()
