@@ -461,8 +461,13 @@
       ELSE
        IF(NK.EQ.0)THEN
 !        PAR(2)=KMIN+(KMAX-KMIN)*RAN2(IDUM)
-        PAR(2)=RAN2(IDUM)*MIN(PAR(1)*1,KMAX)! wolf - alt gen acc to k/l ratio
-       ELSE!   RAND* MIN( L * KDLMAX, KMAX)KMAX  in inps as 0.1 for PQ
+! wolf - alt gen acc to k/l ratio
+!        PAR(2)=RAN2(IDUM)*MIN(PAR(1)*1,KMAX)
+!   RAND* MIN( L * KDLMAX, KMAX)KMAX  in inps as 0.1 for PQ
+! wolf - alt gen acc biased softk
+!        KAPPA=RAN2(IDUM)*MIN(LAMBDA*RAN2(IDUM)*KDLMAX,KMAX)
+        PAR(2)=RAN2(IDUM)*MIN(PAR(1)*RAN2(IDUM)*0.1,KMAX)
+       ELSE
         PAR(2)=KMIN*(KMAX/KMIN)**RAN2(IDUM)
        ENDIF
       ENDIF

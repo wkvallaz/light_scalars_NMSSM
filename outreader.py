@@ -16,8 +16,8 @@ argv = sys.argv
 
 DEBUG_MODE = 0		#enables print statements used for tracking
 MASSTRKFILE = 0		#enables tracking masses near LHC and of light s/o
-MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
-BENCH_CHECK = 1
+MASSTRKBOUNDS = 1	# At the end, count higgses below threshold_lighthiggs
+BENCH_CHECK = 0
 
 DO_PARAM = 0
 DO_MASS = 0
@@ -26,7 +26,7 @@ DO_HEAT = 0
 DO_COUP = 0
 DO_BR = 0
 DO_DC = 0
-DO_MISC = 1
+DO_MISC = 0
 DO_REPL = 0
 
 NEU_INFO = 1
@@ -40,7 +40,7 @@ file_tags = ['THY','LEP','LHC','BKF']#file_tags = ["","con1","con3","con2"]
 file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
 save_dir_name = argv[2]
 
-N_EXTRA = 0 # number of extra seeds for files (x4 for actual num extra files)
+N_EXTRA = 9 # number of extra seeds for files (x4 for actual num extra files)
 for ie in range(N_EXTRA):
 	extra_names = ["{}_{:0>2}{}randout".format(file_prefix, ie+2, tag) for tag in file_tags]
 	file_names = file_names + extra_names
@@ -48,6 +48,7 @@ for ie in range(N_EXTRA):
 if "108035020" in file_prefix: (KMIN, KMAX, LMIN, LMAX) = (-.015, .015, 0, .1)	#def plot axis window
 elif "s" == file_prefix[0]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.5)
 elif file_prefix[:6] in ["PQp1v4","PQp1v5"]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.5)
+elif file_prefix[:6] in ["PQp1v6"]: (KMIN, KMAX, LMIN, LMAX) = (0,.02,0,.5)
 elif "PQ" == file_prefix[0:2]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.7)
 else: (KMIN, KMAX, LMIN, LMAX) = (0, 1, 0, 1)
 (S1MMIN,S1MMAX,P1MMIN,P1MMAX) = (110,130,0,25)
@@ -366,16 +367,16 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 	
 	heatmap_list = ["turbo"]# #"viridis", "plasma",	#"inferno", "magma", "cividis",	#"brg", "rainbow","jet",
 	
-	if DO_BR or "PQp1v5"==file_prefix:
+	if DO_BR or file_prefix[:6] in ["PQp1v5","PQp1v6"]:
 		br_list = [ 	("br_neu2_s1neu1", 130),("br_neu2_s2neu1", 131), 
 				("br_neu2_p1neu1", 132),("br_neu2_zneu1", 133),
 				("br_neu3_s1neu1", 134),("br_neu3_s2neu1", 135),
 				("br_neu3_p1neu1", 136),("br_neu3_zneu1", 137),
 				("br_cha1_wneu1", 138), ("br_cha1_hcneu1", 139),
-				("br_s1_neu1neu1", 120), ("br_p1_neu1neu1", 121) ]
+				("br_s1_neu1neu1", 121), ("br_p1_neu1neu1", 122) ]
 	else: br_list = []
 	
-	if DO_COUP or "PQp1v5" == file_prefix:
+	if DO_COUP or file_prefix[:6] in ["PQp1v5","PQp1v6"]:
 		coup_list =[    ("XIs1u", 86), ("XIs2u", 92),("XIs3u",  98), ("XIp1u", 104),("XIp2u", 110),
 				("XIs1d", 87), ("XIs2d", 93),("XIs3d",  99), ("XIp1d", 105),("XIp2d", 111),
 				("XIs1z", 88), ("XIs2z", 94),("XIs3z", 100), ("XIp1z", 106),("XIp2z", 112),
@@ -384,7 +385,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				("XIs1b", 91), ("XIs2b", 97),("XIs3b", 103), ("XIp1b", 109),("XIp2b", 115) ]
 	else: coup_list = []
 
-	if DO_DC or file_prefix == "PQp1v5":
+	if DO_DC or file_prefix[:6] in ["PQp1v5","PQp1v6"]:
 		dc_list = [("s1dw",140),("s2dw",141),("p1dw",142),("neu2dw",143),("neu3dw",144),("cha1dw",145)]
 	else: dc_list = []
 
@@ -753,40 +754,46 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		SinglePlot(pltctr, "neu1mass div p1mass", 0, 0, 0, "p1dw", 142, 0, 0,
 				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "DC","")
 		pltctr+=1
-		SinglePlot(pltctr, "br_p1_neu1neu1", 121, 0, 0, "p1dw", 142, 0, 0,
+		SinglePlot(pltctr, "neu1mass div p1mass", 0, 0, 0, "br_p1_neu1neu1", 122, 0, 0,
+				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "BR","")
+		pltctr+=1
+		SinglePlot(pltctr, "br_p1_neu1neu1", 122, 0, 0, "p1dw", 142, 0, 0,
 				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "DC","")
 		pltctr+=1
 		SinglePlot(pltctr, "neu1mass div s1mass", 0, 0, 0, "s1dw", 140, 0, 0,
 				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "DC","")
 		pltctr+=1
-		SinglePlot(pltctr, "br_s1_neu1neu1", 120, 0, 0, "s1dw", 140, 0, 0,
+		SinglePlot(pltctr, "neu1mass div s1mass", 0, 0, 0, "br_s1_neu1neu1", 121, 0, 0,
+				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "BR","")
+		pltctr+=1
+		SinglePlot(pltctr, "br_s1_neu1neu1", 121, 0, 0, "s1dw", 140, 0, 0,
 				Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "DC","")
 		print(Time(),"p1 heats")
 		pltctr+=1
-		HeatPlot(pltctr, "br_p1_neu1neu1", 121, "turbo",
+		HeatPlot(pltctr, "br_p1_neu1neu1", 122, "turbo",
 			"neu1mass div p1mass", 0,0,0,
 			"p1dw", 142, 0, 0, Size, DPI, "Heatmap","")	
 		pltctr+=1
-		HeatPlot(pltctr, "br_p1_neu1neu1", 121, "turbo",
+		HeatPlot(pltctr, "br_p1_neu1neu1", 122, "turbo",
 			"neu1mass div p1mass", 0,0,0,
 			"p1mass", 36, 0, 0, Size, DPI, "Heatmap","")	
 		pltctr+=1
 		HeatPlot(pltctr, "neu1mass div p1mass", 0, "turbo",
 			"p1mass", 36, 0, 0,
-			"br_p1_neu1neu1", 121,0,0, Size, DPI, "Heatmap","")	
+			"br_p1_neu1neu1", 122,0,0, Size, DPI, "Heatmap","")	
 		print(Time(),"s1 heats")
 		pltctr+=1
-		HeatPlot(pltctr, "br_s1_neu1neu1", 120, "turbo",
+		HeatPlot(pltctr, "br_s1_neu1neu1", 121, "turbo",
 			"neu1mass div s1mass", 0,0,0,
 			"s1dw", 140, 0, 0, Size, DPI, "Heatmap","")	
 		pltctr+=1
-		HeatPlot(pltctr, "br_s1_neu1neu1", 120, "turbo",
+		HeatPlot(pltctr, "br_s1_neu1neu1", 121, "turbo",
 			"neu1mass div s1mass", 0,0,0,
 			"s1mass", 24, 0, 0, Size, DPI, "Heatmap","")	
 		pltctr+=1
 		HeatPlot(pltctr, "neu1mass div s1mass", 0, "turbo",
 			"s1mass", 24, 0, 0,
-			"br_s1_neu1neu1", 120,0,0, Size, DPI, "Heatmap","")		
+			"br_s1_neu1neu1", 121,0,0, Size, DPI, "Heatmap","")		
 		print(Time(),"Doing kdl histos")
 		pltctr+=1
 		plt.figure(pltctr)
@@ -1670,7 +1677,6 @@ if MASSTRKBOUNDS:
 	print("mueff  ({: >8} ~~ {: >8} )".format(mu_lo,mu_hi))
 #{:0>{}}
 if BENCH_CHECK:
-
 	row = lambda par, i : FunctionArr(par, 0, 0, master_list[-1])[i] #row(par, i)	#for FunctionArr ease
 	print("BENCHMARK POINTS BY VALUES:     tanB    lambda        kappa  Alambda    Akappa    mueff")
 	for i,r in enumerate(master_list[-1]):
@@ -1681,7 +1687,7 @@ if BENCH_CHECK:
 #		if r[24]<10:			# small s1mass
 #			if FunctionArr("neu1Hcomp",0,0,master_list[-1])[i] < 0.5:
 #		if r[142]<1E-13:	#tiny p1dw
-		if r[44]/r[36] > 0.5 and r[121]>0: #neu1mass/p1mass > 1/2 but br_p1_neu1neu > 0 despite disallowed
+		if r[44]/r[36] > 0.5 and r[122]>0: #neu1mass/p1mass > 1/2 but br_p1_neu1neu > 0 despite disallowed
 			print("s1mass {: >5.1f} & p1mass {: >4}: {: >8.5f} {: >9} {: >12} {: >8} {: >9} {: >8}".format(round(r[24],1),round(r[36],1),r[1],r[19],r[20],r[21],r[22],r[23]))
 print("{}\tFinished.\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#".format(Time()))
 #sys.exit()
