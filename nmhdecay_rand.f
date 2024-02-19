@@ -129,6 +129,7 @@
 *          10        Violation of phenomenological constraint(s)
 *          11,12     Problem in integration of RGEs
 *          13,14     Convergence problem
+*          15        Event not light ! wolf - neither h1/a1 < 10GeV set in mhiggs.f
 *
 *      PROB(I)  = 0, I = 1..88: OK
 *
@@ -223,7 +224,7 @@
       CHARACTER(200) PRE,SUF,PAT,IFILE,OFILE,EFILE,TFILE,SFILE
 
       INTEGER NFL,NPROB,NPAR
-      PARAMETER (NFL=14,NPROB=88,NPAR=25)
+      PARAMETER (NFL=15,NPROB=88,NPAR=25)
 ! - WOLF
       INTEGER NFAIL(NFL),IFAIL,DIFAIL,I,IMAX,TOT,ITOT,NUMPROB(NPROB)
       INTEGER M1FLAG,M2FLAG,M3FLAG,MHDFLAG,MHUFLAG,MSFLAG
@@ -402,8 +403,9 @@
 *   Beginning of the scan
 
       DO ITOT=1,NTOT
+! wolf - here am going to put goto for retry, this 13 is me
 
-      IF(TBMIN.EQ.TBMAX)THEN
+ 13   IF(TBMIN.EQ.TBMAX)THEN
        PAR(3)=TBMIN
       ELSE
        IF(NTB.EQ.0)THEN
@@ -466,7 +468,7 @@
 !   RAND* MIN( L * KDLMAX, KMAX)KMAX  in inps as 0.1 for PQ
 ! wolf - alt gen acc biased softk
 !        KAPPA=RAN2(IDUM)*MIN(LAMBDA*RAN2(IDUM)*KDLMAX,KMAX)
-        PAR(2)=RAN2(IDUM)*MIN(PAR(1)*RAN2(IDUM)*0.1,KMAX)
+        PAR(2)=RAN2(IDUM)*MIN(PAR(1)*RAN2(IDUM)*0.05,KMAX)
        ELSE
         PAR(2)=KMIN*(KMAX/KMIN)**RAN2(IDUM)
        ENDIF
@@ -957,9 +959,17 @@
       IF(2d0*DABS(DELMB-D0)/MAX(1d-3,DABS(DELMB+D0)).GT.EPS)GOTO 4
 
 *   Computation of Higgs masses
-
+      PRINT *, NTOT
       CALL MHIGGS(PAR,PROB,IFAIL)
       IF(IFAIL.EQ.-1)IFAIL=13
+! wolf - constrain generation to events with light h1/a1
+! wolf -  and don't bother with the rest of calc.s
+!      IF(IFAIL.EQ.15)THEN ! wolf - set to 15 in mhiggs.f
+!       NTOT=NTOT+1 ! this event never counted ! dont work
+!       IF(NTOT.GE.9900)WRITE(*,*)"NTOT =",NTOT ! dont work
+!       GOTO 13     ! go re-generate an event
+!       GOTO 11      ! go output that event failed
+!      ENDIF
       IF(IFAIL.NE.0)THEN
 !       WRITE(0,*)"Exit : IFAIL =",IFAIL
 !       WRITE(0,*)""
@@ -1133,6 +1143,11 @@ c      CALL FTPAR(PAR,0)
        MD2NN=MAX(DSQRT(PAR(17)),MD2NN)
       ELSE
        NFAIL(IFAIL)=NFAIL(IFAIL)+1
+       IF(IFAIL.LE.9.OR.IFAIL.GE.15)GOTO 13
+! wolf - here, only regenning if neg mass or too heavy
+!         principally, could just turn all cons on
+!         and set up st the output of here alr satisfies
+!         all constraints and gens N events as chosen
       ENDIF
 
       ENDDO
@@ -1865,7 +1880,7 @@ c      CALL FTPAR(PAR,0)
 ! add mres and WADDetc - wolf
       INTEGER NBIN,I,NRES,IRES,GRFLAG,NSUSY,NGUT,NMES,IMAX,IFAIL,
      . MRES,WADD,WADDSCOMP,WADDPCOMP,WADDMA,WADDNEU,WADDCOUP,WADDBR,
-     . WADDDC
+     . WADDDC,WRMV
       PARAMETER (NSUSY=14,NGUT=21,NMES=21,IMAX=200)
 
       DOUBLE PRECISION RES(IMAX),PAR(*),PROB(*),SIG(5,8),R
@@ -2188,123 +2203,141 @@ c      CALL FTPAR(PAR,0)
       WADDMA=1
       WADDNEU=18
       WADDCOUP=30
-      WADDBR=10
+      WADDBR=21
       WADDDC=6
       WADD=0
+      WRMV=0	! wolf - WRMV is things removed/commented, changed at ea block
       MRES=WADD+NRES
 ! WADD is number of things Wolf added - wolf - EDITed purpose, cumsum
 ! - WOLF
-      RES(1)=PAR(3)           !TB
-      RES(2)=PAR(20)          !M1
-      RES(3)=PAR(21)          !M2
-      RES(4)=PAR(22)          !M3
-      RES(5)=PAR(12)          !AU3
-      RES(6)=PAR(13)          !AD3
-      RES(7)=PAR(14)          !AE3
-      RES(8)=PAR(25)          !AE2
-      RES(9)=DSQRT(PAR(10))   !ML3
-      RES(10)=DSQRT(PAR(18))  !ML2
-      RES(11)=DSQRT(PAR(11))  !ME3
-      RES(12)=DSQRT(PAR(19))  !ME2
-      RES(13)=DSQRT(PAR(7))   !MQ3
-      RES(14)=DSQRT(PAR(15))  !MQ2
-      RES(15)=DSQRT(PAR(8))   !MU3
-      RES(16)=DSQRT(PAR(16))  !MU2
-      RES(17)=DSQRT(PAR(9))   !MD3
-      RES(18)=DSQRT(PAR(17))  !MD2
-      RES(19)=PAR(1)          !L
-      RES(20)=PAR(2)          !K
-      RES(21)=PAR(5)          !AL
-      RES(22)=PAR(6)          !AK
-      RES(23)=PAR(4)          !MU
+      RES(1)=PAR(3)           !TB	!1
+      RES(2)=PAR(20)          !M1	!2
+      RES(3)=PAR(21)          !M2	!3
+      RES(4)=PAR(22)          !M3	!4
+      RES(5)=PAR(12)          !AU3	!5
+      RES(6)=PAR(13)          !AD3	!6
+      RES(7)=PAR(14)          !AE3	!7
+      RES(8)=PAR(25)          !AE2	!8
+      RES(9)=DSQRT(PAR(10))   !ML3	!9
+      RES(10)=DSQRT(PAR(18))  !ML2	!10
+      RES(11)=DSQRT(PAR(11))  !ME3	!11
+      RES(12)=DSQRT(PAR(19))  !ME2	!12
+      RES(13)=DSQRT(PAR(7))   !MQ3	!13
+      RES(14)=DSQRT(PAR(15))  !MQ2	!14
+      RES(15)=DSQRT(PAR(8))   !MU3	!15
+      RES(16)=DSQRT(PAR(16))  !MU2	!16
+      RES(17)=DSQRT(PAR(9))   !MD3	!17
+      RES(18)=DSQRT(PAR(17))  !MD2	!18
+      RES(19)=PAR(1)          !L	!19
+      RES(20)=PAR(2)          !K	!20
+      RES(21)=PAR(5)          !AL	!21
+      RES(22)=PAR(6)          !AK	!22
+      RES(23)=PAR(4)          !MU	!23
 ! add comps to out st. ~(mass u d s) not just (m s) for each - wolf
 ! edit comp outputs to not squared, now is matrix elems, not "composition" as thought normally - wolf
       DO I=1,3
-       RES(IRES-3+4*I)=SMASS(I)
-       RES(IRES-2+4*I)=SCOMP(I,1)
-       RES(IRES-1+4*I)=SCOMP(I,2)
-       RES(IRES+4*I)=SCOMP(I,3)
+       RES(IRES-3+4*I)=SMASS(I)	!24,28,32
+       RES(IRES-2+4*I)=SCOMP(I,1)	!25,29,33
+       RES(IRES-1+4*I)=SCOMP(I,2)	!26,30,34
+       RES(IRES+4*I)=SCOMP(I,3)	!27,31,35
       ENDDO
       WADD = WADD + WADDSCOMP
 ! correction to pmass component, used to be 1 and 1,2 - wolf
 ! outs now (mass Acomp Scomp) not just (mass Scomp) - wolf
 ! edit comp outputs to not squared, now is matrix elems, not "composition" as thought normally - wolf
       DO I=1,2
-       RES(IRES+6+WADD-2+3*I)=PMASS(I)
-       RES(IRES+6+WADD-1+3*I)=PCOMP(I,1)
-       RES(IRES+6+WADD+3*I)=PCOMP(I,2)
+       RES(IRES+6+WADD-2+3*I)=PMASS(I)	!36,39
+       RES(IRES+6+WADD-1+3*I)=PCOMP(I,1)	!37,40
+       RES(IRES+6+WADD+3*I)=PCOMP(I,2)	!38,41
       ENDDO
       WADD = WADD + WADDPCOMP
-      RES(IRES+6+4+WADD+1)=CMASS
+      RES(IRES+6+4+WADD+1)=CMASS	!42
 ! added MA to outs after CMASS - wolf
-      RES(IRES+6+4+WADD+2)=PAR(23)
+      RES(IRES+6+4+WADD+2)=PAR(23)	!43
       WADD = WADD + WADDMA
       DO I=1,5
-       RES(IRES+11+WADD-5+6*I)=DABS(MNEU(I))
-       RES(IRES+11+WADD-4+6*I)=NEU(I,1) !NEUI BINO
-       RES(IRES+11+WADD-3+6*I)=NEU(I,2) !WINO
-       RES(IRES+11+WADD-2+6*I)=NEU(I,3) ! U
-       RES(IRES+11+WADD-1+6*I)=NEU(I,4) ! D
-       RES(IRES+11+WADD+6*I)=NEU(I,5) ! S
+       RES(IRES+11+WADD-5+6*I)=DABS(MNEU(I))	!44,50,56,62,68
+       RES(IRES+11+WADD-4+6*I)=NEU(I,1) !NEUI BINO	!45,51,57,63,69
+       RES(IRES+11+WADD-3+6*I)=NEU(I,2) !WINO	!46,52,58,64,70
+       RES(IRES+11+WADD-2+6*I)=NEU(I,3) ! U	!47,53,59,65,71
+       RES(IRES+11+WADD-1+6*I)=NEU(I,4) ! D	!48,54,60,66,72
+       RES(IRES+11+WADD+6*I)=NEU(I,5) ! S	!49,55,61,67,73
       ENDDO
       WADD = WADD + WADDNEU
-      RES(IRES+23+WADD+1)=DABS(MCHA(1))
-      RES(IRES+23+WADD+2)=MGL
-      RES(IRES+23+WADD+3)=MIN(MUL,MUR,MDL,MDR)
-      RES(IRES+23+WADD+4)=MST1
-      RES(IRES+23+WADD+5)=MSB1
-      RES(IRES+23+WADD+6)=MLL
-      RES(IRES+23+WADD+7)=MNL
-      RES(IRES+23+WADD+8)=MSL1
-      RES(IRES+23+WADD+9)=MSNT
-      RES(IRES+23+WADD+10)=MWNMSSM
-      RES(IRES+23+WADD+11)=delmagmu
-      RES(IRES+23+WADD+12)=csPsi
-
+      RES(IRES+23+WADD+1)=DABS(MCHA(1))	!74
+!      RES(IRES+23+WADD+2)=MGL
+!      RES(IRES+23+WADD+3)=MIN(MUL,MUR,MDL,MDR)
+!      RES(IRES+23+WADD+4)=MST1
+!      RES(IRES+23+WADD+5)=MSB1
+!      RES(IRES+23+WADD+6)=MLL
+!      RES(IRES+23+WADD+7)=MNL
+!      RES(IRES+23+WADD+8)=MSL
+!      RES(IRES+23+WADD+9)=MSNT
+!      RES(IRES+23+WADD+10)=MWNMSSM
+!      RES(IRES+23+WADD+11)=delmagmu
+!      RES(IRES+23+WADD+12)=csPsi
+      WRMV=11 ! wolf - i cmmtd these, 11 here, adj cumsum
+      WADD = WADD - WRMV
       DO I=1,5                   ! (h1,h2,h3,a1,a2) Reduced coupling to...
-       RES(IRES+35+WADD-5+6*I)=CU(I)    ! up type fermions,
-       RES(IRES+35+WADD-4+6*I)=CD(I)    ! down type fermions,
-       RES(IRES+35+WADD-3+6*I)=CV(I)    ! gauge bosons,
-       RES(IRES+35+WADD-2+6*I)=CJ(I)    ! gluons,
-       RES(IRES+35+WADD-1+6*I)=CG(I)    ! photons,
-       RES(IRES+35+WADD+6*I)=CB(I)    ! to b-quarks including DELMB corrections
+       RES(IRES+35+WADD-5+6*I)=CU(I)    ! up type fermions,	!75,81,87,93,99
+       RES(IRES+35+WADD-4+6*I)=CD(I)    ! down type fermions,	!76,82,88,94,100
+       RES(IRES+35+WADD-3+6*I)=CV(I)    ! gauge bosons,	!77,83,89,95,101
+       RES(IRES+35+WADD-2+6*I)=CJ(I)    ! gluons,	!78,84,90,96,102
+       RES(IRES+35+WADD-1+6*I)=CG(I)    ! photons,	!79,85,91,97,103
+       RES(IRES+35+WADD+6*I)=CB(I)    ! to b-quarks including DELMB corrections	!80,86,92,98,104
       ENDDO
       WADD = WADD + WADDCOUP
-      RES(IRES+36+WADD)=BRHHH(1)
-      RES(IRES+37+WADD)=BRBB(1)
-      RES(IRES+38+WADD)=BRLL(1)
-      RES(IRES+39+WADD)=BRGG(1)
-      RES(IRES+40+WADD)=BRHAA(1,1)
-      RES(IRES+41+WADD)=BRNEU(1,1,1)
-      RES(IRES+42+WADD)=BRNEU(4,1,1) ! wolf - actually added this but cmmtd neutHneut since doubled up
-      RES(IRES+43+WADD)=brcharsnt1(1)  ! BR(cha1 -> tau snutau)
-      RES(IRES+44+WADD)=2d0*brcharsne1(1)  ! BR(cha1 -> l snul)
-      RES(IRES+45+WADD)=brcharwneut(1,1)+2d0*brnupdb(1,1)+brntopbb(1,1)
-     .          +brnelnue(1,1)+brnmunumu(1,1)+brntaunut(1,1)  ! BR(cha1 -> neu1 W) ! wolf - WANT?
-      RES(IRES+46+WADD)=brcharstau1(1)  ! BR(cha1 ->  stau nutau)
-      RES(IRES+47+WADD)=2d0*brcharsel(1)  ! BR(cha1 -> sel nu)
-!      RES(IRES+47+WADD)=brneutHneut(2,1,1)  ! BR(neu2 -> neu1 H1) ! wolf - WANT THIS
-      RES(IRES+48+WADD)=SIG(1,8)
-      RES(IRES+49+WADD)=R
 
-      RES(IRES+49+WADD+1)=brneutHneut(2,1,1)  ! wolf - neu(2)>h1+neu1
-      RES(IRES+49+WADD+2)=brneutHneut(2,2,1)  ! wolf - neu(2)>h2+neu1
-      RES(IRES+49+WADD+3)=brneutAneut(2,1,1)  ! wolf - neu(2)>A1+neu1
-      RES(IRES+49+WADD+4)=brneutzneut(2,1)    ! wolf - neu(2)> z+neu1
-      RES(IRES+49+WADD+5)=brneutHneut(3,1,1)  ! wolf - neu(3)>h1+neu1
-      RES(IRES+49+WADD+6)=brneutHneut(3,2,1)  ! wolf - neu(3)>h2+neu1
-      RES(IRES+49+WADD+7)=brneutAneut(3,1,1)  ! wolf - neu(3)>A1+neu1
-      RES(IRES+49+WADD+8)=brneutzneut(3,1)    ! wolf - neu(3)> z+neu1
-      RES(IRES+49+WADD+9)=brcharwneut(1,1)    ! wolf - cha1>w +neu1
-      RES(IRES+49+WADD+10)=brcharhcneut(1,1)  ! wolf - cha1>hc+neu1
+! wolf - these below were mixed into my current BR section / didnt integrate WRMV
+
+!      RES(IRES+43+WADD)=brcharsnt1(1)  ! BR(cha1 -> tau snutau)
+!      RES(IRES+44+WADD)=2d0*brcharsne1(1)  ! BR(cha1 -> l snul)
+!      RES(IRES+45+WADD)=brcharwneut(1,1)+2d0*brnupdb(1,1)+brntopbb(1,1)
+!     .          +brnelnue(1,1)+brnmunumu(1,1)+brntaunut(1,1)  ! BR(cha1 > neu1 W)
+!      RES(IRES+46+WADD)=brcharstau1(1)  ! BR(cha1 ->  stau nutau)
+!      RES(IRES+47+WADD)=2d0*brcharsel(1)  ! BR(cha1 -> sel nu)
+!      RES(IRES+48+WADD)=SIG(1,8)
+!      RES(IRES+49+WADD)=R
+
+!                                             ! wolf - oddballs, then h1/a1, then neu/char
+      RES(IRES+WADD+36)=BRHHH(1)              !        h2>h1h1	!105
+      RES(IRES+WADD+37)=BRHAA(1,1)            !        h1>a1a1	!106
+
+      RES(IRES+WADD+38)=BRJJ(1)              ! wolf - h1>hadrons	!107
+      RES(IRES+WADD+39)=BRJJ(4)              ! wolf - A1>hadr	!108
+      RES(IRES+WADD+40)=BRBB(1)               !        h1>bb	!109
+      RES(IRES+WADD+41)=BRBB(4)              ! wolf - A1>bb	!110
+      RES(IRES+WADD+42)=BRCC(1)              ! wolf - h1>cc	!111
+      RES(IRES+WADD+43)=BRCC(4)              ! wolf - A1>cc	!112
+      RES(IRES+WADD+44)=BRLL(1)               !        h1>tata	!113
+      RES(IRES+WADD+45)=BRLL(4)              ! wolf - A1>tata	!114
+      RES(IRES+WADD+46)=BRMM(1)              ! wolf - h1>mumu	!115
+      RES(IRES+WADD+47)=BRMM(4)              ! wolf - A1>mumu	!116
+      RES(IRES+WADD+48)=BREE(1)              ! wolf - h1>ee	!117
+      RES(IRES+WADD+49)=BREE(4)              ! wolf - A1>ee	!118
+      RES(IRES+WADD+50)=BRGG(1)               !        h1>gamgam	!119
+      RES(IRES+WADD+51)=BRGG(4)              ! wolf - A1>gamgam	!120
+      RES(IRES+WADD+52)=BRNEU(1,1,1)          !        h1>neu1neu1	!121
+      RES(IRES+WADD+53)=BRNEU(4,1,1)          !        a1>neu1neu1	!122
+
+      RES(IRES+WADD+54)=brneutHneut(2,1,1)    ! wolf - neu(2)>h1+neu1	!123
+      RES(IRES+WADD+55)=brneutHneut(2,2,1)    ! wolf - neu(2)>h2+neu1	!124
+      RES(IRES+WADD+56)=brneutAneut(2,1,1)    ! wolf - neu(2)>A1+neu1	!125
+      RES(IRES+WADD+57)=brneutzneut(2,1)      ! wolf - neu(2)> z+neu1	!126
+      RES(IRES+WADD+58)=brneutHneut(3,1,1)    ! wolf - neu(3)>h1+neu1	!127
+      RES(IRES+WADD+59)=brneutHneut(3,2,1)    ! wolf - neu(3)>h2+neu1	!128
+      RES(IRES+WADD+60)=brneutAneut(3,1,1)    ! wolf - neu(3)>A1+neu1	!129
+      RES(IRES+WADD+61)=brneutzneut(3,1)      ! wolf - neu(3)> z+neu1	!130
+      RES(IRES+WADD+62)=brcharwneut(1,1)      ! wolf - cha1>w +neu1	!131
+      RES(IRES+WADD+63)=brcharhcneut(1,1)    ! wolf - cha1>hc+neu1	!132
       WADD = WADD + WADDBR
 
-      RES(IRES+49+WADD+1)= WIDTH(1)   ! wolf - s1 decay width
-      RES(IRES+49+WADD+2)= WIDTH(2)   ! wolf - s2 decay width
-      RES(IRES+49+WADD+3)= WIDTH(4)   ! wolf - p1 decay width
-      RES(IRES+49+WADD+4)= neuttot(2) ! wolf - neu2 decay width
-      RES(IRES+49+WADD+5)= neuttot(3) ! wolf - neu3 decay width
-      RES(IRES+49+WADD+6)= chartot(1) ! wolf - cha1 decay width
+      RES(IRES+WADD+43)= WIDTH(1)   ! wolf - s1 decay width	!133
+      RES(IRES+WADD+44)= WIDTH(2)   ! wolf - s2 decay width	!134
+      RES(IRES+WADD+45)= WIDTH(4)   ! wolf - p1 decay width	!135
+      RES(IRES+WADD+46)= neuttot(2) ! wolf - neu2 decay width	!136
+      RES(IRES+WADD+47)= neuttot(3) ! wolf - neu3 decay width	!137
+      RES(IRES+WADD+48)= chartot(1) ! wolf - cha1 decay width	!138
       WADD = WADD + WADDDC
 
       WRITE(16,11)(RES(I),I=1,NRES+WADD)
