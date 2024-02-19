@@ -398,8 +398,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 	else: coup_list = []
 
 	if DO_BR or file_prefix[:6] in ["PQp1v5","PQp1v6","PQp1v8","PQp1v9"]:
-		br_list = [	("br_s2_s1s1",105),	("br_s1_p1p1",106),
-				("br_s1_hadr",107),	("br_p1_hadr",108),
+		br_list = [	("br_s1_hadr",107),	("br_p1_hadr",108),
 				("br_s1_bb",109),	("br_p1_bb",110),
 				("br_s1_cc",111),	("br_p1_cc",112),
 				("br_s1_tata",113),	("br_p1_tata",114),
@@ -407,6 +406,8 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				("br_s1_ee",117),	("br_p1_ee",118),
 				("br_s1_gamgam",119),	("br_p1_gamgam",120),
 				("br_s1_neu1neu1",121),	("br_p1_neu1neu1",122),
+
+				("br_s2_s1s1",105),	("br_s1_p1p1",106),
 
 				("br_neu2_s1neu1",123),	("br_neu2_s2neu1",124),
 				("br_neu2_p1neu1",125),	("br_neu2_zneu1",126),
@@ -1452,7 +1453,7 @@ def NearSM(mass): #temp fnc that checks if mass is near sm higgs mass
 	return (mass > 125.173611-buffer) and (mass < 125.173611+buffer)
 
 file_matrices = [list() for file in file_tags] # for storing "out_file_matrix" of each out file
-
+print(Time(),save_dir_name)
 for file_index,out_file_name in enumerate(file_names):
 	with open("{}{}.dat".format(DIR, out_file_name)) as f:
 		f_reader = csv.reader(f, delimiter=" ")
@@ -1489,7 +1490,7 @@ for file_index,out_file_name in enumerate(file_names):
 					if abs(row[27]) < 0.9:
 						reject_row = True
 						break
-				elif file_prefix in ["PQp1v5","PQp1v6","PQp1v8","PQp1v9"]:
+				elif file_prefix[:6] in ["PQp1v5","PQp1v6","PQp1v8","PQp1v9"]:
 					if len(row)==21 and row[20]/row[19] > 1: #redundant
 						reject_row = True		# since doing the generation
 						break				#  with this in mind
@@ -1498,12 +1499,28 @@ for file_index,out_file_name in enumerate(file_names):
 						(len(row)==25 and row[24]>10) or (len(row)==37 and row[36]>10) )):
 						reject_row = True
 						break
-					if ("_s1m_near_p1m" in save_dir_name and (
+					elif ("_s1m_le_10" in save_dir_name and (
+						(len(row)==25 and row[24]>10) )):
+						reject_row = True
+						break
+					elif ("_p1m_le_10" in save_dir_name and (
+						(len(row)==37 and row[36]>10) )):
+						reject_row = True
+						break
+					elif ("_s1m_near_p1m" in save_dir_name and (
 						(len(row)==37 and (row[24]/row[36] < .5 or row[24]/row[36]>2) ) )):
+						reject_row = True
+						break
+					elif ("_s1mp1m_lt_2neu1m" in save_dir_name and (
+						(len(row)==45 and (row[24] >= 2*row[44] or row[36]>=2*row[44]) ) )):
 						reject_row = True
 						break
 					elif ("_p1m_lt_2neu1m" in save_dir_name and (
 						(len(row)==45 and row[36]>=2*row[44] ) )):
+						reject_row = True
+						break
+					elif ("_s1m_lt_2neu1m" in save_dir_name and (
+						(len(row)==45 and row[24]>=2*row[44] ) )):
 						reject_row = True
 						break
 					elif "_s1sm" in save_dir_name and len(row)==25 and not NearSM(row[24]):
