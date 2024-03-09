@@ -1880,7 +1880,7 @@ c      CALL FTPAR(PAR,0)
 ! add mres and WADDetc - wolf
       INTEGER NBIN,I,NRES,IRES,GRFLAG,NSUSY,NGUT,NMES,IMAX,IFAIL,
      . MRES,WADD,WADDSCOMP,WADDPCOMP,WADDMA,WADDNEU,WADDCOUP,WADDBR,
-     . WADDDC,WRMV
+     . WADDDC,WADDPDC
       PARAMETER (NSUSY=14,NGUT=21,NMES=21,IMAX=200)
 
       DOUBLE PRECISION RES(IMAX),PAR(*),PROB(*),SIG(5,8),R
@@ -1893,6 +1893,18 @@ c      CALL FTPAR(PAR,0)
       DOUBLE PRECISION BRHCW(5),BRHIGGS(5),BRNEU(5,5,5),BRCHA(5,3)
       DOUBLE PRECISION BRHSQ(3,10),BRHSL(3,7),BRASQ(2,2),BRASL(2)
       DOUBLE PRECISION BRSUSY(5),WIDTH(5)
+! wolf adding BRhadr component decay widths
+      DOUBLE PRECISION GamHGAGA,GamHee,GamHmumu,GamHtata,GamHhadr,
+     .      GamHcc,GamHbb,GamHinv(3),GamHWW,GamHZZ,GamHAA,GamH2Pi,
+     .      GamH2PiC,GamHPiE,GamHPiEP,GamH2KC,GamH2K0,GamH2E,GamH2EP,
+     .      GamHEEP,GamHss,GamHjj,GamHchic1p,GamHchib12p,GamHhadrcc,
+     .      GamHhadrbb
+      DOUBLE PRECISION GamAGAGA,GamAee,GamAmumu,GamAtata,GamAhadr,
+     .      GamAcc,GamAbb,GamAinv(3),GamAjj,GamAss,GamA3Pi,GamAPi3PiC,
+     .      GamAEPi3,GamAEPiC,GamAEPPi3,GamAEPPiC,GamAPiEE,GamAPiEEP,
+     .      GamAPiEPEP,GamA3E,GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,
+     .      GamAPiK0,GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,
+     .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb
       DOUBLE PRECISION HCBRM,HCBRL,HCBRSU,HCBRBU,HCBRSC,HCBRBC
       DOUBLE PRECISION HCBRBT,HCBRWH(5),HCBRWHT,HCBRNC(5,2)
       DOUBLE PRECISION HCBRSQ(5),HCBRSL(3),HCBRSUSY,HCWIDTH
@@ -2138,6 +2150,20 @@ c      CALL FTPAR(PAR,0)
       COMMON/BRC/HCBRM,HCBRL,HCBRSU,HCBRBU,HCBRSC,HCBRBC,
      . HCBRBT,HCBRWH,HCBRWHT,HCBRNC,HCBRSQ,HCBRSL,
      . HCBRSUSY,HCWIDTH
+! wolf Added these light decay widths
+      COMMON/LIGHTHDECAYS/GamHGAGA,GamHee,GamHmumu,GamHtata,GamHhadr,
+     .      GamHcc,GamHbb,GamHinv,GamHWW,GamHZZ,GamHAA,GamH2Pi,
+     .      GamH2PiC,GamHPiE,GamHPiEP,GamH2KC,GamH2K0,GamH2E,GamH2EP,
+     .      GamHEEP,GamHss,GamHjj,GamHchic1p,GamHchib12p,GamHhadrcc,
+     .      GamHhadrbb
+      COMMON/LIGHTADECAYS/GamAGAGA,GamAee,GamAmumu,GamAtata,GamAhadr,
+     .      GamAcc,GamAbb,GamAinv,GamAjj,GamAss,GamA3Pi,GamAPi3PiC,
+     .      GamAEPi3,GamAEPiC,GamAEPPi3,GamAEPPiC,GamAPiEE,GamAPiEEP,
+     .      GamAPiEPEP,GamA3E,GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,
+     .      GamAPiK0,GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,
+     .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb
+
+
       COMMON/BRSG/BRSG,BRSGmax,BRSGmin,DMd,DMdmin,DMdmax,DMs,
      .      DMsmax,DMsmin,BRBMUMU,BRBMUMUmax,BRBMUMUmin,BRBtaunu,
      .      BRBtaunumax,BRBtaunumin
@@ -2196,19 +2222,20 @@ c      CALL FTPAR(PAR,0)
 
       IF(IFAIL.NE.0)RETURN
 
-      IRES=23
-      NRES=49+IRES
+      IRES=23 !core parameters, then cumsum as WADDed params are added
+!      NRES=49+IRES 
+! wolf - elim use of nres as changing too much
       WADDSCOMP=6
       WADDPCOMP=2
       WADDMA=1
       WADDNEU=18
       WADDCOUP=30
-      WADDBR=21
+      WADDBR=28
       WADDDC=6
+      WADDPDC=44
       WADD=0
-      WRMV=0	! wolf - WRMV is things removed/commented, changed at ea block
       MRES=WADD+NRES
-! WADD is number of things Wolf added - wolf - EDITed purpose, cumsum
+! WADD is number of things Wolf added - wolf - EDITed purpose, cumsum - EDIT shifting cumsum to ires
 ! - WOLF
       RES(1)=PAR(3)           !TB	!1
       RES(2)=PAR(20)          !M1	!2
@@ -2241,106 +2268,138 @@ c      CALL FTPAR(PAR,0)
        RES(IRES-1+4*I)=SCOMP(I,2)	!26,30,34
        RES(IRES+4*I)=SCOMP(I,3)	!27,31,35
       ENDDO
-      WADD = WADD + WADDSCOMP
+      IRES = IRES + 6 + WADDSCOMP
 ! correction to pmass component, used to be 1 and 1,2 - wolf
 ! outs now (mass Acomp Scomp) not just (mass Scomp) - wolf
 ! edit comp outputs to not squared, now is matrix elems, not "composition" as thought normally - wolf
       DO I=1,2
-       RES(IRES+6+WADD-2+3*I)=PMASS(I)	!36,39
-       RES(IRES+6+WADD-1+3*I)=PCOMP(I,1)	!37,40
-       RES(IRES+6+WADD+3*I)=PCOMP(I,2)	!38,41
+       RES(IRES-2+3*I)=PMASS(I)	!36,39
+       RES(IRES-1+3*I)=PCOMP(I,1)	!37,40
+       RES(IRES+3*I)=PCOMP(I,2)	!38,41
       ENDDO
-      WADD = WADD + WADDPCOMP
-      RES(IRES+6+4+WADD+1)=CMASS	!42
+      IRES = IRES + 4 + WADDPCOMP
+      RES(IRES+1)=CMASS	!42
 ! added MA to outs after CMASS - wolf
-      RES(IRES+6+4+WADD+2)=PAR(23)	!43
-      WADD = WADD + WADDMA
+      RES(IRES+2)=PAR(23)	!43
+      IRES = IRES + 1 + WADDMA
       DO I=1,5
-       RES(IRES+11+WADD-5+6*I)=DABS(MNEU(I))	!44,50,56,62,68
-       RES(IRES+11+WADD-4+6*I)=NEU(I,1) !NEUI BINO	!45,51,57,63,69
-       RES(IRES+11+WADD-3+6*I)=NEU(I,2) !WINO	!46,52,58,64,70
-       RES(IRES+11+WADD-2+6*I)=NEU(I,3) ! U	!47,53,59,65,71
-       RES(IRES+11+WADD-1+6*I)=NEU(I,4) ! D	!48,54,60,66,72
-       RES(IRES+11+WADD+6*I)=NEU(I,5) ! S	!49,55,61,67,73
+       RES(IRES-5+6*I)=DABS(MNEU(I))	!44,50,56,62,68
+       RES(IRES-4+6*I)=NEU(I,1) !NEUI BINO	!45,51,57,63,69
+       RES(IRES-3+6*I)=NEU(I,2) !WINO	!46,52,58,64,70
+       RES(IRES-2+6*I)=NEU(I,3) ! U	!47,53,59,65,71
+       RES(IRES-1+6*I)=NEU(I,4) ! D	!48,54,60,66,72
+       RES(IRES+6*I)=NEU(I,5) ! S	!49,55,61,67,73
       ENDDO
-      WADD = WADD + WADDNEU
-      RES(IRES+23+WADD+1)=DABS(MCHA(1))	!74
-!      RES(IRES+23+WADD+2)=MGL
-!      RES(IRES+23+WADD+3)=MIN(MUL,MUR,MDL,MDR)
-!      RES(IRES+23+WADD+4)=MST1
-!      RES(IRES+23+WADD+5)=MSB1
-!      RES(IRES+23+WADD+6)=MLL
-!      RES(IRES+23+WADD+7)=MNL
-!      RES(IRES+23+WADD+8)=MSL
-!      RES(IRES+23+WADD+9)=MSNT
-!      RES(IRES+23+WADD+10)=MWNMSSM
-!      RES(IRES+23+WADD+11)=delmagmu
-!      RES(IRES+23+WADD+12)=csPsi
-      WRMV=11 ! wolf - i cmmtd these, 11 here, adj cumsum
-      WADD = WADD - WRMV
+      IRES = IRES + 12 + WADDNEU
+      RES(IRES+1)=DABS(MCHA(1))	!74
+      IRES = IRES + 1
       DO I=1,5                   ! (h1,h2,h3,a1,a2) Reduced coupling to...
-       RES(IRES+35+WADD-5+6*I)=CU(I)    ! up type fermions,	!75,81,87,93,99
-       RES(IRES+35+WADD-4+6*I)=CD(I)    ! down type fermions,	!76,82,88,94,100
-       RES(IRES+35+WADD-3+6*I)=CV(I)    ! gauge bosons,	!77,83,89,95,101
-       RES(IRES+35+WADD-2+6*I)=CJ(I)    ! gluons,	!78,84,90,96,102
-       RES(IRES+35+WADD-1+6*I)=CG(I)    ! photons,	!79,85,91,97,103
-       RES(IRES+35+WADD+6*I)=CB(I)    ! to b-quarks including DELMB corrections	!80,86,92,98,104
+       RES(IRES-5+6*I)=CU(I)    ! up type fermions,	!75,81,87,93,99
+       RES(IRES-4+6*I)=CD(I)    ! down type fermions,	!76,82,88,94,100
+       RES(IRES-3+6*I)=CV(I)    ! gauge bosons,	!77,83,89,95,101
+       RES(IRES-2+6*I)=CJ(I)    ! gluons,	!78,84,90,96,102
+       RES(IRES-1+6*I)=CG(I)    ! photons,	!79,85,91,97,103
+       RES(IRES+6*I)=CB(I)    ! to b-quarks including DELMB corrections	!80,86,92,98,104
       ENDDO
-      WADD = WADD + WADDCOUP
+      IRES = IRES + WADDCOUP
 
-! wolf - these below were mixed into my current BR section / didnt integrate WRMV
-
-!      RES(IRES+43+WADD)=brcharsnt1(1)  ! BR(cha1 -> tau snutau)
-!      RES(IRES+44+WADD)=2d0*brcharsne1(1)  ! BR(cha1 -> l snul)
-!      RES(IRES+45+WADD)=brcharwneut(1,1)+2d0*brnupdb(1,1)+brntopbb(1,1)
-!     .          +brnelnue(1,1)+brnmunumu(1,1)+brntaunut(1,1)  ! BR(cha1 > neu1 W)
-!      RES(IRES+46+WADD)=brcharstau1(1)  ! BR(cha1 ->  stau nutau)
-!      RES(IRES+47+WADD)=2d0*brcharsel(1)  ! BR(cha1 -> sel nu)
 !      RES(IRES+48+WADD)=SIG(1,8)
 !      RES(IRES+49+WADD)=R
 
 !                                             ! wolf - oddballs, then h1/a1, then neu/char
-      RES(IRES+WADD+36)=BRHHH(1)              !        h2>h1h1	!105
-      RES(IRES+WADD+37)=BRHAA(1,1)            !        h1>a1a1	!106
+      RES(IRES+1)=BRHHH(1)                    !        h2>h1h1	!105
+      RES(IRES+2)=BRHAA(1,1)                  !        h1>a1a1	!106
 
-      RES(IRES+WADD+38)=BRJJ(1)              ! wolf - h1>hadrons	!107
-      RES(IRES+WADD+39)=BRJJ(4)              ! wolf - A1>hadr	!108
-      RES(IRES+WADD+40)=BRBB(1)               !        h1>bb	!109
-      RES(IRES+WADD+41)=BRBB(4)              ! wolf - A1>bb	!110
-      RES(IRES+WADD+42)=BRCC(1)              ! wolf - h1>cc	!111
-      RES(IRES+WADD+43)=BRCC(4)              ! wolf - A1>cc	!112
-      RES(IRES+WADD+44)=BRLL(1)               !        h1>tata	!113
-      RES(IRES+WADD+45)=BRLL(4)              ! wolf - A1>tata	!114
-      RES(IRES+WADD+46)=BRMM(1)              ! wolf - h1>mumu	!115
-      RES(IRES+WADD+47)=BRMM(4)              ! wolf - A1>mumu	!116
-      RES(IRES+WADD+48)=BREE(1)              ! wolf - h1>ee	!117
-      RES(IRES+WADD+49)=BREE(4)              ! wolf - A1>ee	!118
-      RES(IRES+WADD+50)=BRGG(1)               !        h1>gamgam	!119
-      RES(IRES+WADD+51)=BRGG(4)              ! wolf - A1>gamgam	!120
-      RES(IRES+WADD+52)=BRNEU(1,1,1)          !        h1>neu1neu1	!121
-      RES(IRES+WADD+53)=BRNEU(4,1,1)          !        a1>neu1neu1	!122
+      RES(IRES+3)=BRJJ(1)               ! wolf - h1>hadrons	!107
+      RES(IRES+4)=BRJJ(4)               ! wolf - A1>hadr	!108
+      RES(IRES+5)=BRBB(1)               !        h1>bb	!109
+      RES(IRES+6)=BRBB(4)               ! wolf - A1>bb	!110
+      RES(IRES+7)=BRCC(1)               ! wolf - h1>cc	!111
+      RES(IRES+8)=BRCC(4)               ! wolf - A1>cc	!112
+      RES(IRES+9)=BRLL(1)               !        h1>tata	!113
+      RES(IRES+10)=BRLL(4)               ! wolf - A1>tata	!114
+      RES(IRES+11)=BRMM(1)               ! wolf - h1>mumu	!115
+      RES(IRES+12)=BRMM(4)               ! wolf - A1>mumu	!116
+      RES(IRES+13)=BREE(1)               ! wolf - h1>ee	!117
+      RES(IRES+14)=BREE(4)               ! wolf - A1>ee	!118
+      RES(IRES+15)=BRGG(1)               !        h1>gamgam	!119
+      RES(IRES+16)=BRGG(4)               ! wolf - A1>gamgam	!120
+      RES(IRES+17)=BRNEU(1,1,1)          !        h1>neu1neu1	!121
+      RES(IRES+18)=BRNEU(4,1,1)          !        a1>neu1neu1	!122
 
-      RES(IRES+WADD+54)=brneutHneut(2,1,1)    ! wolf - neu(2)>h1+neu1	!123
-      RES(IRES+WADD+55)=brneutHneut(2,2,1)    ! wolf - neu(2)>h2+neu1	!124
-      RES(IRES+WADD+56)=brneutAneut(2,1,1)    ! wolf - neu(2)>A1+neu1	!125
-      RES(IRES+WADD+57)=brneutzneut(2,1)      ! wolf - neu(2)> z+neu1	!126
-      RES(IRES+WADD+58)=brneutHneut(3,1,1)    ! wolf - neu(3)>h1+neu1	!127
-      RES(IRES+WADD+59)=brneutHneut(3,2,1)    ! wolf - neu(3)>h2+neu1	!128
-      RES(IRES+WADD+60)=brneutAneut(3,1,1)    ! wolf - neu(3)>A1+neu1	!129
-      RES(IRES+WADD+61)=brneutzneut(3,1)      ! wolf - neu(3)> z+neu1	!130
-      RES(IRES+WADD+62)=brcharwneut(1,1)      ! wolf - cha1>w +neu1	!131
-      RES(IRES+WADD+63)=brcharhcneut(1,1)    ! wolf - cha1>hc+neu1	!132
-      WADD = WADD + WADDBR
+      RES(IRES+19)=brneutHneut(2,1,1)    ! wolf - neu(2)>h1+neu1	!123
+      RES(IRES+20)=brneutHneut(2,2,1)    ! wolf - neu(2)>h2+neu1	!124
+      RES(IRES+21)=brneutAneut(2,1,1)    ! wolf - neu(2)>A1+neu1	!125
+      RES(IRES+22)=brneutzneut(2,1)      ! wolf - neu(2)> z+neu1	!126
+      RES(IRES+23)=brneutHneut(3,1,1)    ! wolf - neu(3)>h1+neu1	!127
+      RES(IRES+24)=brneutHneut(3,2,1)    ! wolf - neu(3)>h2+neu1	!128
+      RES(IRES+25)=brneutAneut(3,1,1)    ! wolf - neu(3)>A1+neu1	!129
+      RES(IRES+26)=brneutzneut(3,1)      ! wolf - neu(3)> z+neu1	!130
+      RES(IRES+27)=brcharwneut(1,1)      ! wolf - cha1>w +neu1	!131
+      RES(IRES+28)=brcharhcneut(1,1)     ! wolf - cha1>hc+neu1	!132
+      IRES = IRES + WADDBR
 
-      RES(IRES+WADD+43)= WIDTH(1)   ! wolf - s1 decay width	!133
-      RES(IRES+WADD+44)= WIDTH(2)   ! wolf - s2 decay width	!134
-      RES(IRES+WADD+45)= WIDTH(4)   ! wolf - p1 decay width	!135
-      RES(IRES+WADD+46)= neuttot(2) ! wolf - neu2 decay width	!136
-      RES(IRES+WADD+47)= neuttot(3) ! wolf - neu3 decay width	!137
-      RES(IRES+WADD+48)= chartot(1) ! wolf - cha1 decay width	!138
-      WADD = WADD + WADDDC
+      RES(IRES+1)= WIDTH(1)   ! wolf - s1 decay width	!133
+      RES(IRES+2)= WIDTH(2)   ! wolf - s2 decay width	!134
+      RES(IRES+3)= WIDTH(4)   ! wolf - p1 decay width	!135
+      RES(IRES+4)= neuttot(2) ! wolf - neu2 decay width	!136
+      RES(IRES+5)= neuttot(3) ! wolf - neu3 decay width	!137
+      RES(IRES+6)= chartot(1) ! wolf - cha1 decay width	!138
+      IRES = IRES + WADDDC
 
-      WRITE(16,11)(RES(I),I=1,NRES+WADD)
+      RES(IRES+1)= GamHhadr   ! wolf - Hhadr partial decay width 	!139
+      RES(IRES+2)= GamAhadr   ! wolf - Ahadr partial decay width 	!140
+
+      RES(IRES+3)= GamH2Pi      ! wolf - 	!141
+      RES(IRES+4)= GamH2PiC     ! wolf - 	!142
+      RES(IRES+5)= GamHPiE      ! wolf - 	!143
+      RES(IRES+6)= GamHPiEP     ! wolf - 	!144
+      RES(IRES+7)= GamH2KC      ! wolf - 	!145
+      RES(IRES+8)= GamH2K0      ! wolf - 	!146
+      RES(IRES+9)= GamH2E       ! wolf - 	!147
+      RES(IRES+10)= GamH2EP      ! wolf - 	!148
+      RES(IRES+11)= GamHEEP      ! wolf - 	!149
+      RES(IRES+12)= GamHss       ! wolf - 	!150
+      RES(IRES+13)= GamHjj       ! wolf - 	!151
+      RES(IRES+14)= GamHchic1p   ! wolf - 	!152
+      RES(IRES+15)= GamHhadrcc   ! wolf - 	!153
+      RES(IRES+16)= GamHchib12p  ! wolf - 	!154
+      RES(IRES+17)= GamHhadrbb   ! wolf - 	!155
+
+      RES(IRES+18)= GamA3Pi      ! wolf - 	!156
+      RES(IRES+19)= GamAPi3PiC   ! wolf - 	!157
+      RES(IRES+20)= GamAEPi3     ! wolf - 	!158
+      RES(IRES+21)= GamAEPiC     ! wolf - 	!159
+      RES(IRES+22)= GamAEPPi3    ! wolf - 	!160
+      RES(IRES+23)= GamAEPPiC    ! wolf - 	!161
+      RES(IRES+24)= GamAPiEE     ! wolf - 	!162
+      RES(IRES+25)= GamAPiEEP    ! wolf - 	!163
+      RES(IRES+26)= GamAPiEPEP   ! wolf - 	!164
+      RES(IRES+27)= GamA3E       ! wolf - 	!165
+      RES(IRES+28)= GamAE2EP     ! wolf - 	!166
+      RES(IRES+29)= GamAEEP2     ! wolf - 	!167
+      RES(IRES+30)= GamA3EP      ! wolf - 	!168
+      RES(IRES+31)= GamAPiKC     ! wolf - 	!169
+      RES(IRES+32)= GamAPiK0     ! wolf - 	!170
+      RES(IRES+33)= GamAPiKCK0   ! wolf - 	!171
+      RES(IRES+34)= GamAEKC      ! wolf - 	!172
+      RES(IRES+35)= GamAEK0      ! wolf - 	!173
+      RES(IRES+36)= GamAEPKC     ! wolf - 	!174
+      RES(IRES+37)= GamAEPK0     ! wolf - 	!175
+      RES(IRES+38)= GamARhogam   ! wolf - 	!176
+      RES(IRES+39)= GamAss       ! wolf -	!177
+      RES(IRES+40)= GamAjj       ! wolf -	!178
+      RES(IRES+41)= GamAetac1s   ! wolf - 	!179
+      RES(IRES+42)= GamAhadrcc   ! wolf - 	!180
+      RES(IRES+43)= GamAetab123s ! wolf - 	!181
+      RES(IRES+44)= GamAhadrbb   ! wolf - 	!182
+      IRES = IRES + WADDPDC
+
+      RES(IRES+1)= GamHGAGA ! wolf i seriously hope this is temp
+      RES(IRES+2)= GamAGAGA
+      IRES=IRES+2
+
+      WRITE(16,11)(RES(I),I=1,IRES)
  11   FORMAT(200E14.6)
 
       END

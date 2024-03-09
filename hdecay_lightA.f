@@ -69,6 +69,9 @@
 * New May 2019:
       DOUBLE PRECISION ZETA2,ZETA3,ASG,AGGQCD2
 * End New
+! wolf hadr components
+      DOUBLE PRECISION temp
+      DOUBLE PRECISION GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb
 
       DOUBLE COMPLEX XC,TC,BC,CC,LC,MC,EC,CH1C,CH2C,CJA,CGA,FGG,CM,LI2
 
@@ -82,13 +85,13 @@
       COMMON/SMSPEC/MS,MCC,MB,MBP,MT,MTAU,MMUON,MZ,MW
       COMMON/SMEXT/MPI0,MEL,MSTRANGE
       COMMON/ALS/XLAMBDA,MC0,MB0,MT0,N0
+! wolf - storing partials in common
       COMMON/LIGHTADECAYS/GamAGAGA,GamAee,GamAmumu,GamAtata,GamAhadr,
-     . GamAcc,GamAbb,GamAinv
-! wolf - storing partial decays in a common as well
-      COMMON/LIGHTADECAYS/GamA3Pi,GamAPi3PiC,GamAEPi3,GamAEPiC,
-     .   GamAEPPi3,GamAEPPiC,GamAPiEE,GamAPiEEP,GamAPiEPEP,GamA3E,
-     .   GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,GamAPiK0,GamAPiKCK0,
-     .   GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,GamARhogam
+     .      GamAcc,GamAbb,GamAinv,GamAjj,GamAss,GamA3Pi,GamAPi3PiC,
+     .      GamAEPi3,GamAEPiC,GamAEPPi3,GamAEPPiC,GamAPiEE,GamAPiEEP,
+     .      GamAPiEPEP,GamA3E,GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,
+     .      GamAPiK0,GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,
+     .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb
 
       CM(X)= DCMPLX(MIN(1d3,X)**2,-EPS/4d0)
       FGG(XC)=2d0*XC
@@ -151,6 +154,46 @@ c     .   + (164.14d0 - 25.77d0*5 + 0.259d0*5**2)*(ASH/PI)**3
       MK0=0.498d0
       MPI8=dsqrt(META**2*DDCOS(THETAE)**2+METAP**2*DDSIN(THETAE)**2)
       MPI9=dsqrt(META**2*DDSIN(THETAE)**2+METAP**2*DDCOS(THETAE)**2)
+! wolf - FORCEd init of these to clear
+      GamAGAGA=0d0
+      GamAee=0d0
+      GamAmumu=0d0
+      GamAtata=0d0
+      GamAhadr=0d0
+      GamAcc=0d0
+      GamAbb=0d0
+      GamAinv(1)=0d0
+      GamAinv(2)=0d0
+      GamAinv(3)=0d0
+      GamAjj=0d0
+      GamAss=0d0
+      GamAetac1s=0d0
+      GamAetab123s=0d0
+      GamAhadrcc=0d0
+      GamAhadrbb=0d0
+      GamAhadr=0d0
+! wolf - reinitialize gamamesons
+      GamA3Pi=0d0
+      GamAPi3PiC=0d0
+      GamAEPi3=0d0
+      GamAEPiC=0d0
+      GamAEPPi3=0d0
+      GamAEPPiC=0d0
+      GamAPiEE=0d0
+      GamAPiEEP=0d0
+      GamAPiEPEP=0d0
+      GamA3E=0d0
+      GamAE2EP=0d0
+      GamAEEP2=0d0
+      GamA3EP=0d0
+      GamAPiKC=0d0
+      GamAPiK0=0d0
+      GamAPiKCK0=0d0
+      GamAEKC=0d0
+      GamAEK0=0d0
+      GamAEPKC=0d0
+      GamAEPK0=0d0
+      GamARhogam=0d0
 
 C       Coupling to photons / gluons
 
@@ -252,7 +295,6 @@ C       Decay to light neutralinos
 
 C       Mixing with mesons [1612.06538[hep-ph]]
 
-      GamAhadr=0d0
 
       IF(MA.lt.4d0)then
 
@@ -614,6 +656,7 @@ C   Effective yukawas
       YUE=MPI**2*CU(4)*DSQRT(2d0*dsqrt(2d0)*GF/3d0)/FPI
       YDE=MPI**2*CD(4)*DSQRT(2d0*dsqrt(2d0)*GF/3d0)/FPI
       YSE=(MKC**2+MK0**2-MPI**2)*CD(4)*DSQRT(2d0*dsqrt(2d0)*GF/3d0)/FPI
+
 
 C  * A -> 3Pi0
       IF(MA.lt.1.1d0)then
@@ -1138,8 +1181,11 @@ c      IF(MA.gt.2d0.and.MA.lt.2d0*MTAU)THEN
         CMIX=datan(2d0*DMC
      .        /(MA**2-METAC**2+dsqrt((MA**2-METAC**2)**2+4d0*DMC**2)))
        ENDIF
+       temp=GamAhadr
+       GamAetac1s=0d0
        IF(DDCOS(CMIX)**2.gt.DDSIN(CMIX)**2)then
         GamAhadr=GamAhadr*DDCOS(CMIX)**2+31.8d-3*aux*DDSIN(CMIX)**2
+        GamAetac1s=GamAhadr-temp
         GamAee=GamAee*DDCOS(CMIX)**2
         GamAmumu=GamAmumu*DDCOS(CMIX)**2
         GamAtata=GamAtata*DDCOS(CMIX)**2
@@ -1148,6 +1194,7 @@ c      IF(MA.gt.2d0.and.MA.lt.2d0*MTAU)THEN
         GamAinv=GamAinv*DDCOS(CMIX)**2
        ELSE
         GamAhadr=GamAhadr*DDSIN(CMIX)**2+31.8d-3*aux*DDCOS(CMIX)**2
+        GamAetac1s=GamAhadr-temp
         GamAee=GamAee*DDSIN(CMIX)**2
         GamAmumu=GamAmumu*DDSIN(CMIX)**2
         GamAtata=GamAtata*DDSIN(CMIX)**2
@@ -1175,7 +1222,7 @@ c Test eta_c(1S)->2gamma remains within 15% of the experimental value:
 C       A -> cc decays
 
       MD=1.865d0
-
+      GamAhadrcc=0d0
       IF(MA.LE.2d0*MD+MPI)THEN
        GamAcc= 0d0
       ELSE
@@ -1203,9 +1250,11 @@ C       A -> cc decays
      .                 +1d0-((50d0-MA)/(50d0-(2d0*MD+MPI)))**2)
 
 * New July 2019:
-        GamAhadr=GamAhadr+DCC*dsqrt(1d0-4d0*MCC**2/MA**2)
+        GamAhadrcc=DCC*dsqrt(1d0-4d0*MCC**2/MA**2)
      . *(dsqrt(1d0-(2d0*MD+MPI)**2/MA**2)
      . *(KinAPiDD(MA)-1d0)*((50d0-MA)/(50d0-(2d0*MD+MPI)))**2+1d0)
+
+        GamAhadr=GamAhadr+GamAhadrcc
 * End new
        ENDIF
       ENDIF
@@ -1255,10 +1304,12 @@ c      IF(MA.gt.4d0.and.MA.lt.2d0*5.2795d0+MPI)THEN
        DO K=INDEB1,4
         IF(dabs(OMIX(INDEB1,1))**2.lt.dabs(OMIX(K,1))**2)INDEB1=K
        ENDDO
-
+       GamAetab123s=0d0
        aux=Max(0d0,min(1d0,MA/2d0-1.5d0))
+       temp=GamAhadr
        GamAhadr=GamAhadr*OMIX(INDA,4)**2+aux*(11.8d-3*OMIX(INDA,1)**2
      .                 +5.4d-3*OMIX(INDA,2)**2+3.9d-3*OMIX(INDA,3)**2)
+       GamAetab123s=GamAhadr-temp
        GamAee=GamAee*OMIX(INDA,4)**2
        GamAmumu=GamAmumu*OMIX(INDA,4)**2
        GamAtata=GamAtata*OMIX(INDA,4)**2
@@ -1284,7 +1335,7 @@ c Test leptonic eta_b(1S) BR
 C       A -> bb decays
 
       MBm=5.2795d0
-
+      GamAhadrbb=0d0
       IF(MA.LE.2d0*MBm+MPI)THEN
        GamAbb= 0d0
       ELSE
@@ -1316,9 +1367,10 @@ C       A -> bb decays
      .                 +1d0-((50d0-MA)/(50d0-(2d0*MBm+MPI)))**2)
 
 * New July 2019:
-        GamAhadr=GamAhadr+DBB*dsqrt(1d0-4d0*(MBP/MA)**2)
+        GamAhadrbb=DBB*dsqrt(1d0-4d0*(MBP/MA)**2)
      . *(dsqrt(1d0-(2d0*MBm+MPI)**2/MA**2)
      . *(KinAPiBB(MA)-1d0)*((50d0-MA)/(50d0-(2d0*MBm+MPI)))**2+1d0)
+        GamAhadr=GamAhadr+GamAhadrbb
 * End new
        ENDIF
       ENDIF

@@ -1053,17 +1053,17 @@
      .      BRZTTmax,ratio,deltaratio,S2TWeffTau,deltaS2TWeffTau,
      .      S2TWeffSM
 ! wolf - adding lightadecays
-      DOUBLE PRECISION GamAGAGA,GamAee,GamAmumu,GamAtata,GamAhadr,
-     . GamAcc,GamAbb
-      DOUBLE PRECISION GamA3Pi,GamAPi3PiC,GamAEPi3,GamAEPiC,
-     .   GamAEPPi3,GamAEPPiC,GamAPiEE,GamAPiEEP,GamAPiEPEP,
-     .   GamA3E,GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,GamAPiK0,
-     .   GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,GamARhogam
-! wolf - adding lighthdecays
       DOUBLE PRECISION GamHGAGA,GamHee,GamHmumu,GamHtata,GamHhadr,
-     . GamHcc,GamHbb,GamHinv(3),GamHWW,GamHZZ,GamHAA
-      DOUBLE PRECISION GamH2Pi,GamH2PiC,GamHPiE,GamHPiEP,GamH2KC,
-     . GamH2K0,GamH2E,GamH2EP,GamHEEP
+     .      GamHcc,GamHbb,GamHinv(3),GamHWW,GamHZZ,GamHAA,GamH2Pi,
+     .      GamH2PiC,GamHPiE,GamHPiEP,GamH2KC,GamH2K0,GamH2E,GamH2EP,
+     .      GamHEEP,GamHss,GamHjj,GamHchic1p,GamHchib12p,GamHhadrcc,
+     .      GamHhadrbb
+      DOUBLE PRECISION GamAGAGA,GamAee,GamAmumu,GamAtata,GamAhadr,
+     .      GamAcc,GamAbb,GamAinv(3),GamAjj,GamAss,GamA3Pi,GamAPi3PiC,
+     .      GamAEPi3,GamAEPiC,GamAEPPi3,GamAEPPiC,GamAPiEE,GamAPiEEP,
+     .      GamAPiEPEP,GamA3E,GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,
+     .      GamAPiK0,GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,
+     .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb
       COMMON/EWPO/MWNMSSM,dumw,dMW0,DrNMSSM,MWSM,dMWSM,decztt,
      .      deltadecztt,deczee,deltadeczee,BRZTauTau,BRZTTmin,
      .      BRZTTmax,ratio,deltaratio,S2TWeffTau,deltaS2TWeffTau,
@@ -1142,18 +1142,18 @@
       COMMON/FILES/PAT,IFILE,OFILE,EFILE,TFILE,SFILE
       COMMON/SMODELS/R,CHAN
       COMMON/PDGHIGGS/PDGH1,PDGH2
-! wolf - adding lightadecays
-      COMMON/LIGHTADECAYS/GamAGAGA,GamAee,GamAmumu,GamAtata,GamAhadr,
-     . GamAcc,GamAbb
-      COMMON/LIGHTADECAYS/GamA3Pi,GamAPi3PiC,GamAEPi3,GamAEPiC,
-     .   GamAEPPi3,GamAEPPiC,GamAPiEE,GamAPiEEP,GamAPiEPEP,
-     .   GamA3E,GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,GamAPiK0,
-     .   GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,GamARhogam
-! wolf - adding lighthdecays
+! wolf Added these light decay widths
       COMMON/LIGHTHDECAYS/GamHGAGA,GamHee,GamHmumu,GamHtata,GamHhadr,
-     . GamHcc,GamHbb,GamHinv,GamHWW,GamHZZ,GamHAA
-      COMMON/LIGHTHDECAYS/GamH2Pi,GamH2PiC,GamHPiE,GamHPiEP,GamH2KC,
-     . GamH2K0,GamH2E,GamH2EP,GamHEEP
+     .      GamHcc,GamHbb,GamHinv,GamHWW,GamHZZ,GamHAA,GamH2Pi,
+     .      GamH2PiC,GamHPiE,GamHPiEP,GamH2KC,GamH2K0,GamH2E,GamH2EP,
+     .      GamHEEP,GamHss,GamHjj,GamHchic1p,GamHchib12p,GamHhadrcc,
+     .      GamHhadrbb
+      COMMON/LIGHTADECAYS/GamAGAGA,GamAee,GamAmumu,GamAtata,GamAhadr,
+     .      GamAcc,GamAbb,GamAinv,GamAjj,GamAss,GamA3Pi,GamAPi3PiC,
+     .      GamAEPi3,GamAEPiC,GamAEPPi3,GamAEPPiC,GamAPiEE,GamAPiEEP,
+     .      GamAPiEPEP,GamA3E,GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,
+     .      GamAPiK0,GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,
+     .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb
 
       OPEN(16,FILE=OFILE,STATUS='UNKNOWN')
       IF(OMGFLAG.NE.0)OPEN(17,FILE=EFILE,STATUS='UNKNOWN')
@@ -2281,6 +2281,7 @@ c      WRITE(16,917) " X(2)",(CB(2)/CL(2))**2
 
       WRITE(16,899) "#           PDG          Width"
       WRITE(16,904) PDGH1,WIDTH(1),"Lightest neutral Higgs scalar"
+      WRITE(16,*) " MASS: ", SMASS(1)
       IF(BRJJ(1).GT.0d0)THEN
        WRITE(16,905) BRJJ(1),2,21,21,"BR(H_1 -> hadrons)"
        WRITE(16,*) GamHhadr, "                      # GamHhadr"
@@ -2288,14 +2289,20 @@ c      WRITE(16,917) " X(2)",(CB(2)/CL(2))**2
 !      GamHhadr=GamH2Pi+GamH2PiC+GamHPiE+GamHPiEP+GamH2KC+GamH2K0
 !     .         +GamH2E+GamH2EP+GamHEEP
        WRITE(16,*) "    ", GamH2Pi, "                  # = GamH2Pi"
-       WRITE(16,*) "    ", GamH2PiC, "                  # + GamH2PiC"
-       WRITE(16,*) "    ", GamHPiE, "                  # + GamHPiE"
-       WRITE(16,*) "    ", GamHPiEP, "                  # + GamHPiEP"
-       WRITE(16,*) "    ", GamH2KC, "                  # + GamH2KC"
-       WRITE(16,*) "    ", GamH2K0, "                  # + GamH2K0"
-       WRITE(16,*) "    ", GamH2E, "                  # + GamH2E"
-       WRITE(16,*) "    ", GamH2EP, "                  # + GamH2EP"
-       WRITE(16,*) "    ", GamHEEP, "                  # + GamHEEP"
+       WRITE(16,*) "    ", GamH2PiC, "                  #   GamH2PiC"
+       WRITE(16,*) "    ", GamHPiE, "                  #   GamHPiE"
+       WRITE(16,*) "    ", GamHPiEP, "                  #   GamHPiEP"
+       WRITE(16,*) "    ", GamH2KC, "                  #   GamH2KC"
+       WRITE(16,*) "    ", GamH2K0, "                  #   GamH2K0"
+       WRITE(16,*) "    ", GamH2E, "                  #   GamH2E"
+       WRITE(16,*) "    ", GamH2EP, "                  #   GamH2EP"
+       WRITE(16,*) "    ", GamHEEP, "                  #   GamHEEP"
+       WRITE(16,*) "    ", GamHss, "                  #   GamHss"
+       WRITE(16,*) "    ", GamHjj, "                  #   GamHjj"
+       WRITE(16,*) "    ", GamHchic1p, "              #   GamHchic1p"
+       WRITE(16,*) "    ", GamHhadrcc, "              #   GamHhadrcc"
+       WRITE(16,*) "    ", GamHchib12p, "              #   GamHchib12p"
+       WRITE(16,*) "    ", GamHhadrbb, "              #   GamHhadrbb"
       ENDIF
       IF(BREE(1).GT.0d0)THEN
        WRITE(16,905) BREE(1),2,11,-11,"BR(H_1 -> e- e+)"
@@ -2856,6 +2863,7 @@ c      WRITE(16,917) " X(2)",(CB(2)/CL(2))**2
 ! wolf - p1 decay p1 dcinfo
 ! wolf - added partial width partial decay width
       WRITE(16,904) 36,WIDTH(4),"Lightest pseudoscalar"
+      WRITE(16,*) " MASS: ", AMASS(1)
       IF(BRJJ(4).GT.0d0)THEN
        WRITE(16,905) BRJJ(4),2,21,21,"BR(A_1 -> hadrons)"
 ! wolf - total hadronic decays from hdecay_lightA.f
@@ -2864,27 +2872,33 @@ c      WRITE(16,917) " X(2)",(CB(2)/CL(2))**2
 !     .   +GamA3EP+GamAPiKC+GamAPiK0+GamAPiKCK0+GamAEKC+GamAEK0
 !     .   +GamAEPKC+GamAEPK0+GamARhogam
        WRITE(16,*) "    ", GamAhadr, "                  # GamAhadr"
-       WRITE(16,*) "    ", GamA3Pi, "                  # = GamA3Pi"
-       WRITE(16,*) "    ",GamAPi3PiC,"                  # + GamAPi3PiC"
-       WRITE(16,*) "    ", GamAEPi3, "                  # + GamAEPi3"
-       WRITE(16,*) "    ", GamAEPiC, "                  # + GamAEPiC"
-       WRITE(16,*) "    ", GamAEPPi3, "                  # + GamAEPPi3"
-       WRITE(16,*) "    ", GamAEPPiC, "                  # + GamAEPPiC"
-       WRITE(16,*) "    ", GamAPiEE, "                  # + GamAPiEE"
-       WRITE(16,*) "    ", GamAPiEEP, "                  # + GamAPiEEP"
-       WRITE(16,*) "    ",GamAPiEPEP,"                  # + GamAPiEPEP"
-       WRITE(16,*) "    ", GamA3E, "                  # + GamA3E"
-       WRITE(16,*) "    ", GamAE2EP, "                  # + GamAE2EP"
-       WRITE(16,*) "    ", GamAEEP2, "                  # + GamAEEP2"
-       WRITE(16,*) "    ", GamA3EP, "                  # + GamA3EP"
-       WRITE(16,*) "    ", GamAPiKC, "                  # + GamAPiKC"
-       WRITE(16,*) "    ", GamAPiK0, "                  # + GamAPiK0"
-       WRITE(16,*) "    ",GamAPiKCK0,"                  # + GamAPiKCK0"
-       WRITE(16,*) "    ", GamAEKC, "                  # + GamAEKC"
-       WRITE(16,*) "    ", GamAEK0, "                  # + GamAEK0"
-       WRITE(16,*) "    ", GamAEPKC, "                  # + GamAEPKC"
-       WRITE(16,*) "    ", GamAEPK0, "                  # + GamAEPK0"
-       WRITE(16,*) "    ",GamARhogam,"                  # + GamARhogam"
+       WRITE(16,*) "    ", GamA3Pi, "                  #   GamA3Pi"
+       WRITE(16,*) "    ",GamAPi3PiC,"                  #   GamAPi3PiC"
+       WRITE(16,*) "    ", GamAEPi3, "                  #   GamAEPi3"
+       WRITE(16,*) "    ", GamAEPiC, "                  #   GamAEPiC"
+       WRITE(16,*) "    ", GamAEPPi3, "                  #   GamAEPPi3"
+       WRITE(16,*) "    ", GamAEPPiC, "                  #   GamAEPPiC"
+       WRITE(16,*) "    ", GamAPiEE, "                  #   GamAPiEE"
+       WRITE(16,*) "    ", GamAPiEEP, "                  #   GamAPiEEP"
+       WRITE(16,*) "    ",GamAPiEPEP,"                  #   GamAPiEPEP"
+       WRITE(16,*) "    ", GamA3E, "                  #   GamA3E"
+       WRITE(16,*) "    ", GamAE2EP, "                  #   GamAE2EP"
+       WRITE(16,*) "    ", GamAEEP2, "                  #   GamAEEP2"
+       WRITE(16,*) "    ", GamA3EP, "                  #   GamA3EP"
+       WRITE(16,*) "    ", GamAPiKC, "                  #   GamAPiKC"
+       WRITE(16,*) "    ", GamAPiK0, "                  #   GamAPiK0"
+       WRITE(16,*) "    ",GamAPiKCK0,"                  #   GamAPiKCK0"
+       WRITE(16,*) "    ", GamAEKC, "                  #   GamAEKC"
+       WRITE(16,*) "    ", GamAEK0, "                  #   GamAEK0"
+       WRITE(16,*) "    ", GamAEPKC, "                  #   GamAEPKC"
+       WRITE(16,*) "    ", GamAEPK0, "                  #   GamAEPK0"
+       WRITE(16,*) "    ",GamARhogam,"                  #   GamARhogam"
+       WRITE(16,*) "    ", GamAss, "                  #   GamAss"
+       WRITE(16,*) "    ", GamAjj, "                  #   GamAjj"
+       WRITE(16,*) "    ",GamAetac1s, "              #   GamAetac1s"
+       WRITE(16,*) "    ",GamAhadrcc, "              #   GamAhadrcc"
+       WRITE(16,*) "    ",GamAetab123s, "             #   GamAetab123s"
+       WRITE(16,*) "    ",GamAhadrbb, "              #   GamAhadrbb"
       ENDIF
       IF(BREE(4).GT.0d0)THEN
        WRITE(16,905) BREE(4),2,11,-11,"BR(A_1 -> e- e+)"

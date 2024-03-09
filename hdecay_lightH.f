@@ -46,6 +46,8 @@
       DOUBLE PRECISION IFssEtaEtaFit,RFqqKKFit,IFqqKKFit
       DOUBLE PRECISION RFudKKFit,IFudKKFit,RFssKKFit,IFssKKFit
 * End New
+! wolf New adding these
+      DOUBLE PRECISION temp,GamHchic1p,GamHchib12p,GamHhadrcc,GamHhadrbb
 
       DOUBLE COMPLEX XC,TC,BC,CC,LC,MC,EC,CH1C,CH2C,WC,HC,PropI,PropII
       DOUBLE COMPLEX ULC,URC,DLC,DRC,T1C,T2C,B1C,B2C,LLC,LRC,L1C,L2C
@@ -69,11 +71,12 @@
       COMMON/QEXT/XIF,XIS,MUP,MSP,M3H
       COMMON/STSBSCALE/QSTSB
       COMMON/VFLAG/VFLAG
+! wolf - adding GamH2Pi--GamHjj to nmhdecay & --Hhadrbb to _rand
       COMMON/LIGHTHDECAYS/GamHGAGA,GamHee,GamHmumu,GamHtata,GamHhadr,
-     . GamHcc,GamHbb,GamHinv,GamHWW,GamHZZ,GamHAA
-! wolf - adding these to out in nmhdecay
-      COMMON/LIGHTHDECAYS/GamH2Pi,GamH2PiC,GamHPiE,GamHPiEP,GamH2KC,
-     . GamH2K0,GamH2E,GamH2EP,GamHEEP
+     .      GamHcc,GamHbb,GamHinv,GamHWW,GamHZZ,GamHAA,GamH2Pi,
+     .      GamH2PiC,GamHPiE,GamHPiEP,GamH2KC,GamH2K0,GamH2E,GamH2EP,
+     .      GamHEEP,GamHss,GamHjj,GamHchic1p,GamHchib12p,GamHhadrcc,
+     .      GamHhadrbb
 
       CM(X)= DCMPLX(MIN(1d3,X)**2,-EPS/4d0)
       F0(XC)=-CDLOG((CDSQRT(1d0-4d0*XC)-1d0)
@@ -358,6 +361,16 @@ c       Decay to W*W*/Z*Z*
 C       Hadronic decays
 
       GamHhadr=0d0
+! wolf - reinitialize gamhmesons
+      GamH2Pi=0d0
+      GamH2PiC=0d0
+      GamHPiE=0d0
+      GamHPiEP=0d0
+      GamH2KC=0d0
+      GamH2K0=0d0
+      GamH2E=0d0
+      GamH2EP=0d0
+      GamHEEP=0d0
 
 C   Initializing the strong coupling constant and running masses
       IF(MH.ge.1.5d0)then
@@ -656,7 +669,10 @@ C       Light-quark and gluon decays
 C       Mixing with the chi_c(1P)  - hep-ph/9503356
 
       MCHIC=3.41475d0
-      DMC=dsqrt(27d0*dsqrt(2d0)/Pi*GF*MCHIC*0.1d0)*CU(1)    !0.007d0*CU(1)
+      DMC=dsqrt(27d0*dsqrt(2d0)/Pi*GF*MCHIC*0.1d0)*CU(1) !0.007d0*CU(1)
+      temp=0d0
+      GamHchic1p=0d0
+      temp=GamHhadr   
 
 c      IF(MH.gt.2d0.and.MH.lt.2d0*MTAU)THEN
        CMIX=0d0
@@ -665,16 +681,18 @@ c      IF(MH.gt.2d0.and.MH.lt.2d0*MTAU)THEN
         CMIX=datan(2d0*DMC
      .        /(MH**2-MCHIC**2+dsqrt((MH**2-MCHIC**2)**2+4d0*DMC**2)))
        ENDIF
-       IF(DDCOS(CMIX)**2.gt.DDSIN(CMIX)**2)then
+       IF(DDCOS(CMIX)**2.gt.DDSIN(CMIX)**2)then ! cos(mix) means mh far from mchic
         GamHhadr=GamHhadr*DDCOS(CMIX)**2+10.5d-3*aux*DDSIN(CMIX)**2
+        GamHchic1p=GamHhadr-temp
         GamHee=GamHee*DDCOS(CMIX)**2
         GamHmumu=GamHmumu*DDCOS(CMIX)**2
         GamHtata=GamHtata*DDCOS(CMIX)**2
         GamHgaga=GamHgaga*DDCOS(CMIX)**2+10.5d-3*2.23d-4*aux
      .                                                 *DDSIN(CMIX)**2
         GamHinv=GamHinv*DDCOS(CMIX)**2
-       ELSE
+       ELSE ! sin(mix) larger means mh~mchic, resonance in denom
         GamHhadr=GamHhadr*DDSIN(CMIX)**2+10.5d-3*aux*DDCOS(CMIX)**2
+        GamHchic1p=GamHhadr-temp
         GamHee=GamHee*DDSIN(CMIX)**2
         GamHmumu=GamHmumu*DDSIN(CMIX)**2
         GamHtata=GamHtata*DDSIN(CMIX)**2
@@ -687,7 +705,7 @@ c      ENDIF
 C       H -> cc decays
 
       MD=1.865d0
-
+      GamHhadrcc=0d0
       IF(MH.LE.2d0*MD)THEN
        GamHcc= 0d0
       ELSE
@@ -714,10 +732,12 @@ C       H -> cc decays
      .  (dsqrt(1d0-4d0*MD**2/MH**2)/dsqrt(1d0-4d0*MCC**2/MH**2))**3
      .  +(MH-2d0*MD)/(50d0-2d0*MD))
 * New July 2019:
-        GamHhadr=GamHhadr+DCC*
+        GamHhadrcc=DCC*
      .  ((1d0-4d0*(MCC/MH)**2)*(1d0-(MH-2d0*MD)/(50d0-2d0*MD))*
      .  (dsqrt(1d0-4d0*MD**2/MH**2)/dsqrt(1d0-4d0*MCC**2/MH**2))**3
      .  +(MH-2d0*MD)/(50d0-2d0*MD))
+
+        GamHhadr=GamHhadr+GamHhadrcc
 * End new
        ENDIF
       ENDIF
@@ -756,8 +776,11 @@ c      IF(MH.gt.4d0.and.MH.lt.2d0*5.2795d0)THEN
        ENDDO
 c chi_b widths from 1601.05093
        aux=Max(0d0,min(1d0,MH/2d0-1.5d0))
+       temp=GamHhadr
+       GamHchib12p=0d0
        GamHhadr=GamHhadr*OMIX(INDH,3)**2+aux*(2.03d-3*OMIX(INDH,1)**2
      .                                       +2.39d-3*OMIX(INDH,2)**2)
+       GamHchib12p=GamHhadr-temp
        GamHee=GamHee*OMIX(INDH,3)**2
        GamHmumu=GamHmumu*OMIX(INDH,3)**2
        GamHtata=GamHtata*OMIX(INDH,3)**2
@@ -771,7 +794,7 @@ c      ENDIF
 C       H -> bb decays
 
       MBm=5.2795d0
-
+      GamHhadrbb=0d0
       IF(MH.LE.2d0*MBm)THEN
        GamHbb= 0d0
       ELSE
@@ -805,10 +828,11 @@ C       H -> bb decays
      .  (dsqrt(1d0-4d0*MBm**2/MH**2)/dsqrt(1d0-4d0*MBP**2/MH**2))**3
      .  +(MH-2d0*MBm)/(50d0-2d0*MBm))
 * New July 2019:
-        GamHhadr=GamHhadr+DBB*
+        GamHhadrbb=DBB*
      .  ((1d0-4d0*(MBP/MH)**2)*(1d0-(MH-2d0*MBm)/(50d0-2d0*MBm))*
      .  (dsqrt(1d0-4d0*MBm**2/MH**2)/dsqrt(1d0-4d0*MBP**2/MH**2))**3
      .  +(MH-2d0*MBm)/(50d0-2d0*MBm))
+        GamHhadr=GamHhadr+GamHhadrbb
 * End new
        ENDIF
       ENDIF

@@ -196,9 +196,9 @@
       COMMON/QEXT/XIF,XIS,MUP,MSP,M3H
       COMMON/VFLAG/VFLAG
       COMMON/LIGHTADECAYS/GamAGAGA,GamAee,GamAmumu,GamAtata,GamAhadr,
-     . GamAcc,GamAbb,GamAinv
+     .      GamAcc,GamAbb,GamAinv
       COMMON/LIGHTHDECAYS/GamHGAGA,GamHee,GamHmumu,GamHtata,GamHhadr,
-     . GamHcc,GamHbb,GamHinv,GamHWW,GamHZZ,GamHAA
+     .      GamHcc,GamHbb,GamHinv,GamHWW,GamHZZ,GamHAA
 
       QQINT(RAT,X,Y)= RAT**2*X+(1d0-RAT**2)*Y
       BETA(X)= DSQRT(1d0-4d0*X)
