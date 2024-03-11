@@ -14,7 +14,7 @@ import gc
 ## currently have CMYK automatically set as True, not needed in arguments
 argv = sys.argv
 
-DEBUG_MODE = 1		#enables print statements used for tracking
+DEBUG_MODE = 0		#enables print statements used for tracking
 MASSTRKFILE = 0		#enables tracking masses near LHC and of light s/o
 MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
 BENCH_CHECK = 0
@@ -23,8 +23,8 @@ DO_PARAM = 0
 DO_MASS = 0
 DO_COMP = 0
 DO_HEAT = 0
-DO_COUP = 1
-DO_BR = 0
+DO_COUP = 0
+DO_BR = 1
 DO_DC = 0
 DO_MISC = 0
 DO_REPL = 0
@@ -840,6 +840,48 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		plt.savefig("{}/{}/BR/p1 BRs 10G.png".format(DIR,save_dir_name),dpi=DPI)
 		plt.close()
 		
+		######### TO PLOT BR PER CHANNEL OF P1 BUT IN DIFFERENT RANGES OF TANB ##########
+
+		print(Time(),"Starting p1 BRs by channel (tanB slices)")
+
+		for (tanbmin,tanbmax) in [(2,5),(5,10),(10,50)]:
+			pltctr+=1
+			plt.figure(pltctr)
+			plt.scatter(	[r[36] for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)],
+				[ sum([r[brix] for (br,brix) in p1_brs]) for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)] ,
+				label="br sum", color="black", alpha=1, s=10, marker="_")
+			for i,(br,brix) in enumerate(p1_brs):
+				plt.scatter( [r[36] for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)], [r[brix] for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)],
+					label=br[3:], alpha=1,s=1,marker=',',linewidths=0)
+			plt.title(save_dir_name+" : p1 BR per channel v p1mass tanB {}-{}".format(tanbmin,tanbmax))
+			plt.xlabel("p1mass")
+			plt.ylabel("BR per channel")
+			plt.yscale("log")
+			plt.ylim(1E-9,1.5)
+			leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=int((len(p1_brs)/2+1)),columnspacing=0.7,frameon=False)
+			for x in range(len(p1_brs)+1): leg.legend_handles[x]._sizes = [10]
+			plt.savefig("{}/{}/BR/p1 BRs tanB {}-{}.png".format(DIR,save_dir_name,tanbmin,tanbmax),dpi=DPI)
+			plt.yscale("linear")
+			plt.ylim(-.02,1.02)
+			plt.savefig("{}/{}/BR/p1 BRs tanb {}-{} lin-y.png".format(DIR,save_dir_name,tanbmin,tanbmax),dpi=DPI)
+			plt.yscale("log")
+			plt.ylim(1E-9,1.5)
+			plt.xlim(P1MMIN,P1MMAX)
+			plt.xscale("log")
+			plt.savefig("{}/{}/BR/p1 BRs tanb {}-{} zoom.png".format(DIR,save_dir_name,tanbmin,tanbmax),dpi=DPI)
+			plt.ylim(0.005,2)	# copying LSAF plot
+			plt.xlim(0.100,10.0)
+			plt.xscale("log")
+			plt.savefig("{}/{}/BR/p1 BRs tanb {}-{} LSAF match.png".format(DIR,save_dir_name,tanbmin,tanbmax),dpi=DPI)
+			plt.xlim(P1MMIN,P1MMAX)	# return to not-LSAF xwindow
+			plt.yscale("linear")
+			plt.ylim(-.02,1.02)
+			plt.savefig("{}/{}/BR/p1 BRs tanb {}-{} zoom lin-y.png".format(DIR,save_dir_name,tanbmin,tanbmax),dpi=DPI)
+
+		######### ENDING  BR PER CHANNEL OF P1 BUT IN DIFFERENT RANGES OF TANB ##########
+
+
+
 	if False: # to keep the text below but not do it
 		print(Time(),"Starting neu2 BRs by channel") ##################################################
 		pltctr+=1
@@ -923,7 +965,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		plt.savefig("{}/{}/BR/neu3 BR sums.png".format(DIR,save_dir_name),dpi=DPI)
 		plt.close()
 
-	if DO_DC:
+	if DO_DC and False: # to skip to back of DC =- extremely temp
 		print(Time(),"Doing decay width plots") ##################################################
 		dc_masses = [	("s1mass",24,S1MMIN,S1MMAX),("s2mass",28,0,0),("p1mass",36,P1MMIN,P1MMAX),
 				("neu2mass",50,0,0),("neu3mass",56,0,0),("cha1mass",74,0,0)	]
@@ -1240,7 +1282,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		for (gamA,gix) in Apdc_list:
 			if (gix >= 156 and gix <= 176):
 				plt.scatter(	[r[36] for r in master_list[-1]],
-					[ r[gix]*(1-(r[36]-3)/abs(r[36]-3))/2 for r in master_list[-1]],	#crop at 3G
+					[ r[gix]*(1-(r[36]-3.0001)/abs(r[36]-3.0001))/2 for r in master_list[-1]],	#crop at 3G
 				#	[ r[gix]*min(max((4-r[36]),0),1) for r in master_list[-1]],	#blend thru 3-4G
 					label=gamA[4:], alpha=1,s=4,marker='>',linewidths=0)
 			if (gix >= 177 and gix <= 178):
@@ -1268,6 +1310,62 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		plt.xscale("linear")
 		plt.savefig("{}/{}/DC/p1 hadr pdws 3G.png".format(DIR,save_dir_name),dpi=DPI)
 		plt.close()		
+
+	if DO_DC and True:
+		########### START A(2HDM) CONVERTED DECAY WIDTHS ##############
+
+		print(Time(),"Starting A(2HDM) pdws by channel") ########## A2HDM BY CHANNEL
+		for i,(br,brix) in enumerate(p1_brs):	#### INDIVIDUALLY, THEN STACKED
+			pltctr+=1
+			plt.figure(pltctr)
+			plt.grid(visible=True, which="both",axis="x",alpha=.5,lw=1)
+			plt.scatter( 	[r[36] for r in master_list[-1]],
+					[r[brix]*r[135]/(r[37]**2) for r in master_list[-1]],
+					alpha=1,s=1,marker=',',linewidths=0)
+			plt.title(save_dir_name+" : A(2HDM) {} pdw v p1mass".format(br[6:]))
+			plt.xlabel("p1mass")
+			plt.ylabel("GamA(2HDM){}".format(br[6:]))
+			plt.yscale("log")
+			plt.xscale("log")
+			plt.savefig("{}/{}/DC/pdw/A(2HDM) {} pdw v p1mass.png".format(DIR,save_dir_name,br[6:]),dpi=DPI)
+			plt.xlim(0.1,10)
+			plt.ylim(1E-24,1E-2)
+			plt.savefig("{}/{}/DC/pdw/A(2HDM) {} pdw v p1mass LSAF match.png".format(DIR,save_dir_name,br[6:]),dpi=DPI)
+			plt.close()
+
+		for (gamA,gix) in Apdc_list:		#### INDIVIDUAL A(2HDM) HADRONICS
+			pltctr+=1
+			plt.figure(pltctr)
+			plt.grid(visible=True, which="both",axis="x",alpha=.5,lw=1)
+			plt.scatter(	[r[36] for r in master_list[-1]],
+					[r[140]/(r[37]**2) for r in master_list[-1]],
+					color="b",alpha=1,s=4,marker='_',label="GamA(2HDM)hadr")
+			if gamA != "GamAhadr":
+				if 156<=gix and gix<=176:
+					gamAfiltered=[max(min( 4-r[36],1),0)*r[gix]/(r[37]**2) for r in master_list[-1]]
+				elif 177<=gix and gix<=178:
+					gamAfiltered=[min(max(-3+r[36],0),1)*r[gix]/(r[37]**2) for r in master_list[-1]]
+				elif 179<=gix and gix<=182:
+					gamAfiltered=[r[gix]/(r[37]**2) for r in master_list[-1]]
+				plt.scatter( 	[r[36] for r in master_list[-1]], gamAfiltered,
+						color="r",alpha=1,s=3,marker=',',linewidths=0,label=gamA)
+				leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=2,columnspacing=0.6,frameon=False,fontsize=6)
+				for x in range(2): leg.legend_handles[x]._sizes = [10]
+			plt.title(save_dir_name+" : GamA(2HDM){} v p1mass".format(gamA[4:]))
+			plt.xlabel("p1mass")
+			plt.ylabel("GamA(2HDM){}".format(gamA[4:]))
+			plt.yscale("log")
+			plt.xscale("log")
+			plt.savefig("{}/{}/DC/pdw hadr/GamA(2HDM){} v p1mass.png".format(DIR,save_dir_name,gamA[4:]),dpi=DPI)
+			plt.xlim(P1MMIN,P1MMAX)
+			plt.savefig("{}/{}/DC/pdw hadr/GamA(2HDM){} v p1mass zoom..png".format(DIR,save_dir_name,gamA[4:]),dpi=DPI)
+			plt.xlim(0.1,10)
+			plt.ylim(1E-24,1E-2)
+			plt.savefig("{}/{}/DC/pdw hadr/GamA(2HDM){} v p1mass LSAF match.png".format(DIR,save_dir_name,gamA[4:]),dpi=DPI)
+			plt.close()
+
+		###########  END  A(2HDM) CONVERTED DECAY WIDTHS ##############
+
 
 	if DO_COUP:
 		print(Time(),"Beginning XI plots")
@@ -2505,8 +2603,15 @@ elif CMYK:
 			del s2
 			del sT
 		# promote T1 and T12 to st123 for very specific case
-		if "onlyT" in save_dir_name:
-			pass
+		if "passedT" in save_dir_name:
+			master_list[14] += master_list[0] + master_list[4]+ master_list[5]+ master_list[6]+ master_list[10]+ master_list[11]+ master_list[12]
+			master_list[0] = []
+			master_list[4] = []
+			master_list[5] = []
+			master_list[6] = []
+			master_list[10] = []
+			master_list[11] = []
+			master_list[12] = []
 		elif "sT1sT12" in save_dir_name:
 			master_list[14] += master_list[4] + master_list[10]
 			master_list[4] = []
