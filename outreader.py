@@ -17,16 +17,16 @@ argv = sys.argv
 DEBUG_MODE = 0		#enables print statements used for tracking
 MASSTRKFILE = 0		#enables tracking masses near LHC and of light s/o
 MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
-BENCH_CHECK = 0
+BENCH_CHECK = 1
 
 DO_PARAM = 0
 DO_MASS = 0
 DO_COMP = 0
 DO_HEAT = 0
 DO_COUP = 0
-DO_BR = 1
+DO_BR = 0
 DO_DC = 0
-DO_MISC = 0
+DO_MISC = 1
 DO_REPL = 0
 
 NEU_INFO = 1
@@ -42,13 +42,13 @@ file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
 save_dir_name = argv[2]
 
 
-N_EXTRA=3
-extra_names = ["lighthiggs_0{}{}randout".format(j,tag)  for j in [4,5,6] for tag in file_tags]
-file_names = file_names+extra_names
-#N_EXTRA = 3 # number of extra seeds for files (x4 for actual num extra files)
-#for ie in range(N_EXTRA):
-#	extra_names = ["{}_{:0>2}{}randout".format(file_prefix, ie+2, tag) for tag in file_tags]
-#	file_names = file_names + extra_names
+#N_EXTRA=3
+#extra_names = ["lighthiggs_0{}{}randout".format(j,tag)  for j in [4,5,6] for tag in file_tags]
+#file_names = file_names+extra_names
+N_EXTRA = 0 # number of extra seeds for files (x4 for actual num extra files)
+for ie in range(N_EXTRA):
+	extra_names = ["{}_{:0>2}{}randout".format(file_prefix, ie+2, tag) for tag in file_tags]
+	file_names = file_names + extra_names
 
 
 
@@ -423,7 +423,8 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				("XIs1z", 77), ("XIs2z", 83),("XIs3z", 89), ("XIp1z", 95),("XIp2z", 101),
 				("XIs1gl",78), ("XIs2gl",84),("XIs3gl",90), ("XIp1gl",96),("XIp2gl",102),
 				("XIs1ga",79), ("XIs2ga",85),("XIs3ga",91), ("XIp1ga",97),("XIp2ga",103),
-				("XIs1b", 80), ("XIs2b", 86),("XIs3b", 92), ("XIp1b", 98),("XIp2b", 104) ]
+				("XIs1b", 80), ("XIs2b", 86),("XIs3b", 92), ("XIp1b", 98),("XIp2b", 104),
+				("XIs1l",183), ("XIs2l",184),("XIs3l",185), ("XIp1l",186),("XIp2l", 187) ]
 	else: coup_list = []
 
 	if DO_BR or file_prefix[:6] in ["PQp1v5","PQp1v6","PQp1v8","PQp1v9"] or "lighthiggs" in file_prefix:
@@ -715,6 +716,11 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				SinglePlot(pltctr, mass, mix, mmin,mmax,"log",
 						br, brix, 0, 0,"linear",
 						Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "BR","Mass")
+				if mass=="p1mass":
+					pltctr+=1
+					HeatPlot(pltctr,"tanB",1,"turbo",
+						"p1mass",36,0.1,10,"log", br, brix, 1E-9,1.5,"log",
+						Size, DPI, "Heatmap","BR")
 				continue # temp bc don't cary about below
 				if mass=="s1mass":
 					pltctr+=1
@@ -772,7 +778,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		plt.ylabel("BR per channel")
 		plt.yscale("log")
 		plt.ylim(1E-9,1.5)
-		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=int((len(s1_brs)/2+1)),columnspacing=0.7,frameon=False)
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=int((len(s1_brs)/2+1)),columnspacing=0.5,frameon=False,fontsize=6)
 		for x in range(len(s1_brs)+1): leg.legend_handles[x]._sizes = [10]
 		plt.savefig("{}/{}/BR/s1 BRs.png".format(DIR,save_dir_name),dpi=DPI)
 		plt.yscale("linear")
@@ -813,7 +819,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		plt.ylabel("BR per channel")
 		plt.yscale("log")
 		plt.ylim(1E-9,1.5)
-		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=int((len(p1_brs)/2+1)),columnspacing=0.7,frameon=False)
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=int((len(p1_brs)/2+1)),columnspacing=0.5,frameon=False,fontsize=6)
 		for x in range(len(p1_brs)+1): leg.legend_handles[x]._sizes = [10]
 		plt.savefig("{}/{}/BR/p1 BRs.png".format(DIR,save_dir_name),dpi=DPI)
 		plt.yscale("linear")
@@ -858,7 +864,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 			plt.ylabel("BR per channel")
 			plt.yscale("log")
 			plt.ylim(1E-9,1.5)
-			leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=int((len(p1_brs)/2+1)),columnspacing=0.7,frameon=False)
+			leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=int((len(p1_brs)/2+1)),columnspacing=0.5,frameon=False,fontsize=6)
 			for x in range(len(p1_brs)+1): leg.legend_handles[x]._sizes = [10]
 			plt.savefig("{}/{}/BR/p1 BRs tanB {}-{}.png".format(DIR,save_dir_name,tanbmin,tanbmax),dpi=DPI)
 			plt.yscale("linear")
@@ -898,7 +904,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		plt.title(save_dir_name+" : neu2 BR per channel v neu2mass")
 		plt.xlabel("neu2mass")
 		plt.ylabel("BR per channel")
-		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.7,frameon=False)
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.7,frameon=False,fontsize=6)
 		for x in range(5): leg.legend_handles[x]._sizes = [10]
 		plt.savefig("{}/{}/BR/neu2 BRs.png".format(DIR,save_dir_name),dpi=DPI)
 		plt.close()
@@ -918,7 +924,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		plt.title(save_dir_name+" : neu3 BR per channel v neu3mass")
 		plt.xlabel("neu3mass")
 		plt.ylabel("BR per channel")
-		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.7,frameon=False)
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.7,frameon=False,fontsize=6)
 		for x in range(5): leg.legend_handles[x]._sizes = [10]
 		plt.savefig("{}/{}/BR/neu3 BRs.png".format(DIR,save_dir_name),dpi=DPI)
 		plt.close()
@@ -938,7 +944,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		plt.title(save_dir_name+" : cha1 BR per channel v cha1mass")
 		plt.xlabel("cha1mass")
 		plt.ylabel("BR per channel")
-		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=2,columnspacing=0.7,frameon=False)
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=2,columnspacing=0.7,frameon=False,fontsize=6)
 		for x in range(3): leg.legend_handles[x]._sizes = [10]
 		plt.savefig("{}/{}/BR/cha1 BRs.png".format(DIR,save_dir_name),dpi=DPI)
 		plt.close()
@@ -965,7 +971,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		plt.savefig("{}/{}/BR/neu3 BR sums.png".format(DIR,save_dir_name),dpi=DPI)
 		plt.close()
 
-	if DO_DC and False: # to skip to back of DC =- extremely temp
+	if DO_DC:
 		print(Time(),"Doing decay width plots") ##################################################
 		dc_masses = [	("s1mass",24,S1MMIN,S1MMAX),("s2mass",28,0,0),("p1mass",36,P1MMIN,P1MMAX),
 				("neu2mass",50,0,0),("neu3mass",56,0,0),("cha1mass",74,0,0)	]
@@ -1281,13 +1287,13 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		plt.grid(visible=True, which="both",axis="x",alpha=.5,lw=1)
 		for (gamA,gix) in Apdc_list:
 			if (gix >= 156 and gix <= 176):
-				plt.scatter(	[r[36] for r in master_list[-1]],
-					[ r[gix]*(1-(r[36]-3.0001)/abs(r[36]-3.0001))/2 for r in master_list[-1]],	#crop at 3G
+				plt.scatter(	[r[36] for r in master_list[-1] if r[36]!=3],
+					[ r[gix]*(1-(r[36]-3)/abs(r[36]-3))/2 for r in master_list[-1] if r[36]!=3],	#crop at 3G
 				#	[ r[gix]*min(max((4-r[36]),0),1) for r in master_list[-1]],	#blend thru 3-4G
 					label=gamA[4:], alpha=1,s=4,marker='>',linewidths=0)
 			if (gix >= 177 and gix <= 178):
-				plt.scatter(	[r[36] for r in master_list[-1]],
-					[ r[gix]*(1+(r[36]-4)/abs(r[36]-4))/2 for r in master_list[-1]],	#crop at 4G
+				plt.scatter(	[r[36] for r in master_list[-1] if r[36]!=4],
+					[ r[gix]*(1+(r[36]-4)/abs(r[36]-4))/2 for r in master_list[-1] if r[36]!=4],	#crop at 4G
 				#	[ r[gix]*min(max((r[36]-3),0),1) for r in master_list[-1]],	#blend thru 3-4G
 					label=gamA[4:], alpha=1,s=4,marker='<',linewidths=0)
 		#	if (gix == 179 or gix == 181):
@@ -1315,13 +1321,16 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 		########### START A(2HDM) CONVERTED DECAY WIDTHS ##############
 
 		print(Time(),"Starting A(2HDM) pdws by channel") ########## A2HDM BY CHANNEL
-		for i,(br,brix) in enumerate(p1_brs):	#### INDIVIDUALLY, THEN STACKED
+		for i,(br,brix) in enumerate(p1_brs):	#### INDIVIDUALLY
 			pltctr+=1
 			plt.figure(pltctr)
 			plt.grid(visible=True, which="both",axis="x",alpha=.5,lw=1)
-			plt.scatter( 	[r[36] for r in master_list[-1]],
-					[r[brix]*r[135]/(r[37]**2) for r in master_list[-1]],
-					alpha=1,s=1,marker=',',linewidths=0)
+			for (tanbmin,tanbmax,color) in [(2,5,"y"),(5,9,"g"),(11,15,"b"),(15,50,"r"),(9,11,"k")]:	#### COLORED BY TANB RANGE
+				plt.scatter( 	[r[36] for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)],
+						[r[brix]*r[135]/(r[37]**2) for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)],
+						alpha=1,s=1,color=color,marker=',',linewidths=0,label="tanB {}-{}".format(tanbmin,tanbmax))
+			leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.5,frameon=False,fontsize=6)
+			for x in range(5): leg.legend_handles[x]._sizes = [10]
 			plt.title(save_dir_name+" : A(2HDM) {} pdw v p1mass".format(br[6:]))
 			plt.xlabel("p1mass")
 			plt.ylabel("GamA(2HDM){}".format(br[6:]))
@@ -1339,18 +1348,19 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 			plt.grid(visible=True, which="both",axis="x",alpha=.5,lw=1)
 			plt.scatter(	[r[36] for r in master_list[-1]],
 					[r[140]/(r[37]**2) for r in master_list[-1]],
-					color="b",alpha=1,s=4,marker='_',label="GamA(2HDM)hadr")
+					color="darkgray",alpha=1,s=4,marker='_',label="GamA(2HDM)hadr")
 			if gamA != "GamAhadr":
-				if 156<=gix and gix<=176:
-					gamAfiltered=[max(min( 4-r[36],1),0)*r[gix]/(r[37]**2) for r in master_list[-1]]
-				elif 177<=gix and gix<=178:
-					gamAfiltered=[min(max(-3+r[36],0),1)*r[gix]/(r[37]**2) for r in master_list[-1]]
-				elif 179<=gix and gix<=182:
-					gamAfiltered=[r[gix]/(r[37]**2) for r in master_list[-1]]
-				plt.scatter( 	[r[36] for r in master_list[-1]], gamAfiltered,
-						color="r",alpha=1,s=3,marker=',',linewidths=0,label=gamA)
-				leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=2,columnspacing=0.6,frameon=False,fontsize=6)
-				for x in range(2): leg.legend_handles[x]._sizes = [10]
+				for (tanbmin,tanbmax,color) in [(2,5,"y"),(5,9,"g"),(11,15,"b"),(15,50,"r"),(9,11,"k")]:	#### COLORED BY TANB RANGE
+					if 156<=gix and gix<=176:
+						gamAfiltered=[max(min( 4-r[36],1),0)*r[gix]/(r[37]**2) for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)]
+					elif 177<=gix and gix<=178:
+						gamAfiltered=[min(max(-3+r[36],0),1)*r[gix]/(r[37]**2) for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)]
+					elif 179<=gix and gix<=182:
+						gamAfiltered=[r[gix]/(r[37]**2) for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)]
+					plt.scatter( 	[r[36] for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)], gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,label=gamA[4:]+" tanB {}-{}".format(tanbmin,tanbmax))
+				leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.6,frameon=False,fontsize=6)
+				for x in range(6): leg.legend_handles[x]._sizes = [10]
 			plt.title(save_dir_name+" : GamA(2HDM){} v p1mass".format(gamA[4:]))
 			plt.xlabel("p1mass")
 			plt.ylabel("GamA(2HDM){}".format(gamA[4:]))
@@ -1397,6 +1407,49 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "XI","Mass")
 
 	if DO_MISC:
+		print(Time(),"Starting A(2HDM) cc and ss scaled by tan/cotB") ########## A2HDM BY CHANNEL
+		pltctr+=1
+		plt.figure(pltctr)
+		plt.grid(visible=True, which="both",axis="x",alpha=.5,lw=1)
+		for (tanbmin,tanbmax,color) in [(2,5,"y"),(5,9,"g"),(11,15,"b"),(15,50,"r"),(9,11,"k")]:	#### COLORED BY TANB RANGE
+			plt.scatter( 	[r[36] for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)],
+					[r[112]*r[135]/(r[37]**2)*r[1]**2 for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)],
+					alpha=1,s=1,color=color,marker=',',linewidths=0,label="tanB {}-{}".format(tanbmin,tanbmax))
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.5,frameon=False,fontsize=6)
+		for x in range(5): leg.legend_handles[x]._sizes = [10]
+		plt.title(save_dir_name+" : A(2HDM) cc pdw x tanB2 v p1mass")
+		plt.xlabel("p1mass")
+		plt.ylabel("GamA(2HDM)cc x tanB2".format(br[6:]))
+		plt.yscale("log")
+		plt.xscale("log")
+		plt.savefig("{}/{}/DC/pdw/A(2HDM) cc pdw x tanB2 v p1mass.png".format(DIR,save_dir_name),dpi=DPI)
+		plt.xlim(0.1,10)
+		plt.ylim(1E-24,1E-2)
+		plt.savefig("{}/{}/DC/pdw/A(2HDM) cc pdw x tanB2 v p1mass LSAF match.png".format(DIR,save_dir_name),dpi=DPI)
+		plt.close()
+
+		pltctr+=1
+		plt.figure(pltctr)
+		plt.grid(visible=True, which="both",axis="x",alpha=.5,lw=1)
+		for (tanbmin,tanbmax,color) in [(2,5,"y"),(5,9,"g"),(11,15,"b"),(15,50,"r"),(9,11,"k")]:	#### COLORED BY TANB RANGE
+			plt.scatter( 	[r[36] for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)],
+					[r[177]/(r[37]**2)/r[1]**2 for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)],
+					alpha=1,s=1,color=color,marker=',',linewidths=0,label="tanB {}-{}".format(tanbmin,tanbmax))
+		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.5,frameon=False,fontsize=6)
+		for x in range(5): leg.legend_handles[x]._sizes = [10]
+		plt.title(save_dir_name+" : A(2HDM) ss pdw div tanB2 v p1mass")
+		plt.xlabel("p1mass")
+		plt.ylabel("GamA(2HDM)ss div tanB2")
+		plt.yscale("log")
+		plt.xscale("log")
+		plt.savefig("{}/{}/DC/pdw/A(2HDM) ss pdw div tanB2 v p1mass.png".format(DIR,save_dir_name),dpi=DPI)
+		plt.xlim(0.1,10)
+		plt.ylim(1E-24,1E-2)
+		plt.savefig("{}/{}/DC/pdw/A(2HDM) ss pdw div tanB2 v p1mass LSAF match.png".format(DIR,save_dir_name),dpi=DPI)
+		plt.close()
+
+
+	if DO_MISC and False:
 		print(Time(),"Initiating miscellany.")
 		pltctr+=1
 		SinglePlot(pltctr,"s1mass",24,S1MMIN,S1MMAX,"log", "s1scomp",27,0,0,"linear",
@@ -1426,7 +1479,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=2,columnspacing=0.5,frameon=False,fontsize=6)
 				for x in range(2): leg.legend_handles[x]._sizes = [10]
 
-			plt.title(save_dir_name+" : br_s1_{} v s1mass".format(gamH[4:]))
+			plt.title(save_dir_name+" : br_s1_{} v s1mass".format(gamH[4:]),fontsize=12)
 			plt.xlabel("s1mass")
 			plt.ylabel("br_s1_"+gamH[4:])
 			plt.yscale("linear")
@@ -1456,7 +1509,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				color="r",alpha=1,s=3,marker=',',linewidths=0,label="br_s1_hadr (calc.d)")
 		leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=2,columnspacing=0.5,frameon=False,fontsize=6)
 		for x in range(2): leg.legend_handles[x]._sizes = [10]
-		plt.title(save_dir_name+" : br_s1_hadr calc.d/NMSSMT v s1mass")
+		plt.title(save_dir_name+" : br_s1_hadr calc.d/NMSSMT v s1mass",fontsize=9)
 		plt.xlabel("s1mass")
 		plt.ylabel("br_s1_hadr")
 		plt.ylim(-0.02,1.02)
@@ -2213,7 +2266,7 @@ for file_index,out_file_name in enumerate(file_names):
 			if "108035020" in file_prefix: last_element=74	#trunc out after MCHA(1)
 			elif (DO_DC or
 				file_prefix[:6] in ["PQp1v5","PQp1v8"] or 
-				"lighthiggs" in save_dir_name): last_element=182	#(don't trunc)
+				"lighthiggs" in save_dir_name): last_element=187	#(don't trunc)
 			elif DO_BR: last_element = 149
 			elif NEU_INFO: last_element=74			#		 MCHA(1)
 			elif "PQ" in file_prefix: last_element=44	#		 neu1mass
@@ -2672,7 +2725,7 @@ if MASSTRKFILE:
 		for lp in lp_trk[file_index]: print(lp,end="\t")
 		print("\n")
 if MASSTRKBOUNDS:
-	for threshold_lighthiggs in [1,10]:
+	for threshold_lighthiggs in [0.001]:
 		ls_ctr = 0
 		lp_ctr = 0
 		for r in master_list[-1]:
@@ -2750,7 +2803,9 @@ if BENCH_CHECK:
 #		if r[24]>10 and r[36]>10:	# show me events where both heavy
 #		if r[24]<0.1 or r[36]<0.1:	# show me events if either SUPER light
 #		if r[36]<0.135 and r[140]>0:	# show me events below pion mass MA but with nonzero hadr dec
-		if 10<r[36]:
-			print("s1mass {: >5.1f} & p1mass {: >4}: {: >8.5f} {: <10} {: >12} {: >9} {: >10} {: >8}".format(round(r[24],1),round(r[36],1),r[1],r[19],r[20],r[21],r[22],r[23]))#"\ts1m:",r[24],"\tp1m:",r[36])	#,"\ts1dw:",r[140],"\tp1dw:",r[142])
+		if i < 100:
+#		if r[36] > 4:
+			print("s1mass {: >5.1f} & p1mass {: >4}: {: >8.5f} {: <10} {: >12} {: >9} {: >10} {: >8}".format(round(r[24],1),round(r[36],1),r[1],r[19],r[20],r[21],r[22],r[23]), r[98],r[186])
+#"tau/mu\t{}|mu/e\t{}".format(np.sqrt(r[114]/r[116]),np.sqrt(r[116]/r[118])))
 print("{}\tFinished.\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#".format(Time()))
 #sys.exit()
