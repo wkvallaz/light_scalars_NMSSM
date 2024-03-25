@@ -1064,6 +1064,8 @@
      .      GamAPiEPEP,GamA3E,GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,
      .      GamAPiK0,GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,
      .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb
+      DOUBLE COMPLEX CJA,CGA ! wolf from lightA
+
       COMMON/EWPO/MWNMSSM,dumw,dMW0,DrNMSSM,MWSM,dMWSM,decztt,
      .      deltadecztt,deczee,deltadeczee,BRZTauTau,BRZTTmin,
      .      BRZTTmax,ratio,deltaratio,S2TWeffTau,deltaS2TWeffTau,
@@ -1153,7 +1155,8 @@
      .      GamAEPi3,GamAEPiC,GamAEPPi3,GamAEPPiC,GamAPiEE,GamAPiEEP,
      .      GamAPiEPEP,GamA3E,GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,
      .      GamAPiK0,GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,
-     .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb
+     .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb,
+     .      CJA,CGA
 
       OPEN(16,FILE=OFILE,STATUS='UNKNOWN')
       IF(OMGFLAG.NE.0)OPEN(17,FILE=EFILE,STATUS='UNKNOWN')
@@ -2895,6 +2898,7 @@ c      WRITE(16,917) " X(2)",(CB(2)/CL(2))**2
        WRITE(16,*) "    ",GamARhogam,"                  #   GamARhogam"
        WRITE(16,*) "    ", GamAss, "                  #   GamAss"
        WRITE(16,*) "    ", GamAjj, "                  #   GamAjj"
+       WRITE(16,*) " ", REALPART(CJA), IMAGPART(CJA)," # CJA - lightA"
        WRITE(16,*) "    ",GamAetac1s, "              #   GamAetac1s"
        WRITE(16,*) "    ",GamAhadrcc, "              #   GamAhadrcc"
        WRITE(16,*) "    ",GamAetab123s, "             #   GamAetab123s"
@@ -2925,6 +2929,7 @@ c      WRITE(16,917) " X(2)",(CB(2)/CL(2))**2
       IF(BRGG(4).GT.0d0)THEN
        WRITE(16,905) BRGG(4),2,22,22,"BR(A_1 -> gamma gamma)"
        WRITE(16,*) "    ", GamAGAGA, "                  # GamAGAGA"
+       WRITE(16,*) " ", REALPART(CGA), IMAGPART(CGA),"  # CGA - lightA"
       ENDIF
       IF(BRZG(4).GT.0d0)
      .  WRITE(16,905) BRZG(4),2,23,22,"BR(A_1 -> Z gamma)"

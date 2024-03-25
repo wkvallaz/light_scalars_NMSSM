@@ -2051,6 +2051,8 @@ c      CALL FTPAR(PAR,0)
      .      BRZTTmax,ratio,deltaratio,S2TWeffTau,deltaS2TWeffTau,
      .      S2TWeffSM
 *
+      DOUBLE COMPLEX CJA,CGA ! wolf from lightA
+*
       COMMON/EWPO/MWNMSSM,dumw,dMW0,DrNMSSM,MWSM,dMWSM,decztt,
      .      deltadecztt,deczee,deltadeczee,BRZTauTau,BRZTTmin,
      .      BRZTTmax,ratio,deltaratio,S2TWeffTau,deltaS2TWeffTau,
@@ -2161,7 +2163,8 @@ c      CALL FTPAR(PAR,0)
      .      GamAEPi3,GamAEPiC,GamAEPPi3,GamAEPPiC,GamAPiEE,GamAPiEEP,
      .      GamAPiEPEP,GamA3E,GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,
      .      GamAPiK0,GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,
-     .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb
+     .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb,
+     .      CJA,CGA
 
 
       COMMON/BRSG/BRSG,BRSGmax,BRSGmin,DMd,DMdmin,DMdmax,DMs,
@@ -2395,9 +2398,16 @@ c      CALL FTPAR(PAR,0)
       RES(IRES+44)= GamAhadrbb   ! wolf - 	!182
       IRES = IRES + WADDPDC
 
-      RES(IRES+1)= GamHGAGA ! wolf i seriously hope this is temp
-      RES(IRES+2)= GamAGAGA
-      IRES=IRES+2
+      RES(IRES+1)=CL(1)    ! to tau including DELML corrections	!183
+      RES(IRES+2)=CL(2)    ! to tau including DELML corrections	!184
+      RES(IRES+3)=CL(3)    ! to tau including DELML corrections	!185
+      RES(IRES+4)=CL(4)    ! to tau including DELML corrections	!186
+      RES(IRES+5)=CL(5)    ! to tau including DELML corrections	!187
+      RES(IRES+6)=REALPART(CJA)      ! as in lightA, glu	!188
+      RES(IRES+7)=IMAGPART(CJA)      !               glu	!189
+      RES(IRES+8)=REALPART(CGA)      ! as in lightA, gam	!190
+      RES(IRES+9)=IMAGPART(CGA)      !               gam	!191
+      IRES = IRES + 9
 
       WRITE(16,11)(RES(I),I=1,IRES)
  11   FORMAT(200E14.6)

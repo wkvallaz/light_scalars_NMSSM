@@ -167,6 +167,7 @@
       DOUBLE COMPLEX CTLL,CTLR,CTSL1,CTSL2,CXLL,CXLR,CXSL1,CXSL2
       DOUBLE COMPLEX CLT,CLB,CLC,CLW,CLH,CXTZ,CXBZ,CXWZ,CXHZ,CXCZ
       DOUBLE COMPLEX CI1,CI2,CGZ,CF,CA,CBC,CLCH1,CLCH2,CXCH1Z,CXCH2Z
+      DOUBLE COMPLEX CJA,CGA ! wolf from lightA
 
       COMMON/ALEM0/ALEM0
       COMMON/GAUGE/ALSMZ,ALEMMZ,GF,g1,g2,S2TW
@@ -1376,11 +1377,13 @@ c  H ---> G G: FULL NNNLO CORRECTIONS TO TOP LOOPS FOR NF=5
 *  Relative couplings compared with equivalent SM
 
        CU(I+3)= P(I,1)/SINBETA
-       CD(I+3)= P(I,2)/COSBETA
+       CD(I+3)= P(I,2)/COSBETA               ! down type, e, mu, d quarks
        CB(I+3)=(CD(I+3)-DELMB*(CU(I+3)+DSQRT(H1Q**2+H2Q**2)/ss*P(I,3)))
      .         /(1d0+DELMB)
-       CL(I+3)=(CD(I+3)-DELML*(CU(I+3)+DSQRT(H1Q**2+H2Q**2)/ss*P(I,3)))
-     .         /(1d0+DELML)
+       CL(I+3)=(CD(I+3)                        ! "L" leptons -> Tau
+     .                 -DELML*(CU(I+3)+DSQRT(H1Q**2+H2Q**2)/ss*P(I,3))) ! wolf - cmt these to elim
+     .         /(1d0+DELML                                              ! wolf | delml affect taus
+     .                    )
 
 *  Effective coupling to 2 gluons/2 photons
 
