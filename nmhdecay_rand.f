@@ -1016,11 +1016,22 @@
 
       IF(CFLAG(4).NE.0)THEN
        CALL BOTTOMONIUM(PROB)
-       CALL BSG(PAR,PROB)
+!       CALL BSG(PAR,PROB)
        CALL KPHYS(PAR,PROB)
+!       PROB(58)=0d0
+      ENDIF
+      IF(CFLAG(4).EQ.0)THEN
+       CALL BSG(PAR,PROB) ! temporarily moved out here so all runs get EFXI calculated
+       PROB(32)=0d0
+       PROB(33)=0d0
+       PROB(35)=0d0
+       PROB(36)=0d0
+       PROB(38)=0d0
+       PROB(40)=0d0
+       PROB(55)=0d0
+       PROB(56)=0d0
        PROB(58)=0d0
       ENDIF
-
 *   Anom. magn. moment of the Muon
 
       IF(GMUFLAG.NE.0)CALL MAGNMU(PAR,PROB)
@@ -2052,6 +2063,8 @@ c      CALL FTPAR(PAR,0)
      .      S2TWeffSM
 *
       DOUBLE COMPLEX CJA,CGA ! wolf from lightA
+      DOUBLE PRECISION xiAbs,xiAbd,xiAsd ! from BPHYS
+      DOUBLE PRECISION sigRLsd,epsY21,eps0w
 *
       COMMON/EWPO/MWNMSSM,dumw,dMW0,DrNMSSM,MWSM,dMWSM,decztt,
      .      deltadecztt,deczee,deltadeczee,BRZTauTau,BRZTTmin,
@@ -2165,7 +2178,7 @@ c      CALL FTPAR(PAR,0)
      .      GamAPiK0,GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,
      .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb,
      .      CJA,CGA
-
+      COMMON/FCXI/sigRLsd,epsY21,eps0w,xiAbs,xiAbd,xiAsd
 
       COMMON/BRSG/BRSG,BRSGmax,BRSGmin,DMd,DMdmin,DMdmax,DMs,
      .      DMsmax,DMsmin,BRBMUMU,BRBMUMUmax,BRBMUMUmin,BRBtaunu,
@@ -2408,6 +2421,11 @@ c      CALL FTPAR(PAR,0)
       RES(IRES+8)=REALPART(CGA)      ! as in lightA, gam	!190
       RES(IRES+9)=IMAGPART(CGA)      !               gam	!191
       IRES = IRES + 9
+
+      RES(IRES+1)=xiAbs ! A-b-s effective flavor changing coupling	!192
+      RES(IRES+2)=xiAbd ! A-b-d effective flavor changing coupling	!193
+      RES(IRES+3)=xiAsd ! A-s-d effective flavor changing coupling	!194
+      IRES = IRES + 3
 
       WRITE(16,11)(RES(I),I=1,IRES)
  11   FORMAT(200E14.6)

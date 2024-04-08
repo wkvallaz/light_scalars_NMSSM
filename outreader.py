@@ -17,14 +17,15 @@ argv = sys.argv
 DEBUG_MODE = 0		#enables print statements used for tracking
 MASSTRKFILE = 0		#enables tracking masses near LHC and of light s/o
 MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
-BENCH_CHECK = 1
+BENCH_CHECK = 0
 
 DO_PARAM = 0
 DO_MASS = 0
 DO_COMP = 0
 DO_HEAT = 0
 DO_COUP = 0
-DO_BR = 1
+DO_EFXI = 1
+DO_BR = 0
 DO_DC = 1
 DO_MISC = 1
 DO_REPL = 0
@@ -338,7 +339,7 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, xscale, ypar, y
 		plt.close("all")
 	return
 
-def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,DO_REPL):
+def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,DO_MISC,DO_REPL):
 	# MAJOR IDEAS FOR REFACTORING
 	# - REINFORCE THE HEATMAP GENERATION BEING ITS OWN UNIQUE LOOP STRUCTURE
 	# -- WOULD POSSIBLY REQUIRE MULTIPLE RUNS FOR TWO DIFFERENT TYPES OF HEATMAPS
@@ -426,6 +427,10 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				("XIs1b", 80), ("XIs2b", 86),("XIs3b", 92), ("XIp1b", 98),("XIp2b", 104),
 				("XIs1l",183), ("XIs2l",184),("XIs3l",185), ("XIp1l",186),("XIp2l", 187) ]
 	else: coup_list = []
+	
+	if DO_EFXI or "lighthiggs" in file_prefix:
+		efxi_list = [	("XIp1bs",192), ("XIp1bd",193), ("XIp1sd",194)] 
+	else: efxi_list = []
 
 	if DO_BR or file_prefix[:6] in ["PQp1v5","PQp1v6","PQp1v8","PQp1v9"] or "lighthiggs" in file_prefix:
 		br_list = [	("br_s1_hadr",107),	("br_p1_hadr",108),
@@ -474,25 +479,71 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 			("GamAhadrbb",	182) ]
 	Hpdc_list = [(gam,gix) for (gam,gix) in pdc_list if gam[:4]=="GamH"]
 	Apdc_list = [(gam,gix) for (gam,gix) in pdc_list if gam[:4]=="GamA"]
+
+	# 2HDM DATA FROM WEI
+	lhd_ma_x = [.1,.2,.3,.4,.5,.6,.7,.8,.9,1,2,3,4,5,6,7,8,9,10]
+	lhd_tb10_APiPiPi = [	0,0,0,0,2.27708e-12,3.29588e-10,2.60304e-10,3.78077e-10,1.06876e-9,
+				1.95385e-10,4.5016e-10,7.56329e-10,1.04853e-9,1.33504e-9,
+				1.61849e-9,1.89975e-9,2.17816e-9,2.45552e-9,2.73892e-9]
+	lhd_tb10_AEtaPiPi = [	0,0,0,0,0,0,0,0,1.56382e-8,
+				1.28163e-7,4.71276e-9,4.18325e-9,4.51625e-9,5.10815e-9,
+				5.81692e-9,6.60571e-9,7.51857e-9,8.4668e-9,9.08229e-9]
+	lhd_tb10_AEtapPiPi = [	0,0,0,0,0,0,0,0,0,
+				0,1.39084e-9,2.08901e-9,2.79483e-9,3.35081e-9,
+				4.02597e-9,4.7375e-9,5.54574e-9,6.37724e-9,6.87507e-9]
+	lhd_tb10_AEtaEtaPi = [	0,0,0,0,0,0,0,0,0, 
+				0,8.63289e-11,2.57137e-10,4.31005e-10,6.01485e-10,
+				7.68674e-10,9.33423e-10,1.09699e-09,1.25915e-09,1.41679e-09]
+	lhd_tb10_AKKPi = [	0,0,0,0,0,0,0,0,0,
+				0,4.00229e-07,9.14781e-07,1.41743e-06,1.90965e-06,
+				2.3944e-06,2.8746e-06,3.35532e-06,3.83364e-06,4.29083e-06]
+	lhd_tb10_AGamPiPi = [	0,0,7.59568e-19,3.93127e-19,8.11939e-13,2.65518e-11,6.01497e-11,4.6413e-10,1.06128e-08, 
+				4.95992e-08,1.76785e-09,1.56106e-09,1.73701e-09,2.30866e-09, 
+				3.49516e-09,5.96677e-09,1.28747e-08,2.80094e-08,2.93357e-08] 
+	lhd_tb10_AEtaEtapPi = [	0,0,0,0,0,0,0,0,0,
+				0,3.00946e-11,2.53234e-10,5.25084e-10,8.01603e-10,
+				1.07534e-09,1.34542e-09,1.61312e-09,1.87801e-09,2.13539e-09]
+	lhd_tb10_AEtapEtapPi = [0,0,0,0,0,0,0,0,0,
+				0,0,5.14418e-11,1.52452e-10,2.63852e-10,
+				3.76741e-10,4.88939e-10,6.00281e-10,7.10407e-10,8.17467e-10]
+	lhd_tb10_AEtaEtaEta = [	0,0,0,0,0,0,0,0,0,
+				0,4.64321e-08,3.29233e-07,6.41673e-07,9.49823e-07,
+				1.25129e-06,1.54728e-06,1.83998e-06,2.12936e-06,2.41084e-06]
+	lhd_tb10_AEtaEtaEtap = [0,0,0,0,0,0,0,0,0,
+				0,0,2.70404e-07,7.20268e-07,1.18734e-06,
+				1.65032e-06,2.10657e-06,2.55878e-06,3.00566e-06,3.43537e-06]
+	lhd_tb10_AEtaEtapEtap = [0,0,0,0,0,0,0,0,0,
+				0,0,5.08021e-08,2.523e-07,4.84006e-07,
+				7.18976e-07,9.52172e-07,1.18424e-06,1.41375e-06,1.63192e-06]
+	lhd_tb10_AEtapEtapEtap = [0,0,0,0,0,0,0,0,0,
+				0,0,5.92707e-10,2.66378e-08,6.43857e-08,
+				1.04009e-07,1.43712e-07,1.83498e-07,2.22932e-07,2.59651e-07]
+	lhd_tb10_AEtaKK = [	0,0,0,0,0,0,0,0,0,  
+				0,1.28918e-07,6.33142e-07,1.15994e-06,1.67532e-06,  
+				2.1791e-06,2.67422e-06,3.16491e-06,3.65062e-06,4.12133e-06]  
+	lhd_tb10_AEtapKK = [	0,0,0,0,0,0,0,0,0,
+				0,3.09099e-09,7.29305e-07,1.758e-06,2.80745e-06,
+				3.84402e-06,4.86557e-06,5.88092e-06,6.88552e-06,7.84286e-06]
 	
 	if DO_PARAM:
-		print(Time(),"Beginning parameter plots")
-		for i,(xpar,xind) in enumerate(par_list): # ALL PARAM VS
-			for j,(ypar,yind) in enumerate(par_list): #PARAM
-				if j<=i: continue
-				pltctr+=1
-				SinglePlot(pltctr, xpar, xind, 0, 0, "linear", ypar, yind, 0, 0, "linear",
-					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
+   		print(Time(),"Beginning parameter plots")
+   		for i,(xpar,xind) in enumerate(par_list): # ALL PARAM VS
+   			for j,(ypar,yind) in enumerate(par_list): #PARAM
+   				if j<=i: continue
+   				pltctr+=1
+   				SinglePlot(pltctr, xpar, xind, 0, 0, "linear", ypar, yind, 0, 0, "linear",
+   					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
 	if DO_MASS:
 		print(Time(),"Beginning mass plots") # PLOT ea mass against chosen params and other masses
 		for h,(h_mass,hix) in enumerate(mass_list):
 			print(Time(),h_mass)
-			
+
 			if "s1" in h_mass: (xmin, xmax) = (S1MMIN,S1MMAX)
 			elif "p1" in h_mass: (xmin, xmax) = (P1MMIN,P1MMAX)
 			else: (xmin, xmax) = (0, 0)
 
 			for (param,pix) in par_list+scomp_list+ucomp_list+dcomp_list+shmix_list+Acomp_list+neucomp_list[:12]:
+
 				(ymin, ymax) = (0,0)
 				if (param,pix) not in par_list:
 					if h_mass[:3] in ["neu","cha"] and (param,pix) not in neucomp_list:
@@ -1406,7 +1457,34 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 				SinglePlot(pltctr, mass, mix, mmin, mmax, "log", coup,cix, 0, 0, "symlog",
 					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "XI","Mass")
 
-	if DO_MISC:
+	if DO_EFXI:
+		pltctr+=1
+		SinglePlot(pltctr, "p1mass", 36, 0, 0, "log",
+			"XIp1bs", 192, 0, 0,"symlog",
+			Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "XI","EFXI")
+	
+		print(Time(),"Effective flavor changing couplings")
+		for (xi, ix) in efxi_list:
+			for (xval,xix,xmin,xmax) in [ ("p1mass",36,.1,10), ("gamAtot",135,1E-24,1E-4)]:
+				pltctr+=1
+				plt.figure(pltctr)
+				if xval == "p1mass": plt.grid(visible=True, which="both",axis="x",alpha=.5,lw=1)
+				plt.scatter(	[r[xix] for r in master_list[-1]],
+						[r[ix] for r in master_list[-1]],
+						color="k",alpha=1,s=4,marker='.')
+				plt.title(save_dir_name+" : {} v {}".format(xi,xval),fontsize=6)
+				plt.xlabel(xval)
+				plt.ylabel(xi)
+				plt.yticks(fontsize=5)
+				plt.yscale("symlog")
+				plt.xscale("log")
+				plt.savefig("{}/{}/XI/EFXI/{} v {}.png".format(DIR,save_dir_name,xi,xval),dpi=DPI)
+				plt.xlim(xmin,xmax)
+				plt.ylim(-1E-7,1E-10)
+				plt.savefig("{}/{}/XI/EFXI/{} v {} zoom.png".format(DIR,save_dir_name,xi,xval),dpi=DPI)
+				plt.close()
+
+	if DO_MISC and False:
 		print(Time(),"Hadronic full MA range")
 		for (gamA,gix) in Apdc_list:		#### INDIVIDUAL A(2HDM) HADRONICS
 			pltctr+=1
@@ -1421,9 +1499,57 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 						gamAfiltered=[r[gix]/(r[37]**2) for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)]
 					plt.scatter( 	[r[36] for r in master_list[-1] if (tanbmin<r[1] and r[1]<=tanbmax)], gamAfiltered,
 						color=color,alpha=1,s=3,marker=',',linewidths=0,label=gamA[4:]+" tanB {}-{}".format(tanbmin,tanbmax))
+				if "A3Pi" in gamA or "APi3PiC" in gamA:
+					lhd_label = "LHDtb10 APiPiPi"
+					lhd_gamA = lhd_tb10_APiPiPi
+				elif "AEPi3" in gamA or "AEPiC" in gamA:
+					lhd_label = "LHDtb10 AEtaPiPi"
+					lhd_gamA = lhd_tb10_AEtaPiPi
+				elif "AEPPi3" in gamA or "AEPPiC" in gamA:	# don't have a LHD version of this
+					lhd_label = "x"				# 
+					lhd_gamA = [0 for i in lhd_ma_x]	# 
+				elif "APiEEP" in gamA:
+					lhd_label = "LHDtb10 AEtaEtapPi"
+					lhd_gamA = lhd_tb10_AEtaEtapPi
+				elif "APiEE" in gamA:
+					lhd_label = "LHDtb10 AEtaEtaPi"
+					lhd_gamA = lhd_tb10_AEtaEtaPi
+				elif "APiEPEP" in gamA:
+					lhd_label = "LHDtb10 AEtapEtapPi"
+					lhd_gamA = lhd_tb10_AEtapEtapPi
+				elif "A3EP" in gamA:
+					lhd_label = "LHDtb10 AEtapEtapEtap"
+					lhd_gamA = lhd_tb10_AEtapEtapEtap
+				elif "A3E" in gamA:
+					lhd_label = "LHDtb10 AEtaEtaEta"
+					lhd_gamA = lhd_tb10_AEtaEtaEta
+				elif "AE2EP" in gamA:
+					lhd_label = "LHDtb10 AEtaEtaEtap"
+					lhd_gamA = lhd_tb10_AEtaEtaEtap
+				elif "AEEP2" in gamA:
+					lhd_label = "LHDtb10 AEtaEtapEtap"
+					lhd_gamA = lhd_tb10_AEtaEtapEtap
+				elif "APiKC" in gamA or "APiK0" in gamA or "APiKCK0" in gamA:
+					lhd_label = "LHDtb10 AKKPi"
+					lhd_gamA = lhd_tb10_AKKPi
+				elif "AEKC" in gamA or "AEK0" in gamA:
+					lhd_label = "LHDtb10 AEtaKK"
+					lhd_gamA = lhd_tb10_AEtaKK
+				elif "AEPKC" in gamA or "AEPK0" in gamA:
+					lhd_label = "LHDtb10 AEtapKK"
+					lhd_gamA = lhd_tb10_AEtapKK
+				elif "ARhogam" in gamA:
+					lhd_label = "LHDtb10 AGamPiPi"
+					lhd_gamA = lhd_tb10_AGamPiPi
+				else:
+					lhd_label = "x"
+					lhd_gamA = [0 for i in lhd_ma_x]
+
+				plt.scatter(lhd_ma_x, lhd_gamA,
+					color="cyan",alpha=1,s=4,marker='x',linewidths=.8,label=lhd_label)
 				leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.6,frameon=False,fontsize=6)
-				for x in range(7): leg.legend_handles[x]._sizes = [10]
-			plt.title(save_dir_name+" : GamA(2HDM){} v p1mass full".format(gamA[4:]))
+				for x in range(8): leg.legend_handles[x]._sizes = [10]
+			plt.title(save_dir_name+" : GamA(2HDM){} v p1mass full".format(gamA[4:]),fontsize=6)
 			plt.xlabel("p1mass")
 			plt.ylabel("GamA(2HDM){}".format(gamA[4:]))
 			plt.yscale("log")
@@ -1433,6 +1559,275 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,D
 			plt.ylim(1E-24,2E-2)
 			plt.savefig("{}/{}/DC/pdw hadr/GamA(2HDM){} v p1mass full LSAF match.png".format(DIR,save_dir_name,gamA[4:]),dpi=DPI)
 			plt.close()
+	if DO_MISC:
+		print(Time(),"Hadronic full MA range - 2HDM SUMMED")
+		lhd_gamA_list = ["APiPiPi","AEtaPiPi","AEtaEtapPi","AEtaEtaPi","AEtapEtapPi","AEtapEtapEtap","AEtaEtaEta","AEtaEtaEtap","AEtaEtapEtap","AKKPi","AEtaKK","AEtapKK","AGamPiPi"]
+		for gamA2HDM in lhd_gamA_list:		#### INDIVIDUAL A(2HDM) HADRONICS
+			pltctr+=1
+			plt.figure(pltctr)
+			plt.grid(visible=True, which="both",axis="x",alpha=.5,lw=1)
+			plt.scatter(	[r[36] for r in master_list[-1]],
+					[r[140]/(r[37]**2) for r in master_list[-1]],
+					color="darkgray",alpha=1,s=4,marker='_',label="GamA(2HDM)hadr")
+
+			if gamA2HDM == "APiPiPi":
+				lhd_label = "LHDtb10 APiPiPi"
+				lhd_gamA = lhd_tb10_APiPiPi
+				gamA_label = "3Pi+Pi3PiC"
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[(r[156]+r[157])/(r[37]**2) for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ (r[156]+r[157])/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+
+			elif gamA2HDM == "AEtaPiPi":
+				lhd_label = "LHDtb10 AEtaPiPi"
+				lhd_gamA = lhd_tb10_AEtaPiPi
+				gamA_label = "EPi3+EPiC"
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[(r[158]+r[159])/(r[37]**2) for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ (r[158]+r[159])/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+			elif gamA2HDM == "AEtaEtapPi": 
+				lhd_label = "LHDtb10 AEtaEtapPi"
+				lhd_gamA = lhd_tb10_AEtaEtapPi
+				gamA_label = "PiEEP"
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[(r[163])/(r[37]**2) for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ r[163]/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+
+			elif gamA2HDM == "AEtaEtaPi":
+				lhd_label = "LHDtb10 AEtaEtaPi"
+				lhd_gamA = lhd_tb10_AEtaEtaPi
+				gamA_label = "PiEE"
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[(r[162])/(r[37]**2) for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ r[162]/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+
+			elif gamA2HDM == "AEtapEtapPi":
+				lhd_label = "LHDtb10 AEtapEtapPi"
+				lhd_gamA = lhd_tb10_AEtapEtapPi
+				gamA_label = "PiEPEP"
+
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[r[164]/(r[37]**2) for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ r[164]/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+			elif gamA2HDM == "AEtapEtapEtap":
+				lhd_label = "LHDtb10 AEtapEtapEtap"
+				lhd_gamA = lhd_tb10_AEtapEtapEtap
+				gamA_label = "3EP"
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[r[168]/(r[37]**2) for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ r[168]/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+
+			elif gamA2HDM == "AEtaEtaEta":
+				lhd_label = "LHDtb10 AEtaEtaEta"
+				lhd_gamA = lhd_tb10_AEtaEtaEta
+				gamA_label = "3E"
+
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[r[165]/(r[37]**2) for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ r[165]/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+
+			elif gamA2HDM == "AEtaEtaEtap":
+				lhd_label = "LHDtb10 AEtaEtaEtap"
+				lhd_gamA = lhd_tb10_AEtaEtaEtap
+				gamA_label = "E2EP"
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[r[166]/(r[37]**2) for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ r[166]/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+
+			elif gamA2HDM == "AEtaEtapEtap":
+				lhd_label = "LHDtb10 AEtaEtapEtap"
+				lhd_gamA = lhd_tb10_AEtaEtapEtap
+				gamA_label = "EEP2"
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[r[167]/(r[37]**2) for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ r[167]/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+
+			elif gamA2HDM == "AKKPi":
+				lhd_label = "LHDtb10 AKKPi"
+				lhd_gamA = lhd_tb10_AKKPi
+				gamA_label = "PiK0+PiKC+PiKCK0"
+
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[(r[169]+r[170]+r[171])/(r[37]**2) for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ (r[169]+r[170]+r[171])/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+			elif gamA2HDM == "AEtaKK":
+				lhd_label = "LHDtb10 AEtaKK"
+				lhd_gamA = lhd_tb10_AEtaKK
+				gamA_label = "EK0+EKC"
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[(r[172]+r[173])/(r[37]**2) for r in master_list[-1]
+							if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ (r[172]+r[173])/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+							if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+			elif gamA2HDM == "AEtapKK":
+				lhd_label = "LHDtb10 AEtapKK"
+				lhd_gamA = lhd_tb10_AEtapKK
+				gamA_label = "EPK0+EPKC"
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[(r[174]+r[175])/(r[37]**2) for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ (r[174]+r[175])/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+			elif gamA2HDM == "AGamPiPi":
+				lhd_label = "LHDtb10 AGamPiPi"
+				lhd_gamA = lhd_tb10_AGamPiPi
+				gamA_label = "Rhogam"
+				for (tbmin,tbmax,color) in [(2,5,"y"),(15,50,"r"),(11,15,"b"),(5,9,"g"),(9,11,"orange"),(9.95,10.05,"k")]:
+					gamAfiltered=[(r[176])/(r[37]**2) for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	]
+					if color == "k":
+						gamAmean = [ np.mean([ r[176]/(r[37]**2) for r in master_list[-1]
+								if r[36]>ma-.005 and r[36]<ma+.005 ]
+									) for ma in lhd_ma_x ]
+					plt.scatter( 	[r[36] for r in master_list[-1]
+								if (tbmin<r[1] and r[1]<=tbmax)	],
+							gamAfiltered,
+						color=color,alpha=1,s=3,marker=',',linewidths=0,
+						label="{} tanB {}-{}".format(gamA_label,tbmin,tbmax))
+
+			else:
+				lhd_label = "x"
+				lhd_gamA = [0 for i in lhd_ma_x]
+				print(Time(),"You should not be here...")
+				sys.exit()
+
+			plt.scatter(lhd_ma_x, lhd_gamA,
+				color="cyan",alpha=1,s=4,marker='x',linewidths=1,label=gamA2HDM)
+			for i,mean in enumerate(gamAmean):
+				plt.annotate(str(round(mean/eval("lhd_tb10_{}[{}]".format(gamA2HDM,i)),2)),
+					(lhd_ma_x[i], lhd_gamA[i]),fontsize=6,color="r",xytext=(lhd_ma_x[i]-3,lhd_gamA[i]+40*np.sign(i%2 - .5)),textcoords='offset pixels')
+
+			leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.6,frameon=False,fontsize=6)
+			for x in range(8): leg.legend_handles[x]._sizes = [10]
+			plt.title(save_dir_name+" : (2HDM){} v p1mass full".format(gamA_label),fontsize=6)
+			plt.xlabel("p1mass")
+			plt.ylabel("(2HDM){}".format(gamA_label))
+			plt.yscale("log")
+			plt.xscale("log")
+			plt.savefig("{}/{}/DC/pdw hadr/(2HDM){} v p1mass full.png".format(DIR,save_dir_name,gamA_label),dpi=DPI)
+			plt.xlim(0.25,10)
+			plt.ylim(1E-24,2E-2)
+			plt.savefig("{}/{}/DC/pdw hadr/(2HDM){} v p1mass full zoom.png".format(DIR,save_dir_name,gamA_label),dpi=DPI)
+			plt.close()
+
+
+
 
 
 	if DO_MISC and False:
@@ -2415,6 +2810,8 @@ for file_index,out_file_name in enumerate(file_names):
 			for mass in phiggs: in_trk += 1*int(mass<threshold_lighthiggs)
 			lp_trk[file_index][in_trk]+=1
 	#	print(len(file_matrices[file_index%4]))
+		if DEBUG_MODE: print(len(row))
+	
 	f.close()
 
 def Set(List): # fn is List to set of tuples conversion
@@ -2463,17 +2860,17 @@ elif CMYK:
 				file_matrices[0] = None
 
 			master_list[1] |= (file_matrices[1])	# LEP ==> 1
-			if DEBUG_MODE: pprint(Time(),"1")
+			if DEBUG_MODE: print(Time(),"1")
 			if not MASSTRKFILE:
 				file_matrices[1] = None
 
 			master_list[2] |= (file_matrices[2])	# LHC ==> 2
-			if DEBUG_MODE: pprint(Time(),"2")
+			if DEBUG_MODE: print(Time(),"2")
 			if not MASSTRKFILE:
 				file_matrices[2] = None
 
 			master_list[3] |= (file_matrices[3])	# BKF ==> 3
-			if DEBUG_MODE: pprint(Time(),"3")
+			if DEBUG_MODE: print(Time(),"3")
 			if not MASSTRKFILE:
 				file_matrices[3] = None
 				del file_matrices
@@ -2708,7 +3105,7 @@ for i,dataset in enumerate(master_list):		# for each event in each set...
 
 if SAVEPLOTS: 
 	if DEBUG_MODE: print(Time(),"Starting to plot...")
-	GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_BR,DO_DC,DO_MISC,DO_REPL)
+	GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,DO_MISC,DO_REPL)
 
 if MASSTRKFILE:
 	print("\nSorting by lightest SCALAR")
@@ -2832,12 +3229,13 @@ if BENCH_CHECK:
 #		if r[24]>10 and r[36]>10:	# show me events where both heavy
 #		if r[24]<0.1 or r[36]<0.1:	# show me events if either SUPER light
 #		if r[36]<0.135 and r[140]>0:	# show me events below pion mass MA but with nonzero hadr dec
-#		if i < 100:
-		if r[36] > 4:
+		if i < 30:
+#		if r[170] > 0:
 			print("s1mass {: >5.1f} & p1mass {: >4}: {: >8.5f} {: >11} {: >11} {:0<7} {: <10} {:0<7}".format(round(r[24],1),round(r[36],1),r[1],r[19],r[20],r[21],r[22],r[23]),
+#"")
 # r[98],r[186])
 #"tau/mu\t{: <4.3f}|mu/e\t{: <4.3f}".format(np.sqrt(r[114]/r[116]),np.sqrt(r[116]/r[118])))
 #"CJA =", complex(r[-4],r[-3]),", CGA =",complex(r[-2],r[-1]))
-r[160])
+"{: >6} {: >6} {: >6}".format(r[-3],r[-2],r[-1]))
 print("{}\tFinished.\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#".format(Time()))
 #sys.exit()
