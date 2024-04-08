@@ -1035,7 +1035,8 @@ c Limit from Y(1S) -> gamma A1inv (BABAR, 1007.4646)
 *   * Correction to the CKM matrix: epst0 (*tanb), Eq.(3.53) in [1]
       epst0=epst3-Vtb2*epsY31
       eps0=epst3-Vtb2*epsY32
-      eps0w=epst3-Vtb2*epsY21 ! wolf
+!      eps0w=epst3-Vtb2*epsY21 ! wolf
+      eps0w=0d0
 
 *   * Couplings [X^s_RL]^JI as in eqs. (3.55) and (3.56), but
 *       WITHOUT the S dependent mixing angles
@@ -1056,15 +1057,18 @@ c Limit from Y(1S) -> gamma A1inv (BABAR, 1007.4646)
 !  from (3.55) ********************************************************
 ! ctrl+f search for "*sigRLbs*aux" to find a use case example *********
 
-      sigRLsd=MS0*epsY21/(H1Q*(1d0+eps0w)*(1d0+epst3))
+!      sigRLsd=MS0*epsY21/(H1Q*(1d0+eps0w)*(1d0+epst3))
+      sigRLsd=MS0*epsY21*(1d0+epst3)**2/(H1Q*(1d0+eps0)**4))
+
 !                                    
 ! K physics pairs are in (3.28) and (3.29), use (3.53) in expanding (3.28) instead of (3.25)
 ! afais the difference from (3.25) to (3.53) is eps0->epst0, but otherwise structurally same
 ! ... also not sure why in existing defs of sigRLbs and bd one has eps0 other epst0 when 3,2
 !  and 3,1 pairs seem to should be treated same, related to "Correction to the CKM" in (3.53)
       aux=0d0
-      aux=-(PCOMP(1,1)*cosb+PCOMP(1,1)*sinb*tanb)
-     .       *(PCOMP(1,1)*sinb-PCOMP(1,1)*cosb*epst3/tanb)/PMASS(1)**2
+!      aux=-(PCOMP(1,1)*cosb+PCOMP(1,1)*sinb*tanb)
+!     .       *(PCOMP(1,1)*sinb-PCOMP(1,1)*cosb*epst3/tanb)/PMASS(1)**2
+      aux=PCOMP(1,1)*COSB-PCOMP(1,1)*SINB*TANB
 
       xiAbs=sigRLbs*aux
       xiAbd=sigRLbd*aux
