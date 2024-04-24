@@ -556,9 +556,8 @@ c Limit from Y(1S) -> gamma A1inv (BABAR, 1007.4646)
       DOUBLE PRECISION eps0,epst0,epst1,epst2,epst3,epsts,epstb
       DOUBLE PRECISION epsY32,epsY31,epsY23,epsY13,epscs,epscb
 ! wolf
-      DOUBLE PRECISION sigRLsd,epsY21,eps0w
-      DOUBLE PRECISION xiAbs,xiAbd,xiAsd
-
+      DOUBLE PRECISION sigRLsd,epsY21,eps0w,xiAbs,xiAbd,xiAsd,xiHbs,
+     .               xiHbd,xiHsd
       COMMON/ALEM0/ALEM0
       COMMON/GAUGE/ALSMZ,ALEMMZ,GF,g1,g2,S2TW
       COMMON/QGAUGE/G1Q,G2Q,GQ,ALSQ
@@ -590,8 +589,8 @@ c Limit from Y(1S) -> gamma A1inv (BABAR, 1007.4646)
       COMMON/EPSCOUP/eps0,epst0,epst1,epst2,epst3,epsts,epstb,
      .               epsY32,epsY31,epsY23,epsY13,epscs,epscb
 ! wolf
-      COMMON/FCXI/sigRLsd,epsY21,eps0w,xiAbs,xiAbd,xiAsd
-
+      COMMON/FCXI/sigRLsd,epsY21,eps0w,xiAbs,xiAbd,xiAsd,xiHbs,xiHbd,
+     .               xiHsd
 ***********************************************************************
 
 *	I- PARAMETERS
@@ -707,7 +706,13 @@ c Limit from Y(1S) -> gamma A1inv (BABAR, 1007.4646)
       VVu=-1d0                      ! (V_ud.V_ub^*+V_cd.V_cb^*)/(V_td.V_tb^*)
       Vtb2=(0.9991d0)**2               ! (V_tb)^2
       Vcs2=(0.97296d0)**2              ! (V_cs)^2
-      Vud2=(0.97383d0)**2              ! (V_ud)^2 
+      Vud2=(0.97383d0)**2              ! (V_ud)^2
+! wolf values from 2022 PDG
+      VVc=-1.00030d0
+      VVu=-0.99567d0 
+      VVw=-0.93303d0
+
+ 
 
 *       Since V_ub(incl) differs considerably from V_ub(excl), we allow for 
 *       the large range    3.15 10^-3 < V_ub < 5.11 10^-3  [6']
@@ -981,11 +986,17 @@ c Limit from Y(1S) -> gamma A1inv (BABAR, 1007.4646)
      .   -2d0*MCH(i)/H2Q*U(i,2)*RST(k,1)
      .       *(gg2*RST(k,1)*V(i,1)-HTQ*RST(k,2)*V(i,2))
      .                *BB0(0d0,MCH(i)**2,ST(k)**2,scR2)
+!     .      +(MD/H2Q)**2*U(i,2)**2*RST(k,1)**2
+!     .                *BB1(0d0,MCH(i)**2,ST(k)**2,scR2)
       enddo
       epsY21=epsY21
-     . +VVu*((gg2*V(i,1))**2*BB1(0d0,MCH(i)**2,MUL**2,scR2)
+     . +VVw*((gg2*V(i,1))**2*BB1(0d0,MCH(i)**2,MUL**2,scR2)
      .    -2d0*gg2*MCH(i)/H2Q*U(i,2)*V(i,1)
      .                      *BB0(0d0,MCH(i)**2,MUL**2,scR2))
+!     .    +(MQU/H1Q)**2*V(i,2)**2
+!     .           *BB1(0d0,MCH(i)**2,MUR**2,scR2)
+!     .    +(MD/H2Q)**2*U(i,2)**2
+!     .          *BB1(0d0,MCH(i)**2,MUL**2,scR2))
       enddo
       epsY21=epsY21/(32d0*pi**2)
 ! end wolf adding Y21
@@ -1058,21 +1069,34 @@ c Limit from Y(1S) -> gamma A1inv (BABAR, 1007.4646)
 ! ctrl+f search for "*sigRLbs*aux" to find a use case example *********
 
 !      sigRLsd=MS0*epsY21/(H1Q*(1d0+eps0w)*(1d0+epst3))
-      sigRLsd=MS0*epsY21*(1d0+epst3)**2/(H1Q*(1d0+eps0)**4))
+      sigRLsd=MS0*epsY21*(1d0+epst3)**2/(H1Q*(1d0+eps0)**4)
 
 !                                    
 ! K physics pairs are in (3.28) and (3.29), use (3.53) in expanding (3.28) instead of (3.25)
 ! afais the difference from (3.25) to (3.53) is eps0->epst0, but otherwise structurally same
 ! ... also not sure why in existing defs of sigRLbs and bd one has eps0 other epst0 when 3,2
 !  and 3,1 pairs seem to should be treated same, related to "Correction to the CKM" in (3.53)
+
+!        S = H0, h0, A0, G0
+! (3.21) x^S_u = (salpha, calpha, -icbeta, -isbeta)
+!        x^S_d = (calpha, -salpha, isbeta, -icbeta)
+
+! aux of the form (as in 3.25-28, 53-54)
+!            (x^S_u - x^S_d*tanB)
       aux=0d0
 !      aux=-(PCOMP(1,1)*cosb+PCOMP(1,1)*sinb*tanb)
 !     .       *(PCOMP(1,1)*sinb-PCOMP(1,1)*cosb*epst3/tanb)/PMASS(1)**2
-      aux=PCOMP(1,1)*COSB-PCOMP(1,1)*SINB*TANB
+      aux=-PCOMP(1,1)*COSB-PCOMP(1,1)*SINB*TANB
 
       xiAbs=sigRLbs*aux
       xiAbd=sigRLbd*aux
       xiAsd=sigRLsd*aux
+
+      aux=SCOMP(1,1) - SCOMP(1,2)*TANB
+
+      xiHbs=sigRLbs*aux
+      xiHbd=sigRLbd*aux
+      xiHsd=sigRLsd*aux
 
 ! end of wolf new section *********************************************
 ! *********************************************************************
