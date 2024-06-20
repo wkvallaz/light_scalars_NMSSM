@@ -458,17 +458,24 @@
         PAR(1)=LMIN*(LMAX/LMIN)**RAN2(IDUM)
        ENDIF
       ENDIF
+
       IF(KMIN.EQ.KMAX)THEN
        PAR(2)=KMIN
       ELSE
        IF(NK.EQ.0)THEN
+!        default generation between KMIN,KMAX
 !        PAR(2)=KMIN+(KMAX-KMIN)*RAN2(IDUM)
 ! wolf - alt gen acc to k/l ratio
 !        PAR(2)=RAN2(IDUM)*MIN(PAR(1)*1,KMAX)
 !   RAND* MIN( L * KDLMAX, KMAX)KMAX  in inps as 0.1 for PQ
 ! wolf - alt gen acc biased softk
 !        KAPPA=RAN2(IDUM)*MIN(LAMBDA*RAN2(IDUM)*KDLMAX,KMAX)
-        PAR(2)=RAN2(IDUM)*MIN(PAR(1)*RAN2(IDUM)*0.05,KMAX)
+!!      PAR(2)=RAN2(IDUM)*MIN(PAR(1)*RAN2(IDUM)*0.05,KMAX)
+! wolf - gen acc to fixed k/l ratio and determined value of l
+!        PAR(2)=0.01*PAR(1)
+! wolf - gen acc to random k/l and random l, solving for k
+!        KAPPA=RANDOM*   KDLMAX*LAMBDA
+        PAR(2)=RAN2(IDUM)*0.01*PAR(1)
        ELSE
         PAR(2)=KMIN*(KMAX/KMIN)**RAN2(IDUM)
        ENDIF
@@ -2063,8 +2070,8 @@ c      CALL FTPAR(PAR,0)
      .      S2TWeffSM
 *
       DOUBLE COMPLEX CJA,CGA ! wolf from lightA
-      DOUBLE PRECISION xiAbs,xiAbd,xiAsd ! from BPHYS
-      DOUBLE PRECISION sigRLsd,epsY21,eps0w
+      DOUBLE PRECISION sigRLsd,epsY21,eps0w,xiAbs,xiAbd,xiAsd,xiHbs,
+     .               xiHbd,xiHsd
 *
       COMMON/EWPO/MWNMSSM,dumw,dMW0,DrNMSSM,MWSM,dMWSM,decztt,
      .      deltadecztt,deczee,deltadeczee,BRZTauTau,BRZTTmin,
@@ -2178,7 +2185,8 @@ c      CALL FTPAR(PAR,0)
      .      GamAPiK0,GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,
      .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb,
      .      CJA,CGA
-      COMMON/FCXI/sigRLsd,epsY21,eps0w,xiAbs,xiAbd,xiAsd
+      COMMON/FCXI/sigRLsd,epsY21,eps0w,xiAbs,xiAbd,xiAsd,xiHbs,xiHbd,
+     .               xiHsd
 
       COMMON/BRSG/BRSG,BRSGmax,BRSGmin,DMd,DMdmin,DMdmax,DMs,
      .      DMsmax,DMsmin,BRBMUMU,BRBMUMUmax,BRBMUMUmin,BRBtaunu,
@@ -2425,7 +2433,12 @@ c      CALL FTPAR(PAR,0)
       RES(IRES+1)=xiAbs ! A-b-s effective flavor changing coupling	!192
       RES(IRES+2)=xiAbd ! A-b-d effective flavor changing coupling	!193
       RES(IRES+3)=xiAsd ! A-s-d effective flavor changing coupling	!194
-      IRES = IRES + 3
+
+      RES(IRES+4)=xiHbs ! H-b-s effective flavor changing coupling	!195
+      RES(IRES+5)=xiHbd ! H-b-d effective flavor changing coupling	!196
+      RES(IRES+6)=xiHsd ! H-s-d effective flavor changing coupling	!197
+
+      IRES = IRES + 6
 
       WRITE(16,11)(RES(I),I=1,IRES)
  11   FORMAT(200E14.6)

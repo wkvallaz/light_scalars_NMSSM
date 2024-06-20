@@ -19,15 +19,15 @@ MASSTRKFILE = 0		#enables tracking masses near LHC and of light s/o
 MASSTRKBOUNDS = 0	# At the end, count higgses below threshold_lighthiggs
 BENCH_CHECK = 0
 
-DO_PARAM = 0
-DO_MASS = 0
+DO_PARAM = 1
+DO_MASS = 1
 DO_COMP = 0
-DO_HEAT = 0
+DO_HEAT = 1
 DO_COUP = 0
-DO_EFXI = 1
+DO_EFXI = 0
 DO_BR = 0
-DO_DC = 1
-DO_MISC = 1
+DO_DC = 0
+DO_MISC = 0
 DO_REPL = 0
 
 NEU_INFO = 1
@@ -43,13 +43,13 @@ file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
 save_dir_name = argv[2]
 
 
-#N_EXTRA=3
-#extra_names = ["lighthiggs_0{}{}randout".format(j,tag)  for j in [4,5,6] for tag in file_tags]
-#file_names = file_names+extra_names
-N_EXTRA = 0 # number of extra seeds for files (x4 for actual num extra files)
-for ie in range(N_EXTRA):
-	extra_names = ["{}_{:0>2}{}randout".format(file_prefix, ie+2, tag) for tag in file_tags]
-	file_names = file_names + extra_names
+N_EXTRA=0
+extra_names = ["lighthiggs_0{}{}randout".format(j,tag)  for j in range(2,N_EXTRA+2) for tag in file_tags]
+file_names = file_names+extra_names
+#N_EXTRA = 0 # number of extra seeds for files (x4 for actual num extra files)
+#for ie in range(N_EXTRA):
+#	extra_names = ["{}_{:0>2}{}randout".format(file_prefix, ie+2, tag) for tag in file_tags]
+#	file_names = file_names + extra_names
 
 
 
@@ -62,9 +62,25 @@ elif file_prefix[:6] in ["PQp1v8"]: (KMIN, KMAX, LMIN, LMAX) = (0,.025,0,.5)
 elif ("PQp1v9" in file_prefix or
 	"lighthiggs" in file_prefix): (KMIN, KMAX, LMIN, LMAX) = (0,.015,0,.3)
 elif "PQ" == file_prefix[0:2]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.7)
+elif "FORESEE2D" in file_prefix:
+	(KMIN, KMAX, LMIN, LMAX) = (0,.015,0,.3)
+	if "v2" in file_prefix: (KMIN, KMAX, LMIN, LMAX) = (0,.01,0,1)
+	elif ("v3" in file_prefix or
+		"v4" in file_prefix): (KMIN, KMAX, LMIN, LMAX) = (0,.005,0,.5)
+	elif "v5" in file_prefix: (KMIN,KMAX)=(0,.003)
+	elif "s1" in file_prefix: (KMIN,KMAX)=(0,.003)
+
+
+
 
 (S1MMIN,S1MMAX,P1MMIN,P1MMAX) = (110,130,0,25)
+
 if "_s2sm" in save_dir_name: (S1MMIN,S1MMAX) = (0,0)
+elif ("FORESEE2D" in save_dir_name):
+	(P1MMIN,P1MMAX)=(.1,10)
+	if ("v3" in save_dir_name or
+		"v4" in save_dir_name or
+		"v5" in save_dir_name):P1MMAX=3
 elif ("PQp1v8" in save_dir_name or
 	"PQp1v9" in save_dir_name or
 	"lighthiggs" in save_dir_name):
@@ -384,7 +400,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 		######## IF DPI @ 480, SIZE OF 0.04 OK. IF DPI @ 240, DOTS DO NOT RENDER @ THAT SIZE. INC TO 0.1
 	pltctr = 0
 	par_list = [ ("lambda",19), ("kappa",20), ("Alambda",21), ("mueff",23), ("Akappa",22), ("tanB",1) ]
-	if "lighthiggs" in file_prefix or "PQp1" in file_prefix: par_list += [("k div l", 0)]
+	if "FORESEE2D" in file_prefix or "lighthiggs" in file_prefix or "PQp1" in file_prefix: par_list += [("k div l", 0)]
 	#par_list = [("MA",43)] + par_list
 	elif "108035020" in file_prefix: par_list = [("AU3",5),("M1",2),("M2",3),("M3",4)] + par_list
 	elif "PQv8" in file_prefix: par_list = [("AD3",6),("AU3",5)] + par_list
@@ -598,9 +614,9 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 		DO_DCOMP = (0,0,0)	#	   d-Higgs comps .	.
 		DO_SHMIX = (0,0,0)	#	   Hsm/Hbsm mixing of Hu and Hd
 		DO_ACOMP = (0,0,0)	#	   A_MSSM comps of pseudoscalars
-		DO_NCOMP = (1,0,1)	#	   Neutralino comps
-		DO_PARS  = (0,1,0)	#	   Core parameters
-		DO_MASSC = (0,0,0)	#	   Neu and H masses
+		DO_NCOMP = (0,0,0)	#	   Neutralino comps
+		DO_PARS  = (1,1,1)	#	   Core parameters
+		DO_MASSC = (0,1,0)	#	   Neu and H masses
 		DO_COUPL = (0,0,0)	#	   reduced couplings
 		DO_DECAY = (0,0,0)	#	   decay widths
 
@@ -655,6 +671,9 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 					x_sc = "log"
 				elif x_par == "p1mass":
 					(x_min, x_max) = (P1MMIN,P1MMAX)
+					x_sc = "log"
+				elif "FORESEE2D" in file_prefix and x_par in ["kappa","lambda"]:
+					(x_min, x_max) = (0, 0)
 					x_sc = "log"
 				else:
 					(x_min, x_max) = (0, 0)
@@ -724,6 +743,9 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 						y_sc = "log"
 					elif y_par == "p1mass": 
 						(y_min, y_max) = (P1MMIN,P1MMAX)
+						y_sc = "log"
+					elif "FORESEE2D" in file_prefix and y_par in ["kappa","lambda"]:
+						(y_min, y_max) = (0, 0)
 						y_sc = "log"
 					else: 
 						(y_min, y_max) = (0, 0)
@@ -1483,6 +1505,29 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 				plt.ylim(-1E-7,1E-10)
 				plt.savefig("{}/{}/XI/EFXI/{} v {} zoom.png".format(DIR,save_dir_name,xi,xval),dpi=DPI)
 				plt.close()
+
+#again
+				pltctr+=1
+				plt.figure(pltctr)
+				if xval == "p1mass": plt.grid(visible=True, which="both",axis="x",alpha=.5,lw=1)
+				plt.scatter(	[r[xix] for r in master_list[-1]],
+						[r[ix]/(r[1]*1**2*r[37]**2) for r in master_list[-1]], # xi div tanB,yukawatop2,Acomp
+						color="k",alpha=1,s=4,marker='.')
+				plt.title(save_dir_name+" : {} v {} div tanB y_t2 A2HDM".format(xi,xval),fontsize=6)
+				plt.xlabel(xval)
+				plt.ylabel(xi)
+				plt.yticks(fontsize=5)
+				plt.yscale("symlog")
+				plt.xscale("log")
+				plt.savefig("{}/{}/XI/EFXI/{} v {} div tanB y_t2 A2HDM.png".format(DIR,save_dir_name,xi,xval),dpi=DPI)
+				plt.xlim(xmin,xmax)
+				plt.ylim(-1E-7,1E-10)
+				plt.savefig("{}/{}/XI/EFXI/{} v {} div tanB y_t2 A2HDM zoom.png".format(DIR,save_dir_name,xi,xval),dpi=DPI)
+				plt.close()
+
+
+
+
 
 	if DO_MISC and False:
 		print(Time(),"Hadronic full MA range")
@@ -2688,6 +2733,7 @@ for file_index,out_file_name in enumerate(file_names):
 
 			reject_row = False
 			if "108035020" in file_prefix: last_element=74	#trunc out after MCHA(1)
+			elif "FORESEE2D" in file_prefix: last_element=200
 			elif (DO_DC or
 				file_prefix[:6] in ["PQp1v5","PQp1v8"] or 
 				"lighthiggs" in save_dir_name): last_element=200	#(don't trunc)
@@ -3102,6 +3148,22 @@ for i,dataset in enumerate(master_list):		# for each event in each set...
 	for r in dataset:
 		M2A = r[43]**2
 		ahH[i].append((1/2)*np.arctan((2*r[1]/(1-r[1]**2))*( (M2A+M2Z)/(M2A-M2Z) )	))
+
+# no v : lh 1--03or04
+#    v2:    04or5--06or7
+#   v3: f2d 
+#   v4: f2dv2
+#f = open("/home/wolf/NMSSMTools_6.0.0/calculations/NMSSM_big_valid_events_list_v4.txt","w")
+#f = open("/home/wolf/NMSSMTools_6.0.0/calculations/NMSSM_big_valid_events_list_F2Ds1.txt","w")
+#for i,r in enumerate(master_list[-1]):# write all of the events which surv all constraints to this big file
+#	line=""
+#	for j,elem in enumerate(r):
+#		line += f"{elem}"
+#		if j!=len(r)-1: line+=" "
+#		else: line+="\n"
+#	f.write(line)
+#f.close()
+
 
 if SAVEPLOTS: 
 	if DEBUG_MODE: print(Time(),"Starting to plot...")
