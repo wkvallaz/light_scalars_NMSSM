@@ -232,7 +232,17 @@ class Model(Utility):
         events_list = pd.read_csv(self.modelpath+filename, 
                                   sep=" ",header = None,dtype=np.float64)   #\##\##\
         # events_list.columns=["mass", "tanb", "ctau"]
-        events_list.columns=["mass", "tanb", "ctau", "Acomp", "mHpm"]
+        # events_list.columns=["mass", "tanb", "ctau", "Acomp", "mHpm"]
+        # events_list.columns=["mass", "tanb", "ctau", "Acomp", "mHpm","AL:AK"]
+        # events_list.columns=["mass", "tanb", "ctau", "Acomp", "mHpm","AL:AK","mueff","kdl"]
+        # print(len(events_list.columns))
+        events_list.columns=["ctau","tanb","M1","M2","M3","AU3","AD3","AE3","AE2","ML3","ML2","ME3","ME2","MQ3","MQ2","MU3","MU2","MD3","MD2","lambda","kappa","Alambda","Akappa","mueff","s1mass","s1ucomp","s1dcomp","s1scomp","s2mass","s2ucomp","s2dcomp","s2scomp","s3mass","s3ucomp","s3dcomp","s3scomp","mass","p1Acomp","p1scomp","p2mass","p2Acomp","p2scomp","mHpm","MA","neu1mass","neu1g1comp","neu1g2comp","neu1ucomp","neu1dcomp","neu1scomp","neu2mass","neu2g1comp","neu2g2comp","neu2ucomp","neu2dcomp","neu2scomp","neu3mass","neu3g1comp","neu3g2comp","neu3ucomp","neu3dcomp","neu3scomp","neu4mass","neu4g1comp","neu4g2comp","neu4ucomp","neu4dcomp","neu4scomp","neu5mass","neu5g1comp","neu5g2comp","neu5ucomp","neud5comp","neu5scomp","cha1mass","XIs1u","XIs1d","XIs1z","XIs1gl","XIs1ga","XIs1b","XIs2u","XIs2d","XIs2z","XIs2gl","XIs2ga","XIs2b","XIs3u","XIs3d","XIs3z","XIs3gl","XIs3ga","XIs3b","XIp1u","XIp1d","XIp1z","XIp1gl","XIp1ga","XIp1b","XIp2u","XIp2d","XIp2z","XIp2gl","XIp2ga","XIp2b","br_s2_s1s1","br_s1_p1p1","br_s1_hadr","br_p1_hadr","br_s1_bb","br_p1_bb","br_s1_cc","br_p1_cc","br_s1_tata","r_p1_tata","br_s1_mumu","br_p1_mumu","br_s1_ee","br_p1_ee","br_s1_gamgam","br_p1_gamgam","br_s1_neu1neu1","br_p1_neu1neu1","br_neu2_s1neu1","br_neu2_s2neu1","br_neu2_p1neu1","br_neu2_zneu1","br_neu3_s1neu1","br_neu3_s2ne1","br_neu3_p1neu1","br_neu3_zneu1","br_cha1_p1neu1","br_cha1_hcneu1","s1dw","s2dw","p1dw","neu2dw","neu3dw","cha1dw","GamHhadr","GamAhadr","GamH2Pi","GamH2PiC","GamHPiE","GamHPiEP","GamH2KC","GamH2K0","GamH2E","GamH2EP","GamHEEP","GamHss","GamHjj","GamHchic1p","GamHhadrcc","GamHchib12p","GamHhadrbb","GamA3Pi","GamAPi3PiC","GamAEPi3","GamAEPiC","GamAEPPi3","GamAEPPiC","GamAPiEE","GamAPiEEP","GamAPiEPEP","GamA3E","GamAE2EP","GamAEEP2","GamA3EP","GamAPiKC","GamAPiK0","GamAPiKCK0","GamAEKC","GamAEK0","GamAEPKC","GamAEPK0","GamARhogam","GamAss","GamAjj","GamAetac1s","GamAhadrcc","GamAetab123s","GamAhadrbb","XIs1l","XIs2l","XIs3l","XIp1l","XIp2l","CJA_r","CJA_i","CGA_r","CGA_i","XIp1bs","XIp1bd","XIp1sd","XIs1bs","XIs1bd","XIs1sd","APimix","AEmix","AEPmix","AAmix","APIEPi3","AEEPi3","AEPEPi3","AAEPi3"]
+
+        #lighthiggs2, 3 should cap off after xis2l (185)
+        #
+        
+        #...]#this will have to go for a long, long time :(
+        
         self.ctau_coupling_ref=None                                         ##\##\##
         self.events_list=events_list                               #        \##\##\#
         self.ctau_function=self.ctau_function_pbp                           #\##\##\
@@ -260,12 +270,63 @@ class Model(Utility):
             ny = int(len(data[0])/nx) #                                                                                                            fill_value="extrapolate",  no s arg
             self.ctau_function=interpolate.interp2d(data[0].reshape(nx,ny).T[0], data[1].reshape(nx,ny)[0], data[2].reshape(nx,ny).T, kind="linear",fill_value="extrapolate")#        ,s=len(data[0]))
 
+    def get_(self,column):
+        return self.events_list.loc[:,column]
     def get_mt(self): #PBP fn which returns two columns corresponding to the (masses, tanbs) of the events
-        return self.events_list.loc[:,'mass':'tanb']
+        # return self.events_list.loc[:,'mass','tanb']
+        ret = pd.DataFrame(self.events_list['mass'],self.events_list['tanb'])
+        return ret
+    def get_p1mass(self):
+        return self.events_list.loc[:,'mass']
+    def get_tanb(self):
+        return self.events_list.loc[:,'tanb']
     def get_Acomp(self):
-        return self.events_list.loc[:,'Acomp']
+        # return self.events_list.loc[:,'Acomp']
+        ret = self.events_list.loc[:,'p1Acomp']**2
+        return ret
     def get_mHpm(self):
         return self.events_list.loc[:,'mHpm']
+    def get_ALdAK(self):
+        # return self.events_list.loc[:,'AL:AK']
+        l = self.events_list.loc[:,"lambda"].tolist()
+        k = self.events_list.loc[:,"kappa"].tolist()
+        t = self.events_list.loc[:,"tanb"].tolist()
+        al = self.events_list.loc[:,"Alambda"].tolist()
+        ak = self.events_list.loc[:,"Akappa"].tolist()
+        m= self.events_list.loc[:,"mueff"].tolist()
+        ret=[]
+        for i in range(len(l)):
+            ret.append(246.22**2*l[i]**2/m[i]*t[i]*al[i]/(1+t[i]**2)/(-3*k[i]/l[i]*m[i]*ak[i]))
+        # retdf = pd.DataFrame(ret,columns=['AL:AK'])
+        # print(retdf)
+        return ret
+    def get_Adoubletmixing(self):
+
+        m112 = lambda mu,tb,al,kdl : mu*(1+tb**2)/tb*(al+kdl*mu)
+        m222 = lambda l,mu,tb,al,kdl,ak : 174.104**2*l**2/mu*tb/(1+tb**2)*(al+4*kdl*mu)-3*kdl*mu*ak
+        m122 = lambda l,al,kdl,mu : 174.104*l*(al-2*kdl*mu)
+
+        l = self.events_list.loc[:,"lambda"].tolist()
+        k = self.events_list.loc[:,"kappa"].tolist()
+        t = self.events_list.loc[:,"tanb"].tolist()
+        al = self.events_list.loc[:,"Alambda"].tolist()
+        ak = self.events_list.loc[:,"Akappa"].tolist()
+        m= self.events_list.loc[:,"mueff"].tolist()
+        kdl = [k/l[i] for i,k in enumerate(k)]
+        ret = []
+        for i in range(len(l)):
+            ret.append(.5*np.arctan(2*m122(l[i],al[i],kdl[i],m[i])/(m112(m[i],t[i],al[i],kdl[i])-m222(l[i],m[i],t[i],al[i],kdl[i],ak[i]))))
+        return ret
+    def get_mueff(self):
+        return self.events_list.loc[:,'mueff']
+    def get_kdl(self):
+        # return self.events_list.loc[:,'kdl']
+        l = self.events_list.loc[:,"lambda"].tolist()
+        k = self.events_list.loc[:,"kappa"].tolist()
+        ret=[]
+        for i in range(len(l)):
+            ret.append(k[i]/l[i])
+        return ret
     def set_gammas(self):
         self.gamma_list = []
     def get_gammas(self):
@@ -1763,7 +1824,7 @@ class Foresee(Utility):
         # initiate figure
         matplotlib.rcParams.update({'font.size': 15})
         fig, ax = plt.subplots(figsize=figsize)
-
+        yvals_list = []
         # loop over production channels
         dirname = self.model.modelpath+"model/LLP_spectra/"
         for production in productions:
@@ -1811,7 +1872,7 @@ class Foresee(Utility):
             yvals_max = [max(row) for row in yvals.T]
             ax.plot(xvals, yvals[0], color=color, label=label, ls=ls)
             ax.fill_between(xvals, yvals_min, yvals_max, color=color, alpha=0.2)
-
+            yvals_list.append(yvals[0])
         # finalize
         ax.set_title(title)
         ax.set_xscale("log")
@@ -1823,13 +1884,14 @@ class Foresee(Utility):
         if dolegend: ax.legend(loc="upper right", bbox_to_anchor=legendloc, frameon=False, labelspacing=0, fontsize=fs_label, ncol=ncol)
 
         # return
-        return plt
+        return plt,(xvals,yvals_list)
 
     def plot_production_pbp(self,
         masses, productions, condition="True", energy="14",
         xlims=[0.01,1],ylims=[10**-6,10**-3],
         xlabel=r"Mass [GeV]", ylabel=r"\sigma/\epsilon^2$ [pb]",
-        figsize=(7,5), fs_label=14, title=None, legendloc=None, dolegend=True, ncol=1
+        figsize=(9,5), fs_label=14, title=None, legendloc=None, dolegend=True, ncol=1,
+        cmap_arr=None, cmap_name=""
     ):
 
         # initiate figure
@@ -1883,9 +1945,11 @@ class Foresee(Utility):
             yvals = np.array(yvals)
             yvals_min = [min(row) for row in yvals.T]
             yvals_max = [max(row) for row in yvals.T]
-            ax.plot(xvals, yvals[0], color=color, label=label, ls=ls)
-            # ax.scatter(xvals,yvals[0],c=cmap_arr,cmap="viridis",norm="log",label=label)
+            # ax.plot(xvals, yvals[0], color=color, label=label, ls=ls)
+            heater=ax.scatter(xvals,yvals[0],c=cmap_arr,cmap="viridis",norm="log",label=label)
             ax.fill_between(xvals, yvals_min, yvals_max, color=color, alpha=0.2)
+            cb = plt.colorbar(heater, ax=ax)
+            cb.set_label(label=cmap_name, fontsize=10)
             if False:
                 print(yvals_min)
                 print(yvals_max)
