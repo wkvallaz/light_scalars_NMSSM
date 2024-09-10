@@ -25,9 +25,9 @@ DO_COMP = 0
 DO_HEAT = 1
 DO_COUP = 0
 DO_EFXI = 0
-DO_BR = 0
-DO_DC = 0
-DO_MISC = 0
+DO_BR = 1
+DO_DC = 1
+DO_MISC = 1
 DO_REPL = 0
 
 NEU_INFO = 1
@@ -43,15 +43,16 @@ file_names = ["{}{}randout".format(file_prefix, tag) for tag in file_tags]
 save_dir_name = argv[2]
 
 
-N_EXTRA=0
-extra_names = ["lighthiggs_0{}{}randout".format(j,tag)  for j in range(2,N_EXTRA+2) for tag in file_tags]
-file_names = file_names+extra_names
+#N_EXTRA=0
+#extra_names = ["Fighthiggs_0{}{}randout".format(j,tag)  for j in range(2,N_EXTRA+2) for tag in file_tags]
+#file_names = file_names+extra_names
 #N_EXTRA = 0 # number of extra seeds for files (x4 for actual num extra files)
 #for ie in range(N_EXTRA):
 #	extra_names = ["{}_{:0>2}{}randout".format(file_prefix, ie+2, tag) for tag in file_tags]
 #	file_names = file_names + extra_names
-
-
+#file_names = ["lighthiggs_0{}{}randout".format(j,tag) for j in range(2,5) for tag in file_tags]
+#above line just forces 05--07
+file_names = [f"F2Ds1win1_{j}{tag}randout" for j in range(11) for tag in file_tags]
 
 (KMIN, KMAX, LMIN, LMAX) = (0, 1, 0, 1)
 if "108035020" in file_prefix: (KMIN, KMAX, LMIN, LMAX) = (-.015, .015, 0, .1)	#def plot axis window
@@ -62,13 +63,14 @@ elif file_prefix[:6] in ["PQp1v8"]: (KMIN, KMAX, LMIN, LMAX) = (0,.025,0,.5)
 elif ("PQp1v9" in file_prefix or
 	"lighthiggs" in file_prefix): (KMIN, KMAX, LMIN, LMAX) = (0,.015,0,.3)
 elif "PQ" == file_prefix[0:2]: (KMIN, KMAX, LMIN, LMAX) = (0,.1,0,.7)
-elif "FORESEE2D" in file_prefix:
-	(KMIN, KMAX, LMIN, LMAX) = (0,.015,0,.3)
+elif "FORESEE2D" in file_prefix or "F2D" in file_prefix:
+	(KMIN, KMAX, LMIN, LMAX) = (1e-12,1e-2,1e-6,1e0)
 	if "v2" in file_prefix: (KMIN, KMAX, LMIN, LMAX) = (0,.01,0,1)
 	elif ("v3" in file_prefix or
 		"v4" in file_prefix): (KMIN, KMAX, LMIN, LMAX) = (0,.005,0,.5)
 	elif "v5" in file_prefix: (KMIN,KMAX)=(0,.003)
-	elif "s1" in file_prefix: (KMIN,KMAX)=(0,.003)
+	#elif "s1" in file_prefix: (KMIN,KMAX)=(0,.003)
+	#elif "s4" in file_prefix: (KMIN,KMAX,LMIN,LMAX)=(1e-10,1e-2,1e-7,3e-1)
 
 
 
@@ -76,8 +78,9 @@ elif "FORESEE2D" in file_prefix:
 (S1MMIN,S1MMAX,P1MMIN,P1MMAX) = (110,130,0,25)
 
 if "_s2sm" in save_dir_name: (S1MMIN,S1MMAX) = (0,0)
-elif ("FORESEE2D" in save_dir_name):
-	(P1MMIN,P1MMAX)=(.1,10)
+elif ("FORESEE2D" in save_dir_name or "F2D" in save_dir_name):
+	(P1MMIN,P1MMAX)=(.1,4.5)
+	(S1MMIN,S1MMAX)=(.090,11)
 	if ("v3" in save_dir_name or
 		"v4" in save_dir_name or
 		"v5" in save_dir_name):P1MMAX=3
@@ -144,6 +147,22 @@ def FunctionArr(par,expon,ind,matrix):
 		return [r[44]/r[24]		for r in matrix]
 	elif par=="s1mass div p1mass":
 		return [r[24]/r[36]		for r in matrix]
+	elif par=="lam_dom":
+		return [174.104**2*r[19]**2/r[23]*r[1]/(1+r[1]**2)*r[21] for r in matrix]
+	elif par=="kap_dom":
+		return [-3*r[20]/r[19]*r[23]*r[22] for r in matrix]
+	elif par=="ALVAK":
+		if file_prefix == "FORESEE2Dfk4": return [0 for r in matrix]
+		return [(174.104**2*r[19]**2/r[23]*r[1]/(1+r[1]**2)*r[21])/(-3*r[20]/r[19]*r[23]*r[22]) for r in matrix]
+	elif par=="CUVCD":
+		return [r[93]/r[94]		for r in matrix]
+	elif par=="A--doublet mixing angle":
+		m112 = lambda r : r[23]*(1+r[1]**2)/r[1]*(r[21]+r[20]/r[19]*r[23])
+		m222 = lambda r : 174.104**2*r[19]**2/r[23]*r[1]/(1+r[1]**2)*(r[21]+4*r[20]/r[19]*r[23])-3*r[20]/r[19]*r[23]*r[22]
+		m122 = lambda r : 174.104*r[19]*(r[21]-2*r[20]/r[19]*r[23])
+		return [0.5*np.arctan(2*m122(r)/(m112(r)-m222(r))) for r in matrix]
+	elif par=="AAmix":
+		return [1. - r[198]**2 - r[199]**2 - r[200]**2 for r in matrix]
 	else:
 		return [r[ind]**expon		for r in matrix]
 	
@@ -184,8 +203,10 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, xscale, ypar, yind, ymin, ymax, y
 	def Col(index,matrix): #array generator statement which pulls column 'index' from  ea row of 'matrix'
 		return [r[index] for r in matrix]
 	if "comp" in ypar: y_expon = 2
+	elif "A"==ypar[0] and "mix"==ypar[-3:]: y_expon = 2
 	else: y_expon = 1
 	if "comp" in xpar: x_expon = 2
+	elif "A"==xpar[0] and "mix"==xpar[-3:]: x_expon = 2
 	else: x_expon = 1
 	
 	plt.figure(pltctr)
@@ -215,18 +236,24 @@ def SinglePlot(pltctr, xpar, xind, xmin, xmax, xscale, ypar, yind, ymin, ymax, y
 		if key == "titletag":
 			titletag = val
 	
-	if "dw" == ypar[-2:]: plt.yscale("log")
-	elif "XIp1"==ypar[:4]: plt.yscale("symlog")
-	elif "XI" == ypar[:2]: plt.yscale("log")
-	elif ypar in ["neu1mass div p1mass", "neu1mass div s1mass","s1mass div p1mass"]: plt.yscale("log")
-	else: plt.yscale("linear")
+	if "dw" == ypar[-2:]: yscale="log"
+	elif "XIp1"==ypar[:4]: yscale="symlog"
+	elif "XI" == ypar[:2]: yscale="log"
+	elif ypar in ["neu1mass div p1mass", "neu1mass div s1mass","s1mass div p1mass"]: yscale="log"
+	elif ypar == "ALVAK" or ypar == "kappa" or ypar == "lambda" or ypar == "k div l": yscale = "log"
+	elif "mass" in ypar: yscale="log"
+	elif "A--doublet mixing angle" == ypar: yscale="log"
+	else: yscale="linear"
 	plt.yscale(yscale)
 
-	if "dw" == xpar[-2:]: plt.xscale("log")
-	elif "XIp1"==xpar[:4]: plt.xscale("symlog")
-	elif "XI" == xpar[:2]: plt.xscale("log")
-	elif xpar in ["neu1mass div p1mass", "neu1mass div s1mass","s1mass div p1mass"]: plt.xscale("log")
-	else: plt.xscale("linear")
+	if "dw" == xpar[-2:]: xscale="log"
+	elif "XIp1"==xpar[:4]: xscale="symlog"
+	elif "XI" == xpar[:2]: xscale="log"
+	elif xpar in ["neu1mass div p1mass", "neu1mass div s1mass","s1mass div p1mass"]: xscale="log"
+	elif xpar == "ALVAK" or xpar == "kappa" or xpar == "lambda" or xpar == "k div l": xscale="log"
+	elif "mass" in xpar: xscale="log"
+	elif "A--doublet mixing angle" == xpar: xscale="log" 
+	else: xscale="linear"
 	plt.xscale(xscale)
 
 	if (len(Label)+extralegelem) <= 4: Ncols = len(Label)+extralegelem
@@ -286,36 +313,63 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, xscale, ypar, y
 		relevant_matrix = master_list[LEN-6]+master_list[LEN-5]+master_list[LEN-4]+master_list[LEN-3]+master_list[LEN-2]+master_list[LEN-1]
 
 	if "comp" in ypar: y_expon = 2
+	elif "A"==ypar[0] and "mix"==ypar[-3:]: y_expon = 2
 	else: y_expon = 1
 	if "comp" in cpar: c_expon = 2
+	elif "A"==cpar[0] and "mix"==cpar[-3:]: c_expon = 2
 	else: c_expon = 1		
 	if "comp" in xpar: x_expon = 2
+	elif "A"==xpar[0] and "mix"==xpar[-3:]: x_expon = 2
 	else: x_expon = 1
 	
-	if cpar == "k div l": Norm = "linear"#Norm="log"# log norm for PQp1v2 and v3 but for v4 try linear
-	elif cpar in ["p1mass","s1mass"]: Norm = "linear"
+	if cpar == "k div l": Norm = "log"#Norm="log"# log norm for PQp1v2 and v3 but for v4 try linear
+	elif cpar in ["p1mass","s1mass"]: Norm = "log"
 	elif "dw" == cpar[-2:]: Norm = "log"
 	elif "XIp1"==cpar[:4]: Norm = "symlog"
-	elif "XI" == cpar[:2]: Norm = "log"
+	elif "XI" == cpar[:2]: Norm = "symlog" # i had this as log and it err'd on xis3u i think
 	elif cpar in ["neu1mass div p1mass", "neu1mass div s1mass","s1mass div p1mass"]: Norm = "log"
+	elif cpar == "ALVAK": Norm = "log"
+	elif cpar == "lambda" or cpar == "kappa": Norm = "log"
+	elif "br" == cpar[:2]: Norm = "log"
+	elif "Gam"== cpar[:3]: Norm = "log"
+	elif "CUVCD"==cpar: Norm ="log"
+	elif cpar in ["Apimix","AEmix","AEPmix","AAmix"]: Norm="symlog"
+	elif cpar in ["APIEPi3","AEEPi3","AEPEPi3","AAEPi3"]: Norm="symlog"
+	elif "A--doublet mixing angle" == cpar: Norm="log"
 	else: Norm = "linear"
 
-	if xpar in ["p1mass","s1mass"]: plt.xscale("log")
+	if xpar in ["p1mass","s1mass"]: xscale="log"
 	elif xpar == "rt n 3 k Ak mueff div lambda": plt.xscale("linear")#"log")
-	elif "dw" == xpar[-2:]: plt.xscale("log")
-	elif "XIp1"==xpar[:4]: plt.xscale("symlog")
-	elif "XI" == xpar[:2]: plt.xscale("log")
-	elif xpar in ["neu1mass div p1mass", "neu1mass div s1mass","s1mass div p1mass"]: plt.xscale("log")
-	else: plt.xscale("linear")
+	elif "dw" == xpar[-2:]: xscale="log"
+	elif "XIp1"==xpar[:4]: xscale="symlog"
+	elif "XI" == xpar[:2]: xscale="log"
+	elif xpar in ["neu1mass div p1mass", "neu1mass div s1mass","s1mass div p1mass"]: xscale="log"
+	elif xpar == "ALVAK": xscale="log"
+	elif xpar == "k div l" or xpar == "kappa" or xpar == "lambda": xscale = "log"
+	elif "br" == xpar[:2]: xscale="log"
+	elif "Gam"== xpar[:3]: xscale="log"
+	elif "CUVCD"==xpar: xscale="log"
+	elif xpar in ["Apimix","AEmix","AEPmix","AAmix"]: xscale="symlog"
+	elif xpar in ["APIEPi3","AEEPi3","AEPEPi3","AAEPi3"]: xscale="symlog"
+	elif "A--doublet mixing angle"==xpar: xscale="log" 
+	else: xscale="linear"
 	plt.xscale(xscale)
 
-	if ypar in ["p1mass", "s1mass"]: plt.yscale("log")
+	if ypar in ["p1mass", "s1mass"]: yscale="log"
 	elif ypar == "rt n 3 k Ak mueff div lambda": plt.yscale("linear")#"log")
-	elif "dw" == ypar[-2:]: plt.yscale("log")
+	elif "dw" == ypar[-2:]: yscale="log"
 	elif "XIp1"==ypar[:4]: plt.yscale("symlog")
-	elif "XI" == ypar[:2]: plt.yscale("log")
-	elif ypar in ["neu1mass div p1mass", "neu1mass div s1mass","s1mass div p1mass"]: plt.yscale("log")
-	else: plt.yscale("linear")
+	elif "XI" == ypar[:2]: yscale="log"
+	elif ypar in ["neu1mass div p1mass", "neu1mass div s1mass","s1mass div p1mass"]: yscale="log"
+	elif ypar == "ALVAK": yscale="log"
+	elif ypar == "k div l" or ypar == "kappa" or ypar == "lambda": yscale = "log"
+	elif "br" == ypar[:2]: yscale="log"
+	elif "Gam"== ypar[:3]: yscale="log"
+	elif "CUVCD"==ypar: yscale="log"
+	elif ypar in ["Apimix","AEmix","AEPmix","AAmix"]: yscale="symlog"
+	elif ypar in ["APIEPi3","AEEPi3","AEPEPi3","AAEPi3"]: yscale="symlog"
+	elif ypar=="A--doublet mixing angle": yscale="log"  
+	else: yscale="linear"
 	plt.yscale(yscale)
 
 
@@ -328,8 +382,8 @@ def HeatPlot(pltctr, cpar, cind, cmap_n, xpar, xind, xmin, xmax, xscale, ypar, y
 	plt.title(save_dir_name+" : "+ypar+" v "+xpar+" c "+cpar)
 	plt.ylabel(ypar)
 	plt.xlabel(xpar)
-	plt.colorbar(label=cpar) #norm keyword
-	
+	cbar=plt.colorbar(label=cpar) #norm keyword
+	cbar.ax.tick_params(labelsize=6)
 	titletag = ""
 	for key,val in kwargs.items():
 		if key == "titletag":
@@ -400,7 +454,8 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 		######## IF DPI @ 480, SIZE OF 0.04 OK. IF DPI @ 240, DOTS DO NOT RENDER @ THAT SIZE. INC TO 0.1
 	pltctr = 0
 	par_list = [ ("lambda",19), ("kappa",20), ("Alambda",21), ("mueff",23), ("Akappa",22), ("tanB",1) ]
-	if "FORESEE2D" in file_prefix or "lighthiggs" in file_prefix or "PQp1" in file_prefix: par_list += [("k div l", 0)]
+	if "FORESEE2D" in file_prefix or "F2D" in file_prefix or "lighthiggs" in file_prefix or "PQp1" in file_prefix: par_list += [("k div l", 0)]
+	if False and "FORESEE2D" in file_prefix: par_list += [("ALVAK",0),("neu1mass div p1mass",0),("s1mass div p1mass",0),("CUVCD",0)]
 	#par_list = [("MA",43)] + par_list
 	elif "108035020" in file_prefix: par_list = [("AU3",5),("M1",2),("M2",3),("M3",4)] + par_list
 	elif "PQv8" in file_prefix: par_list = [("AD3",6),("AU3",5)] + par_list
@@ -473,7 +528,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 	for (br,brix) in br_list:
 		if br[3:5]=="p1": p1_brs.append((br,brix))
 
-	if DO_DC or file_prefix[:6] in ["PQp1v5","PQp1v6"]:
+	if DO_DC or "FORESEE2D" in file_prefix or file_prefix[:6] in ["PQp1v5","PQp1v6"]:
 		dc_list = [("s1dw",133),("s2dw",134),("p1dw",135),("neu2dw",136),("neu3dw",137),("cha1dw",138)]
 	else: dc_list = []
 	
@@ -495,6 +550,14 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 			("GamAhadrbb",	182) ]
 	Hpdc_list = [(gam,gix) for (gam,gix) in pdc_list if gam[:4]=="GamH"]
 	Apdc_list = [(gam,gix) for (gam,gix) in pdc_list if gam[:4]=="GamA"]
+	
+	A_meson_mix_list = [("Apimix",198),("AEmix",199),("AEPmix",200),("AAmix",201)]
+	A_EPi3_aux_list = [("APIEPi3",202),("AEEPi3",203),("AEPEPi3",204),("AAEPi3",205)]
+
+	if True:
+		par_list += A_meson_mix_list
+		#par_list += A_EPi3_aux_list
+		par_list += [("A--doublet mixing angle",0)]
 
 	# 2HDM DATA FROM WEI
 	lhd_ma_x = [.1,.2,.3,.4,.5,.6,.7,.8,.9,1,2,3,4,5,6,7,8,9,10]
@@ -544,10 +607,14 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 	if DO_PARAM:
    		print(Time(),"Beginning parameter plots")
    		for i,(xpar,xind) in enumerate(par_list): # ALL PARAM VS
+   			if xpar in ["kappa","lambda","k div l"]: xscale="log"
+   			else: xscale = "linear"
    			for j,(ypar,yind) in enumerate(par_list): #PARAM
    				if j<=i: continue
+   				if ypar in ["kappa","lambda","k div l"]: yscale="log"
+   				else: yscale = "linear"
    				pltctr+=1
-   				SinglePlot(pltctr, xpar, xind, 0, 0, "linear", ypar, yind, 0, 0, "linear",
+   				SinglePlot(pltctr, xpar, xind, 0, 0, xscale, ypar, yind, 0, 0, yscale,
    					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "Parameter", "")
 	if DO_MASS:
 		print(Time(),"Beginning mass plots") # PLOT ea mass against chosen params and other masses
@@ -618,7 +685,8 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 		DO_PARS  = (1,1,1)	#	   Core parameters
 		DO_MASSC = (0,1,0)	#	   Neu and H masses
 		DO_COUPL = (0,0,0)	#	   reduced couplings
-		DO_DECAY = (0,0,0)	#	   decay widths
+		DO_DECAY = (0,0,1)	#	   decay widths
+		DO_PDC   = (0,0,1)	#	   partial decay widths
 
 		toggle_list = []		
 		toggle_list += par_list 
@@ -629,11 +697,11 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 		toggle_list += shmix_list
 		toggle_list += Acomp_list
 		toggle_list += neucomp_list[:8]
-		toggle_list += coup_list
+		toggle_list += [(coup,cix) for (coup,cix) in coup_list if "p1" in coup]
 		toggle_list += dc_list
+		toggle_list += Apdc_list
 
-
-		togg_labels = ["par" for par in par_list]+["mass" for mass in mass_list]+["scomp" for scomp in scomp_list]+["ucomp" for ucomp in ucomp_list]+["dcomp" for dcomp in dcomp_list]+["shmix" for shmix in shmix_list]+["Acomp" for Acomp in Acomp_list]+["neucomp" for neucomp in neucomp_list[:8]]+["XI" for XI in coup_list]+["DC" for DC in dc_list]
+		togg_labels = ["par" for par in par_list]+["mass" for mass in mass_list]+["scomp" for scomp in scomp_list]+["ucomp" for ucomp in ucomp_list]+["dcomp" for dcomp in dcomp_list]+["shmix" for shmix in shmix_list]+["Acomp" for Acomp in Acomp_list]+["neucomp" for neucomp in neucomp_list[:8]]+["XI" for XI in coup_list if "p1" in XI[0]]+["DC" for DC in dc_list]+["Apdc" for Apdc in Apdc_list]
 	
 		for n,(c_par,c_ix) in enumerate(toggle_list):
 			if (c_par,c_ix) in par_list and not DO_PARS[0]: continue
@@ -646,7 +714,8 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 			if (c_par,c_ix) in neucomp_list and not DO_NCOMP[0]: continue
 			if (c_par,c_ix) in coup_list and not DO_COUPL[0]: continue
 			if (c_par,c_ix) in dc_list and not DO_DECAY[0]: continue
-
+			if (c_par,c_ix) in Apdc_list and not DO_PDC[0]: continue
+#			if c_par not in ["tanB"]: continue # super temp!!!
 			print(Time(),"Coloring with",c_par)
 
 			for xind,(x_par,x_ix) in enumerate(toggle_list):
@@ -661,7 +730,8 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 				if (x_par,x_ix) in neucomp_list and not DO_NCOMP[1]: continue
 				if (x_par,x_ix) in coup_list and not DO_COUPL[1]: continue
 				if (x_par,x_ix) in dc_list and not DO_DECAY[1]: continue
-			
+				if (x_par,x_ix) in Apdc_list and not DO_PDC[1]: continue
+			#	if x_par not in ["p1mass","s1mass"]: continue # SUPER TEMP
 				if x_par == c_par: continue
 
 				print(Time(),"... Analyzing",x_par)
@@ -680,6 +750,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 					x_sc = "linear"
 
 				for yind,(y_par,y_ix) in enumerate(toggle_list):
+#					if y_par not in ["tanB","GamAEPi3"]: continue # SUPER TEMP
 					if (y_par,y_ix) in par_list:
 						if not DO_PARS[2]: continue
 						if (x_par,x_ix) in par_list:
@@ -733,9 +804,20 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 							if (dc_list.index((y_par,y_ix))
 							<=dc_list.index((x_par,x_ix))):
 								continue
+						if (x_par,x_ix) in mass_list:
+							if x_par[:2] != y_par[:2]: continue
+					if (y_par,y_ix) in Apdc_list:
+						if not DO_PDC[2]: continue
+						if (x_par,x_ix) in Apdc_list:
+							if (Apdc_list.index((y_par,y_ix))
+							<=Apdc_list.index((x_par,x_ix))):
+								continue
 
 					if y_par == x_par or y_par == c_par: continue
 					
+					if (x_par,x_ix) in mass_list:
+						if "p1" not in x_par: continue
+
 					if DEBUG_MODE: print(Time(),"... ... against",y_par)
 				
 					if y_par == "s1mass":
@@ -745,6 +827,9 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 						(y_min, y_max) = (P1MMIN,P1MMAX)
 						y_sc = "log"
 					elif "FORESEE2D" in file_prefix and y_par in ["kappa","lambda"]:
+						(y_min, y_max) = (0, 0)
+						y_sc = "log"
+					elif "dw" in y_par:
 						(y_min, y_max) = (0, 0)
 						y_sc = "log"
 					else: 
@@ -794,6 +879,27 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 					HeatPlot(pltctr,"tanB",1,"turbo",
 						"p1mass",36,0.1,10,"log", br, brix, 1E-9,1.5,"log",
 						Size, DPI, "Heatmap","BR")
+					pltctr+=1 # introd in FORESEE2D
+					HeatPlot(pltctr,"s1mass div p1mass",0,"turbo",
+						"p1mass",36,0.1,10,"log", br, brix, 1E-9,1.5,"log",
+						Size, DPI, "Heatmap","BR")
+					pltctr+=1 # introd in FORESEE2D
+					HeatPlot(pltctr,"neu1mass div p1mass",0,"turbo",
+						"p1mass",36,0.1,10,"log", br, brix, 1E-9,1.5,"log",
+						Size, DPI, "Heatmap","BR")
+					pltctr+=1 # introd in FORESEE2D
+					HeatPlot(pltctr,"ALVAK",0,"turbo",
+						"p1mass",36,0.1,10,"log", br, brix, 1E-9,1.5,"log",
+						Size, DPI, "Heatmap","BR")
+					pltctr+=1
+					HeatPlot(pltctr,"lambda",19,"turbo",
+						"p1mass",36,0.1,10,"log", br, brix, 1E-9,1.5,"log",
+						Size, DPI, "Heatmap","BR")
+					pltctr+=1
+					HeatPlot(pltctr,"k div l",0,"turbo",
+						"p1mass",36,0.1,10,"log", br, brix, 1E-9,1.5,"log",
+						Size, DPI, "Heatmap","BR")
+
 				continue # temp bc don't cary about below
 				if mass=="s1mass":
 					pltctr+=1
@@ -1525,8 +1631,159 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 				plt.savefig("{}/{}/XI/EFXI/{} v {} div tanB y_t2 A2HDM zoom.png".format(DIR,save_dir_name,xi,xval),dpi=DPI)
 				plt.close()
 
+	if DO_MISC and False:
+		GamAEPi3_threshold = 1e-20 #r[158]
+		lo_mix = [0.,0.,0.,0.] # Pi E EP A
+		hi_mix = [0.,0.,0.,0.] # Pi E EP A
+		ptscounted=[0,0]#(hi,lo)
+		for r in master_list[-1]:
+			if r[36]<.958: continue
 
+			if r[158]>GamAEPi3_threshold:
+				ptscounted[0]+=1
+				hi_mix[0]+=r[198]**2
+				hi_mix[1]+=r[199]**2
+				hi_mix[2]+=r[200]**2
+				hi_mix[3]+=r[201]**2
+				print(f"HIGHER\t{r[198]**2}\t{r[199]**2}\t{r[200]**2}\t{r[201]**2}")
+			else:
+				ptscounted[1]+=1
+				lo_mix[0]+=r[198]**2
+				lo_mix[1]+=r[199]**2
+				lo_mix[2]+=r[200]**2
+				lo_mix[3]+=r[201]**2
+				print(f"LOWER\t{r[198]**2}\t{r[199]**2}\t{r[200]**2}\t{r[201]**2}")
+		for i in range(len(hi_mix)): hi_mix[i]/=ptscounted[0]
+		for i in range(len(lo_mix)): lo_mix[i]/=ptscounted[1]
+		#print(f"len list {len(master_list[-1])}\tskipped {skipped}")
+		print(f"pts above 958 MeV [hi,lo]\t{ptscounted}")
+		print(f"hi_mix\t{hi_mix}")
+		print(f"lo_mix\t{lo_mix}")
 
+	if DO_MISC and True:
+
+		lambda_windows = [(1e-6,1e-5,"darkblue"),(1e-1,1e0,"black"),(1e-5,1e-4,"blue"),(1e-2,1e-1,"darkred"),(1e-4,1.78e-4,"green"),(1e-3,3.16e-3,"orange"),(3.16e-3,1e-2,"red"),(1.78e-4,3.16e-4,"lime"),(3.16e-4,1e-3,"yellow")]
+
+		for (Apdc,i_Apdc) in Apdc_list:
+			pltctr+=1
+			plt.figure(pltctr)
+			for (l_min,l_max,col) in lambda_windows:
+				plt.scatter([r[36] for r in master_list[-1] if l_min<r[19] and r[19]<l_max],
+					[r[i_Apdc] for r in master_list[-1] if l_min<r[19] and r[19]<l_max],
+					c=col, label=f"lambda {l_min}--{l_max}",marker=",",s=Size[-1]*2)
+			leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=int(len(lambda_windows)/2)+1,columnspacing=0.5,frameon=False,fontsize=6)
+			plt.title(f"{save_dir_name} : {Apdc} v p1mass c lambda",fontsize=6)
+			plt.ylabel(Apdc)
+			plt.xlabel("p1mass")
+			plt.xscale("log")
+			plt.xlim(.3,P1MMAX)#(P1MMIN,P1MMAX)
+			plt.yscale("log")
+			try:   
+				os.mkdir(f"{DIR}{save_dir_name}/A-hadr splitting/")
+			except OSError as error:							
+				if DEBUG_MODE: print(error)			
+			plt.savefig(f"{DIR}{save_dir_name}/A-hadr splitting/{Apdc} v p1mass c lambda.png",dpi=DPI)
+			plt.close()
+
+		ALVAK_windows = [(1e-12,1e-8,"darkblue"),(1e1,1e3,"black"),(1e-8,1e-5,"blue"),(1e0,1e1,"darkred"),(1e-5,1e-4,"green"),(1e-2,1e-1,"orange"),(1e-1,1e0,"red"),(1e-4,1e-3,"lime"),(1e-3,1e-2,"yellow")]
+
+		for (Apdc,i_Apdc) in Apdc_list:
+			pltctr+=1
+			plt.figure(pltctr)
+
+#	(174.104**2*r[19]**2/r[23]*r[1]/(1+r[1]**2)*r[21])/(-3*r[20]/r[19]*r[23]*r[22])
+
+			for (R_min,R_max,col) in ALVAK_windows:
+				plt.scatter([r[36] for r in master_list[-1] if R_min<(174.104**2*r[19]**2/r[23]*r[1]/(1+r[1]**2)*r[21])/(-3*r[20]/r[19]*r[23]*r[22]) and (174.104**2*r[19]**2/r[23]*r[1]/(1+r[1]**2)*r[21])/(-3*r[20]/r[19]*r[23]*r[22])<R_max], [r[i_Apdc] for r in master_list[-1] if R_min<(174.104**2*r[19]**2/r[23]*r[1]/(1+r[1]**2)*r[21])/(-3*r[20]/r[19]*r[23]*r[22]) and (174.104**2*r[19]**2/r[23]*r[1]/(1+r[1]**2)*r[21])/(-3*r[20]/r[19]*r[23]*r[22])<R_max],c=col, label=f"ALVAK {R_min}--{R_max}",marker=",",s=Size[-1]*2)
+			leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=int(len(lambda_windows)/2)+1,columnspacing=0.5,frameon=False,fontsize=6)
+			plt.title(f"{save_dir_name} : {Apdc} v p1mass c ALVAK",fontsize=6)
+			plt.ylabel(Apdc)
+			plt.xlabel("p1mass")
+			plt.xscale("log")
+			plt.xlim(.3,P1MMAX)#(P1MMIN,P1MMAX)
+			plt.yscale("log")
+			try:   
+				os.mkdir(f"{DIR}{save_dir_name}/A-hadr splitting/")
+			except OSError as error:							
+				if DEBUG_MODE: print(error)			
+			plt.savefig(f"{DIR}{save_dir_name}/A-hadr splitting/{Apdc} v p1mass c ALVAK.png",dpi=DPI)
+			plt.close()
+
+	if DO_MISC and False:
+		pltctr+=1
+		SinglePlot(pltctr, "lam_dom", 0, 0, 0,"linear",
+					"kap_dom", 0, 0, 0,"linear",
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
+		pltctr+=1
+		SinglePlot(pltctr, "p1mass", 36, P1MMIN, P1MMAX,"log",
+					"kap_dom", 0, 0, 0,"linear",
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
+		pltctr+=1
+		SinglePlot(pltctr, "p1mass", 36, P1MMIN, P1MMAX,"log",
+					"lam_dom", 0, 0, 0,"linear",
+					Label, Color, Alpha, Size, LOC, BBOX_TO_ANCHOR, DPI, "","")
+		pltctr+=1
+		HeatPlot(pltctr, "p1mass", 36, "turbo",
+			"lam_dom", 0, 0, 0,"linear",
+			"kap_dom", 0, 0, 0,"linear",Size, DPI, "Heatmap","")
+		pltctr+=1
+		HeatPlot(pltctr, "lam_dom", 0, "turbo",
+			"p1mass", 36, P1MMIN, P1MMAX,"log",
+			"kap_dom", 0, 0, 0,"linear",Size, DPI, "Heatmap","")
+		pltctr+=1
+		HeatPlot(pltctr, "kap_dom", 0, "turbo",
+			"p1mass", 36, P1MMIN, P1MMAX,"log",
+			"lam_dom", 0, 0, 0,"linear",Size, DPI, "Heatmap","")
+
+		pltctr+=1
+		plt.figure(pltctr)
+		kap_dom = FunctionArr("kap_dom",0,0,master_list[-1])
+		lam_dom = FunctionArr("lam_dom",0,0,master_list[-1])
+		regime_list = []
+		for i in range(len(master_list[-1])):
+			if kap_dom[i]>2*lam_dom[i]: regime_list.append(["b","AKdom"])
+			elif kap_dom[i]>(1/2)*lam_dom[i]: regime_list.append(["g","0.5--2x"])
+			else: regime_list.append(["r","AKdom"])
+		plt.scatter(lam_dom,kap_dom,c=[rl[0] for rl in regime_list], label=[rl[1] for rl in regime_list],
+			marker=",",s=Size[-1])
+		plt.title(save_dir_name + " : AKdom (b) events vs ALdom (r) events",fontsize=8)
+		#leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.5,frameon=False,fontsize=6)
+		plt.xlabel("lam_dom")
+		plt.ylabel("kap_dom")
+		plt.xscale("log")
+		plt.yscale("log")
+		plt.savefig("{}/{}/ALdom events vs AKdom events.png".format(DIR,save_dir_name),dpi=DPI)
+		plt.close()
+		
+		pltctr+=1
+		plt.figure(pltctr)
+		plt.scatter([r[36] for r in master_list[-1]],
+			kap_dom,c=[rl[0] for rl in regime_list], label=[rl[1] for rl in regime_list],
+			marker=",",s=Size[-1])
+		plt.title(save_dir_name + " : kap_dom v p1mass (r=ALdom, g=0.5--2x, b=AKdom)",fontsize=8)
+		#leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.5,frameon=False,fontsize=6)
+		plt.xlabel("p1mass")
+		plt.ylabel("kap_dom")
+		plt.xscale("log")
+		plt.xlim(P1MMIN,P1MMAX)
+		plt.yscale("log")
+		plt.savefig("{}/{}/kap_dom v p1mass.png".format(DIR,save_dir_name),dpi=DPI)
+		plt.close()
+
+		pltctr+=1
+		plt.figure(pltctr)
+		plt.scatter([r[36] for r in master_list[-1]],
+			lam_dom,c=[rl[0] for rl in regime_list], label=[rl[1] for rl in regime_list],
+			marker=",",s=Size[-1])
+		plt.title(save_dir_name + " : lam_dom v p1mass (r=ALdom, g=0.5--2x,b=AKdom)",fontsize=8)
+		#leg = plt.legend(loc=LOC,bbox_to_anchor=BBOX_TO_ANCHOR,ncols=3,columnspacing=0.5,frameon=False,fontsize=6)
+		plt.xlabel("p1mass")
+		plt.ylabel("lam_dom")
+		plt.xscale("log")
+		plt.xlim(P1MMIN,P1MMAX)
+		plt.yscale("log")
+		plt.savefig("{}/{}/lam_dom v p1mass.png".format(DIR,save_dir_name),dpi=DPI)
+		plt.close()
 
 
 	if DO_MISC and False:
@@ -1604,7 +1861,7 @@ def GeneratePlots(DO_PARAM,DO_MASS,DO_COMP,DO_HEAT,DO_COUP,DO_EFXI,DO_BR,DO_DC,D
 			plt.ylim(1E-24,2E-2)
 			plt.savefig("{}/{}/DC/pdw hadr/GamA(2HDM){} v p1mass full LSAF match.png".format(DIR,save_dir_name,gamA[4:]),dpi=DPI)
 			plt.close()
-	if DO_MISC:
+	if DO_MISC and False:
 		print(Time(),"Hadronic full MA range - 2HDM SUMMED")
 		lhd_gamA_list = ["APiPiPi","AEtaPiPi","AEtaEtapPi","AEtaEtaPi","AEtapEtapPi","AEtapEtapEtap","AEtaEtaEta","AEtaEtaEtap","AEtaEtapEtap","AKKPi","AEtaKK","AEtapKK","AGamPiPi"]
 		for gamA2HDM in lhd_gamA_list:		#### INDIVIDUAL A(2HDM) HADRONICS
@@ -2732,15 +2989,16 @@ for file_index,out_file_name in enumerate(file_names):
 			row = [0] # trim out strange spacing ---> this used to be the event number
 
 			reject_row = False
-			if "108035020" in file_prefix: last_element=74	#trunc out after MCHA(1)
-			elif "FORESEE2D" in file_prefix: last_element=200
-			elif (DO_DC or
-				file_prefix[:6] in ["PQp1v5","PQp1v8"] or 
-				"lighthiggs" in save_dir_name): last_element=200	#(don't trunc)
-			elif DO_BR: last_element = 149
-			elif NEU_INFO: last_element=74			#		 MCHA(1)
-			elif "PQ" in file_prefix: last_element=44	#		 neu1mass
-			else: last_element=43				#		 MA
+			last_element=210
+#			if "108035020" in file_prefix: last_element=74	#trunc out after MCHA(1)
+#			elif "FORESEE2D" in file_prefix: last_element=210
+#			elif (DO_DC or
+#				file_prefix[:6] in ["PQp1v5","PQp1v8"] or 
+#				"lighthiggs" in save_dir_name): last_element=200	#(don't trunc)
+#			elif DO_BR: last_element = 149
+#			elif NEU_INFO: last_element=74			#		 MCHA(1)
+#			elif "PQ" in file_prefix: last_element=44	#		 neu1mass
+#			else: last_element=43				#		 MA
 			for indexelem,val in enumerate(fullrow):
 				if val != "": row.append(float(val))
 				# THIS WHERE TO ENFORCE CUTS AND FILTERS
@@ -2748,6 +3006,30 @@ for file_index,out_file_name in enumerate(file_names):
 					if abs(row[20])/row[19] > 0.15:
 						reject_row = True
 						break
+				elif "FORESEE2D" in file_prefix and len(row)==24:
+						# first term in diag pseudosc mass
+						# mz/g   ^2 *lambda^2 / mueff * tanb / (1+tanB^ 2) * Alambda
+						# 174.104 or 246.220
+					lam_dom = 174.104**2*row[19]**2/row[23]*row[1]/(1+row[1]**2)*row[21]
+						# last term in diag pseudosc mass
+						# -3*kappa/lambda*mueff*Akappa
+					kap_dom = -3*row[20]/row[19]*row[23]*row[22]
+					if "ALdom" in save_dir_name and (kap_dom > lam_dom):
+						reject_row = True
+						break
+					elif "AKdom" in save_dir_name and (lam_dom > kap_dom):
+						reject_row = True
+						break
+				elif "FORESEE2D" in file_prefix:
+					if ("p1m_lt_2neu1m" in save_dir_name and (
+						(len(row)==45 and row[36]>=2*row[44] ) )):
+						reject_row = True
+						break
+					if ("s1m_lt_2p1m" in save_dir_name and (
+						(len(row)==37 and row[24]>=2*row[36] ) )):
+						reject_row = True
+						break
+
 				elif "PQp1v3" == file_prefix and len(row)==21:
 					if row[20]/row[19] > 2:
 						reject_row = True
@@ -3154,15 +3436,16 @@ for i,dataset in enumerate(master_list):		# for each event in each set...
 #   v3: f2d 
 #   v4: f2dv2
 #f = open("/home/wolf/NMSSMTools_6.0.0/calculations/NMSSM_big_valid_events_list_v4.txt","w")
-#f = open("/home/wolf/NMSSMTools_6.0.0/calculations/NMSSM_big_valid_events_list_F2Ds1.txt","w")
-#for i,r in enumerate(master_list[-1]):# write all of the events which surv all constraints to this big file
-#	line=""
-#	for j,elem in enumerate(r):
-#		line += f"{elem}"
-#		if j!=len(r)-1: line+=" "
-#		else: line+="\n"
-#	f.write(line)
-#f.close()
+#f = open("/home/wolf/NMSSMTools_6.0.0/calculations/NMSSM_big_valid_events_list_lighthiggs3.txt","w")
+f = open("/home/wolf/NMSSMTools_6.0.0/calculations/NMSSM_big_valid_events_list_F2Ds1win1_0-10.txt","w")
+for i,r in enumerate(master_list[-1]):# write all of the events which surv all constraints to this big file
+	line=""
+	for j,elem in enumerate(r):
+		line += f"{elem}"
+		if j!=len(r)-1: line+=" "
+		else: line+="\n"
+	f.write(line)
+f.close()
 
 
 if SAVEPLOTS: 
@@ -3291,13 +3574,21 @@ if BENCH_CHECK:
 #		if r[24]>10 and r[36]>10:	# show me events where both heavy
 #		if r[24]<0.1 or r[36]<0.1:	# show me events if either SUPER light
 #		if r[36]<0.135 and r[140]>0:	# show me events below pion mass MA but with nonzero hadr dec
-		if i < 30:
+#		if r[36]>0.98 and r[36]<0.9975:
+#			if r[108]>5e-3: print("BR A1 HADR NORMAL")
+#			elif r[108]<5e-3:print("BR SMALLER THAN EXPECTED")
 #		if r[170] > 0:
+#		if r[36]>.970 and r[36]<1.:
+#			if r[158]>1e-20: print(f"\nHIGH --> A--A {r[201]}")
+#			else: print (f"\nLOW --> A--A {r[201]}") # condition for top and bottom separating out in GamAEPi3 (r[158])
+		if r[201]<1:
+			print(r[201])
 			print("s1mass {: >5.1f} & p1mass {: >4}: {: >8.5f} {: >11} {: >11} {:0<7} {: <10} {:0<7}".format(round(r[24],1),round(r[36],1),r[1],r[19],r[20],r[21],r[22],r[23]),
 #"")
 # r[98],r[186])
 #"tau/mu\t{: <4.3f}|mu/e\t{: <4.3f}".format(np.sqrt(r[114]/r[116]),np.sqrt(r[116]/r[118])))
 #"CJA =", complex(r[-4],r[-3]),", CGA =",complex(r[-2],r[-1]))
-"{: >6} {: >6} {: >6}".format(r[-3],r[-2],r[-1]))
+#"{: >6} {: >6} {: >6}".format(r[-3],r[-2],r[-1])
+)
 print("{}\tFinished.\n#=#=#=#=#=#=#=#=#=#=#=#=#=#=#".format(Time()))
 #sys.exit()
