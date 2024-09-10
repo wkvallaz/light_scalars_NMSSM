@@ -130,6 +130,7 @@
 *          11,12     Problem in integration of RGEs
 *          13,14     Convergence problem
 *          15        Event not light ! wolf - neither h1/a1 < 10GeV set in mhiggs.f
+*          16        Event in wrong LAMDOM/KAPDOM regime, wolf set in this file
 *
 *      PROB(I)  = 0, I = 1..88: OK
 *
@@ -224,7 +225,7 @@
       CHARACTER(200) PRE,SUF,PAT,IFILE,OFILE,EFILE,TFILE,SFILE
 
       INTEGER NFL,NPROB,NPAR
-      PARAMETER (NFL=15,NPROB=88,NPAR=25)
+      PARAMETER (NFL=16,NPROB=88,NPAR=25)
 ! - WOLF
       INTEGER NFAIL(NFL),IFAIL,DIFAIL,I,IMAX,TOT,ITOT,NUMPROB(NPROB)
       INTEGER M1FLAG,M2FLAG,M3FLAG,MHDFLAG,MHUFLAG,MSFLAG
@@ -258,6 +259,9 @@
       DOUBLE PRECISION MD3N,MD3NN,MD2N,MD2NN
       DOUBLE PRECISION XIF,XIS,MUP,MSP,M3H
       DOUBLE PRECISION M32,CGR,MPL,Q2,DELMB,DELML,DEL1,D0,EPS
+      DOUBLE PRECISION LAMDOM,KAPDOM
+! WOLF
+      DOUBLE PRECISION P1MMIN,P1MMAX,S1MMIN,S1MMAX
 
       COMMON/NMSFLAG/NMSFLAG
       COMMON/FLAGS/OMGFLAG,MAFLAG,MOFLAG
@@ -295,6 +299,8 @@
       COMMON/CFLAG/CFLAG
       COMMON/PFLAG/PFLAG
       COMMON/FILES/PAT,IFILE,OFILE,EFILE,TFILE,SFILE
+! WOLF
+      COMMON/WOLFMASS/P1MMIN,P1MMAX,S1MMIN,S1MMAX
 
       EPS=1d-2
       IMAX=10
@@ -405,7 +411,7 @@
       DO ITOT=1,NTOT
 ! wolf - here am going to put goto for retry, this 13 is me
 
- 13   IF(TBMIN.EQ.TBMAX)THEN
+ 13   IF(TBMIN.EQ.TBMAX)THEN!                              >> TANB
        PAR(3)=TBMIN
       ELSE
        IF(NTB.EQ.0)THEN
@@ -415,7 +421,7 @@
        ENDIF
       ENDIF
 
-      IF(M2MIN.EQ.M2MAX)THEN
+      IF(M2MIN.EQ.M2MAX)THEN!                              >> M2 (GAUGE)
        PAR(21)=M2MIN
       ELSE
        IF(NM2.EQ.0)THEN
@@ -425,7 +431,7 @@
        ENDIF
       ENDIF
 
-      IF(M1FLAG.EQ.0)THEN
+      IF(M1FLAG.EQ.0)THEN!                                 >> M1 (GAUGE)
        PAR(20)=PAR(21)/2d0
       ELSEIF(M1MIN.EQ.M1MAX)THEN
        PAR(20)=M1MIN
@@ -437,7 +443,7 @@
        ENDIF
       ENDIF
 
-      IF(M3FLAG.EQ.0)THEN
+      IF(M3FLAG.EQ.0)THEN!                                 >> M3 (GAUGE)
        PAR(22)=PAR(21)*3d0
       ELSEIF(M3MIN.EQ.M3MAX)THEN
        PAR(22)=M3MIN
@@ -449,17 +455,20 @@
        ENDIF
       ENDIF
 
-      IF(LMIN.EQ.LMAX)THEN
+      IF(LMIN.EQ.LMAX)THEN!                                >> LAMBDA
        PAR(1)=LMIN
       ELSE
        IF(NL.EQ.0)THEN
+! wolf - default gen
         PAR(1)=LMIN+(LMAX-LMIN)*RAN2(IDUM)
+! wolf - log gen so genned at same scales as kdl gen
+!        PAR(1)=10d0**(RAN2(IDUM)*(0d0 +6d0) -6d0) 
        ELSE
         PAR(1)=LMIN*(LMAX/LMIN)**RAN2(IDUM)
        ENDIF
       ENDIF
 
-      IF(KMIN.EQ.KMAX)THEN
+      IF(KMIN.EQ.KMAX)THEN!                                >> KAPPA ( OR KAPPA/LAMBDA RATIO --> KAPPA)
        PAR(2)=KMIN
       ELSE
        IF(NK.EQ.0)THEN
@@ -472,20 +481,29 @@
 !        KAPPA=RAN2(IDUM)*MIN(LAMBDA*RAN2(IDUM)*KDLMAX,KMAX)
 !!      PAR(2)=RAN2(IDUM)*MIN(PAR(1)*RAN2(IDUM)*0.05,KMAX)
 ! wolf - gen acc to fixed k/l ratio and determined value of l
-!        PAR(2)=0.01*PAR(1)
+!        PAR(2)=0.0001*PAR(1)
 ! wolf - gen acc to random k/l and random l, solving for k
 !        KAPPA=RANDOM*   KDLMAX*LAMBDA
-        PAR(2)=RAN2(IDUM)*0.01*PAR(1)
+!        PAR(2)=RAN2(IDUM)*0.001*PAR(1)
+! wolf - gen acc to k/l randomly chosen in range
+!               (     random(max - min)   + min)*lambda
+!        PAR(2)=(RAN2(IDUM)*(0.01d0-0.00001d0)+0.00001d0)*PAR(1)
+! wolf - LOG gen acc to k/l randomly chosen in range
+        PAR(2)=(10d0**(RAN2(IDUM)*(-2d0 +5d0) -5d0) )*PAR(1)
+
        ELSE
         PAR(2)=KMIN*(KMAX/KMIN)**RAN2(IDUM)
        ENDIF
       ENDIF
 
-      IF(MUMIN.EQ.MUMAX)THEN
+      IF(MUMIN.EQ.MUMAX)THEN!                               >> MUEFF
        PAR(4)=MUMIN
       ELSE
        IF(NMU.EQ.0)THEN
+! wolf - default gen
         PAR(4)=MUMIN+(MUMAX-MUMIN)*RAN2(IDUM)
+! wolf - log gen so genned at same scales as kdl gen
+!        PAR(4)=10**(RAN2(IDUM)*(3.17609d0 - 2.60206d0) + 2.60206d0) 
        ELSE
         PAR(4)=MUMIN*(MUMAX/MUMIN)**RAN2(IDUM)
        ENDIF
@@ -496,7 +514,8 @@
         PAR(5)=ALMIN
        ELSE
         IF(NAL.EQ.0)THEN
-         PAR(5)=ALMIN+(ALMAX-ALMIN)*RAN2(IDUM)
+!         PAR(5)=ALMIN+(ALMAX-ALMIN)*RAN2(IDUM)!		    >> ALAMBDA
+         PAR(5)=(10d0**(RAN2(IDUM)*(4.3-0)+0))! trying this one?
         ELSE
          PAR(5)=ALMIN*(ALMAX/ALMIN)**RAN2(IDUM)
         ENDIF
@@ -534,7 +553,8 @@
         PAR(5)=ALMIN
        ELSE
         IF(NAL.EQ.0)THEN
-         PAR(5)=ALMIN+(ALMAX-ALMIN)*RAN2(IDUM)
+         PAR(5)=ALMIN+(ALMAX-ALMIN)*RAN2(IDUM)!		    >> ALAMBDA i think this is my block i care about? > apparently not
+!         PAR(5)=(10d0**(RAN2(IDUM)*(4-0)+0))
         ELSE
          PAR(5)=ALMIN*(ALMAX/ALMIN)**RAN2(IDUM)
         ENDIF
@@ -825,6 +845,18 @@
        GOTO 11
       ENDIF
 
+! wolf - here, checking whether the mass of the light pseudoscalar
+!        comes from the alambda or the akappa term mostly
+!      LAMDOM=246.22 etc. or 174.104 etc. ?
+      LAMDOM=174.104*174.104*PAR(1)*PAR(1)/PAR(4)*PAR(3)*PAR(5)
+      LAMDOM=LAMDOM/(1+PAR(3)*PAR(3))
+      KAPDOM=-3*PAR(2)/PAR(1)*PAR(4)*PAR(6)
+!      IF(LAMDOM.GE.KAPDOM)THEN ! lam>kap being fail means we want kapdom regime
+!      IF(LAMDOM.LT.KAPDOM)THEN ! lam<kap being fail means we want lamdom regime
+!       IFAIL=16
+!       WRITE(*,*)IFAIL,LAMDOM,KAPDOM
+!       GOTO 11
+!      ENDIF
 *   Initialization of PROB and IFAIL
 
       DO I=1,NPROB
@@ -965,6 +997,8 @@
 
       IF(2d0*DABS(DELMB-D0)/MAX(1d-3,DABS(DELMB+D0)).GT.EPS)GOTO 4
 
+
+
 *   Computation of Higgs masses
       PRINT *, NTOT
       CALL MHIGGS(PAR,PROB,IFAIL)
@@ -977,6 +1011,7 @@
 !       GOTO 13     ! go re-generate an event
 !       GOTO 11      ! go output that event failed
 !      ENDIF
+
       IF(IFAIL.NE.0)THEN
 !       WRITE(0,*)"Exit : IFAIL =",IFAIL
 !       WRITE(0,*)""
@@ -1219,6 +1254,8 @@ c      CALL FTPAR(PAR,0)
       DOUBLE PRECISION MQ2MIN,MQ2MAX,MU3MIN,MU3MAX,MU2MIN,MU2MAX
       DOUBLE PRECISION MD3MIN,MD3MAX,MD2MIN,MD2MAX
       DOUBLE PRECISION M32,CGR,MPL
+! WOLF
+      DOUBLE PRECISION P1MMIN,P1MMAX,S1MMIN,S1MMAX
 
       COMMON/GAUGE/ALSMZ,ALEMMZ,GF,g1,g2,S2TW
       COMMON/SMSPEC/MS,MC,MB,MBP,MT,MTAU,MMUON,MZ,MW
@@ -1250,7 +1287,8 @@ c      CALL FTPAR(PAR,0)
       COMMON/CFLAG/CFLAG
       COMMON/M32/M32,CGR,MPL,GRFLAG
       COMMON/FILES/PAT,IFILE,OFILE,EFILE,TFILE,SFILE
-
+! WOLF
+      COMMON/WOLFMASS/P1MMIN,P1MMAX,S1MMIN,S1MMAX
 * INPUT FILE
       OPEN(15,FILE=IFILE,STATUS='UNKNOWN')
 
@@ -1353,6 +1391,11 @@ c      CALL FTPAR(PAR,0)
       NMD2=0
       CGR=1d0
       MPL=2.4d18
+! WOLF
+      P1MMIN=0D0
+      P1MMAX=0D0
+      S1MMIN=0D0
+      S1MMAX=0D0
 
 *   DEFAULT VALUES FOR FLAGS
       GMUFLAG=1
@@ -1510,9 +1553,14 @@ c      CALL FTPAR(PAR,0)
        IF(IX.EQ.1248) MAMAX=VAL
        IF(IX.EQ.1257) MPMIN=VAL
        IF(IX.EQ.1258) MPMAX=VAL
+! wolf
+       IF(IX.EQ.1001) P1MMIN=VAL
+       IF(IX.EQ.1002) P1MMAX=VAL
+       IF(IX.EQ.1011) S1MMIN=VAL
+       IF(IX.EQ.1012) S1MMAX=VAL
 
 *   READ STEPS
-       ELSEIF(CHBLCK(1:6).EQ.'STEPS')THEN
+      ELSEIF(CHBLCK(1:6).EQ.'STEPS')THEN
        READ(CHINL,*,ERR=999) IX,IVAL
        IF(IX.EQ.0) NTOT=IVAL
        IF(IX.EQ.1) ISEED=IVAL
@@ -1547,6 +1595,8 @@ c      CALL FTPAR(PAR,0)
        IF(IX.EQ.499) NMD3=IVAL
        IF(IX.EQ.489) NMD2=IVAL
 
+
+
       ENDIF
 
       GOTO 21
@@ -1557,6 +1607,22 @@ c      CALL FTPAR(PAR,0)
 
  29   CLOSE(15)
       ERR=0
+! WOLF - CUSTOM ERR FOR P1MMIN,P1MMAX,S1MMIN,S1MMAX
+      IF(P1MMAX.NE.0.AND.P1MMAX.LT.P1MMIN)THEN
+       WRITE(0,2)"CHOSEN P1MMAX IS LOWER THAN CHOSEN P1MMIN "
+       ERR=1
+      ELSEIF(P1MMIN.NE.0.AND.P1MMAX.LT.P1MMIN)THEN
+       WRITE(0,2)"CHOSEN P1MMIN IS GREATER THAN CHOSEN P1MMAX "
+       ERR=1
+      ENDIF
+      IF(S1MMAX.NE.0.AND.S1MMAX.LT.S1MMIN)THEN
+       WRITE(0,2)"CHOSEN S1MMAX IS LOWER THAN CHOSEN S1MMIN "
+       ERR=1
+      ELSEIF(S1MMIN.NE.0.AND.S1MMAX.LT.S1MMIN)THEN
+       WRITE(0,2)"CHOSEN S1MMIN IS GREATER THAN CHOSEN S1MMAX "
+       ERR=1
+      ENDIF
+! WOLF - END CUST ERR
       IF(CFLAG(5).NE.0 .AND. NMSFLAG.EQ.0)THEN
        WRITE(0,2)"CMS CHARG(NEUTRAL)INO CONSTRAINTS CANNOT BE CHECKED ",
      .  "IF NMSDECAY IS NOT CALLED"
@@ -1899,7 +1965,7 @@ c      CALL FTPAR(PAR,0)
       INTEGER NBIN,I,NRES,IRES,GRFLAG,NSUSY,NGUT,NMES,IMAX,IFAIL,
      . MRES,WADD,WADDSCOMP,WADDPCOMP,WADDMA,WADDNEU,WADDCOUP,WADDBR,
      . WADDDC,WADDPDC
-      PARAMETER (NSUSY=14,NGUT=21,NMES=21,IMAX=200)
+      PARAMETER (NSUSY=14,NGUT=21,NMES=21,IMAX=210)!imax started at 200
 
       DOUBLE PRECISION RES(IMAX),PAR(*),PROB(*),SIG(5,8),R
       DOUBLE PRECISION SMASS(3),SCOMP(3,3),PMASS(2),PCOMP(2,2),CMASS
@@ -2072,6 +2138,8 @@ c      CALL FTPAR(PAR,0)
       DOUBLE COMPLEX CJA,CGA ! wolf from lightA
       DOUBLE PRECISION sigRLsd,epsY21,eps0w,xiAbs,xiAbd,xiAsd,xiHbs,
      .               xiHbd,xiHsd
+      DOUBLE PRECISION APimix,AEmix,AEPmix,AAmix,MMIX(4,4),OMIX(4,4)
+      DOUBLE PRECISION APIEPi3,AEEPi3,AEPEPi3,AAEPi3
 *
       COMMON/EWPO/MWNMSSM,dumw,dMW0,DrNMSSM,MWSM,dMWSM,decztt,
      .      deltadecztt,deczee,deltadeczee,BRZTauTau,BRZTTmin,
@@ -2184,7 +2252,8 @@ c      CALL FTPAR(PAR,0)
      .      GamAPiEPEP,GamA3E,GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,
      .      GamAPiK0,GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,
      .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb,
-     .      CJA,CGA
+     .      CJA,CGA,APimix,AEmix,AEPmix,AAmix,APIEPi3,AEEPi3,AEPEPi3,
+     .      AAEPi3,MMIX,OMIX
       COMMON/FCXI/sigRLsd,epsY21,eps0w,xiAbs,xiAbd,xiAsd,xiHbs,xiHbd,
      .               xiHsd
 
@@ -2440,8 +2509,21 @@ c      CALL FTPAR(PAR,0)
 
       IRES = IRES + 6
 
+
+      RES(IRES+1)=APimix ! A--pi mixing element	!198
+      RES(IRES+2)=AEmix ! A--eta mixing element	!199
+      RES(IRES+3)=AEPmix ! A--etap mixing element	!200
+      RES(IRES+4)=AAmix ! A--A mixing element	!201
+
+      RES(IRES+5)=APIEPi3 ! A--pi aux element	!202
+      RES(IRES+6)=AEEPi3 ! A--eta aux element	!203
+      RES(IRES+7)=AEPEPi3 ! A--etap aux element	!204
+      RES(IRES+8)=AAEPi3 ! A--A aux element	!205
+
+      IRES = IRES + 8
+
       WRITE(16,11)(RES(I),I=1,IRES)
- 11   FORMAT(200E14.6)
+ 11   FORMAT(210E14.6)!used to be 200E14.6 but i changed imax
 
       END
 

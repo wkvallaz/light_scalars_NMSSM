@@ -7,7 +7,7 @@
       DOUBLE PRECISION PAR(*),PROB(*),MA,GACHACHA(2,2),EPS,PI,aux
       DOUBLE PRECISION FPI,THETAE,MPI,MPIC,MPI8,MPI9,META,METAP,MKc,MK0
       DOUBLE PRECISION DM3,DM8,DM9,MMIX(4,4),VALP(4),VECP(4,4)
-     .                 ,OMIX(4,4)
+     .                 ,OMIX(4,4),BMIX(4,4),BOMIX(4,4)
       DOUBLE PRECISION WidthPiinv,WidthEinv,WidthEPinv,PROBpiinv
       DOUBLE PRECISION CGPI,CGETA,CGETAP,WidthPigaga,WidthEgaga,
      .                WidthEPgaga,WidthECgaga,PROBpigaga
@@ -72,6 +72,8 @@
 ! wolf hadr components
       DOUBLE PRECISION temp
       DOUBLE PRECISION GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb
+! wolf a-meson mix elements
+      DOUBLE PRECISION APimix,AEmix,AEPmix,AAmix
 
       DOUBLE COMPLEX XC,TC,BC,CC,LC,MC,EC,CH1C,CH2C,CJA,CGA,FGG,CM,LI2
 
@@ -91,8 +93,9 @@
      .      GamAEPi3,GamAEPiC,GamAEPPi3,GamAEPPiC,GamAPiEE,GamAPiEEP,
      .      GamAPiEPEP,GamA3E,GamAE2EP,GamAEEP2,GamA3EP,GamAPiKC,
      .      GamAPiK0,GamAPiKCK0,GamAEKC,GamAEK0,GamAEPKC,GamAEPK0,
-     .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb
-
+     .      GamARhogam,GamAetac1s,GamAetab123s,GamAhadrcc,GamAhadrbb,
+     .      CJA,CGA,APimix,AEmix,AEPmix,AAmix,APIEPi3,AEEPi3,AEPEPi3,
+     .      AAEPi3,MMIX,OMIX
       CM(X)= DCMPLX(MIN(1d3,X)**2,-EPS/4d0)
       FGG(XC)=2d0*XC
      .        *CDLOG((CDSQRT(1d0-4d0*XC)-1d0)
@@ -132,7 +135,7 @@ c     .   + (164.14d0 - 25.77d0*5 + 0.259d0*5**2)*(ASH/PI)**3
      . +5d0*DLOG(MA**2/MT**2))
 * End New
 
-      EPS=1d-8
+      EPS=1d-12
       PI=4d0*DATAN(1d0)
       PROBpiinv=0d0
       PROBpigaga=0d0
@@ -176,6 +179,10 @@ c     .   + (164.14d0 - 25.77d0*5 + 0.259d0*5**2)*(ASH/PI)**3
       GamA3Pi=0d0
       GamAPi3PiC=0d0
       GamAEPi3=0d0
+      APIEPi3=0d0
+      AEEPi3=0d0
+      AEPEPi3=0d0
+      AAEPi3=0d0
       GamAEPiC=0d0
       GamAEPPi3=0d0
       GamAEPPiC=0d0
@@ -295,8 +302,9 @@ C       Decay to light neutralinos
 
 C       Mixing with mesons [1612.06538[hep-ph]]
 
-
-      IF(MA.lt.4d0)then
+! wolf delay this to before summing them into hadr
+!      IF(MA.lt.4d0)then
+      IF(MA.lt.10d0)then
 
       DM3=-DSQRT(dsqrt(2d0)*GF)/2d0*FPI*MPI**2*(CU(4)-CD(4))
       DM8=-DSQRT(dsqrt(2d0)*GF)/2d0*FPI*(-dsqrt(3d0)*MPI8**2*CD(4)
@@ -357,7 +365,11 @@ C       Mixing with mesons [1612.06538[hep-ph]]
       IF(dabs(OMIX(INDA,3))**2.gt.dabs(OMIX(INDETAP,3))**2)MIXPROB=1
       IF(INDETAP.eq.INDPI)MIXPROB=1
       IF(INDETAP.eq.INDETA)MIXPROB=1
-
+! wolf saving mixing elems
+      APimix=OMIX(INDA,1) 
+      AEmix=OMIX(INDA,2)
+      AEPmix=OMIX(INDA,3)
+      AAmix=OMIX(INDA,4)
 
 C       Invisible decay A -> 2 neu_{1,2}
 
@@ -1101,11 +1113,12 @@ C  * A -> gamma (Rho,omega->)Pi+Pi-
 
 C       Total hadronic decays
 
+      IF(MA.lt.4d0)then
       GamAhadr=GamA3Pi+GamAPi3PiC+GamAEPi3+GamAEPiC+GamAEPPi3+GamAEPPiC
      .   +GamAPiEE+GamAPiEEP+GamAPiEPEP+GamA3E+GamAE2EP+GamAEEP2
      .   +GamA3EP+GamAPiKC+GamAPiK0+GamAPiKCK0+GamAEKC+GamAEK0
      .   +GamAEPKC+GamAEPK0+GamARhogam
-
+      ENDIF
       ENDIF
 
 C       Light-quark and gluon decays
@@ -1135,19 +1148,21 @@ C   Initializing the strong coupling constant and running masses
        MT0=MT
        RMS=RUNM(MA,3)
 
-       RATCOUP=1d0
-       GamAuu=3d0*dabs(AAuu)**2/(8d0*Pi)*MA
+       RATCOUP=1d0                         !wolf mqma
+       GamAuu=3d0*dabs(AAuu)**2/(8d0*Pi)*MA!*(MA/2d-3)**2!wolf mqma
      .        *(4d0*(2d-3/MA)**2*TQCDA((2d-3/MA)**2)
      .   +(1d0-4d0*(2d-3/MA)**2)*max(0d0,QCDA((2d-3/MA)**2)))
      .               *dsqrt(max(0d0,1d0-4d0*(2d-3/MA)**2))
 
        RATCOUP=0d0
        IF(CD(4).NE.0d0)RATCOUP=CU(4)/CD(4)
-       GamAdd=3d0*dabs(AAdd)**2/(8d0*Pi)*MA
+!                                           !wolf mqma
+       GamAdd=3d0*dabs(AAdd)**2/(8d0*Pi)*MA!*(MA/4d-3)**2!wolf mqma
      .         *(4d0*(4d-3/MA)**2*TQCDA((4d-3/MA)**2)
      .   +(1d0-4d0*(4d-3/MA)**2)*max(0d0,QCDA((4d-3/MA)**2)))
      .               *dsqrt(max(0d0,1d0-4d0*(4d-3/MA)**2))
-       GamAss=3d0*dabs(AAss)**2/(8d0*Pi)*MA
+!                                          !wolf mqma
+       GamAss=3d0*dabs(AAss)**2/(8d0*Pi)*MA!*(MA/MS)**2!wolf mqma
      .         *(4d0*(MS/MA)**2*TQCDA((MS/MA)**2)
      .   +(1d0-4d0*(MS/MA)**2)*max(0d0,(RMS/MS)**2*QCDA((RMS/MA)**2)))
      .               *dsqrt(max(0d0,1d0-4d0*(MS/MA)**2))
@@ -1233,8 +1248,8 @@ C       A -> cc decays
      .     *(AS4**2*(1d0+AS4/Pi*(97d0/4d0-4d0*7d0/6d0))
      .      -AS3**2*(1d0+AS3/Pi*(97d0/4d0-3d0*7d0/6d0)))
 
-* New July 2019:
-       GamAcc=4d0*(MCC/MA)**2*
+* New July 2019:!             !wolf mqma
+       GamAcc=4d0*(MCC/MA)**2*!(MA/MCC)**2*!wolf mqma
      .        3d0*GF*(MCC*CU(4))**2*MA/(4d0*dsqrt(2d0)*Pi)
      .        *TQCDA((MCC/MA)**2)*dsqrt(1d0-4d0*MCC**2/MA**2)
      .         +(1d0-4d0*(MCC/MA)**2)*max(0d0,
@@ -1243,7 +1258,9 @@ C       A -> cc decays
      .         )
 * End new
 ! Modifying the shape of the phase space function, so that it looks "3-body" at low mass
+
        IF(MA.le.50d0)THEN
+!dqps !wolf diquark phase space mod
         GamAcc=GamAcc*dsqrt(1d0-(2d0*MD+MPI)**2/MA**2)
      .                /dsqrt(1d0-4d0*MCC**2/MA**2)
      . *(KinAPiDD(MA)*((50d0-MA)/(50d0-(2d0*MD+MPI)))**2
@@ -1271,64 +1288,64 @@ C       Mixing with the Eta_b(1,2,3S) [1105.1722[hep-ph]]
 
 c      IF(MA.gt.4d0.and.MA.lt.2d0*5.2795d0+MPI)THEN
 
-       MMIX(1,1)=METAB1**2
-       MMIX(1,2)=0d0
-       MMIX(1,3)=0d0
-       MMIX(1,4)=DMB1
-       MMIX(2,1)=0d0
-       MMIX(2,2)=METAB2**2
-       MMIX(2,3)=0d0
-       MMIX(2,4)=DMB2
-       MMIX(3,1)=0d0
-       MMIX(3,2)=0d0
-       MMIX(3,3)=METAB3**2
-       MMIX(3,4)=DMB3
-       MMIX(4,1)=DMB1
-       MMIX(4,2)=DMB2
-       MMIX(4,3)=DMB3
-       MMIX(4,4)=MA**2
+       BMIX(1,1)=METAB1**2
+       BMIX(1,2)=0d0
+       BMIX(1,3)=0d0
+       BMIX(1,4)=DMB1
+       BMIX(2,1)=0d0
+       BMIX(2,2)=METAB2**2
+       BMIX(2,3)=0d0
+       BMIX(2,4)=DMB2
+       BMIX(3,1)=0d0
+       BMIX(3,2)=0d0
+       BMIX(3,3)=METAB3**2
+       BMIX(3,4)=DMB3
+       BMIX(4,1)=DMB1
+       BMIX(4,2)=DMB2
+       BMIX(4,3)=DMB3
+       BMIX(4,4)=MA**2
 
-       CALL DIAGN(4,MMIX,VALP,VECP,EPS)
+       CALL DIAGN(4,BMIX,VALP,VECP,EPS)
        CALL SORTN(4,VALP,VECP)
        DO K=1,4
         DO L=1,4
-         OMIX(K,L)=VECP(L,K)
+         BOMIX(K,L)=VECP(L,K)
         ENDDO
        ENDDO
 
        INDA=1
        DO K=1,4
-        IF(dabs(OMIX(INDA,4))**2.lt.dabs(OMIX(K,4))**2)INDA=K
+        IF(dabs(BOMIX(INDA,4))**2.lt.dabs(BOMIX(K,4))**2)INDA=K
        ENDDO
        INDEB1=Max(1,3-INDA)
        DO K=INDEB1,4
-        IF(dabs(OMIX(INDEB1,1))**2.lt.dabs(OMIX(K,1))**2)INDEB1=K
+        IF(dabs(BOMIX(INDEB1,1))**2.lt.dabs(BOMIX(K,1))**2)INDEB1=K
        ENDDO
        GamAetab123s=0d0
        aux=Max(0d0,min(1d0,MA/2d0-1.5d0))
        temp=GamAhadr
-       GamAhadr=GamAhadr*OMIX(INDA,4)**2+aux*(11.8d-3*OMIX(INDA,1)**2
-     .                 +5.4d-3*OMIX(INDA,2)**2+3.9d-3*OMIX(INDA,3)**2)
+       GamAhadr=GamAhadr*BOMIX(INDA,4)**2+aux*(11.8d-3*BOMIX(INDA,1)**2
+     .                +5.4d-3*BOMIX(INDA,2)**2+3.9d-3*BOMIX(INDA,3)**2)
        GamAetab123s=GamAhadr-temp
-       GamAee=GamAee*OMIX(INDA,4)**2
-       GamAmumu=GamAmumu*OMIX(INDA,4)**2
-       GamAtata=GamAtata*OMIX(INDA,4)**2
+       GamAee=GamAee*BOMIX(INDA,4)**2
+       GamAmumu=GamAmumu*BOMIX(INDA,4)**2
+       GamAtata=GamAtata*BOMIX(INDA,4)**2
 c Mesonic BRs to 2photons from 1601.05093
-       GamAgaga=GamAgaga*OMIX(INDA,4)**2
-     .          +aux*(11.8d-3*3.42d-3*OMIX(INDA,1)**2
-     .                +5.4d-3*3.38d-3*OMIX(INDA,2)**2
-     .                +3.9d-3*3.40d-3*OMIX(INDA,3)**2)
-       GamAcc=GamAcc*OMIX(INDA,4)**2
-       GamAinv=GamAinv*OMIX(INDA,4)**2
+       GamAgaga=GamAgaga*BOMIX(INDA,4)**2
+     .          +aux*(11.8d-3*3.42d-3*BOMIX(INDA,1)**2
+     .                +5.4d-3*3.38d-3*BOMIX(INDA,2)**2
+     .                +3.9d-3*3.40d-3*BOMIX(INDA,3)**2)
+       GamAcc=GamAcc*BOMIX(INDA,4)**2
+       GamAinv=GamAinv*BOMIX(INDA,4)**2
 ! GamAhadr also contains contributions to the cc final state
 c      ENDIF
 
 c Test leptonic eta_b(1S) BR
       WidthEB1mumu=AAmumu**2/(8d0*Pi)*METAB1
-     .    *dsqrt(max(0d0,1d0-4d0*MMUON**2/METAB1**2))*OMIX(INDEB1,4)**2
+     .    *dsqrt(max(0d0,1d0-4d0*MMUON**2/METAB1**2))*BOMIX(INDEB1,4)**2
       PROBpill=Max(PROBpill,0.7d0*WidthEB1mumu/(9d-3*11.8d-3)-1d0)
       WidthEB1tata=AAtata**2/(8d0*Pi)*METAB1
-     .    *dsqrt(max(0d0,1d0-4d0*MMUON**2/METAB1**2))*OMIX(INDEB1,4)**2
+     .    *dsqrt(max(0d0,1d0-4d0*MMUON**2/METAB1**2))*BOMIX(INDEB1,4)**2
       PROBpill=Max(PROBpill,0.7d0*WidthEB1tata/(8d-2*11.8d-3)-1d0)
 
 
@@ -1350,8 +1367,8 @@ C       A -> bb decays
        DBB=CDABS(CJA)**2/(8d0*PI**3)*MA**3
      .     *(ASH**2*AGGQCD2(ASH,5,MA,MT)
      .      -AS4**2*(1d0+AS4/Pi*(97d0/4d0-4d0*7d0/6d0)))
-
-       GamAbb=4d0*(MBP/MA)**2*
+!                             !wolf mqma
+       GamAbb=4d0*(MBP/MA)**2*!(MA/MBP)**2*!wolf mqma
      .        3d0*GF*(MBP*CB(4))**2*MA/(4d0*dsqrt(2d0)*Pi)
      .        *TQCDA((MBP/MA)**2)*dsqrt(1d0-4d0*MBP**2/MA**2)
      .         +(1d0-4d0*(MBP/MA)**2)*max(0d0,
@@ -1380,7 +1397,10 @@ C       A -> bb decays
       END
 
 *********************************************************************
-
+! wolf edit to all lower mesonic KinA___ functions, where availability is 1 above max
+!  prior, was set to 0 at highest MA region
+!  value at high MA termination not consistent, choose 1 for my insert
+!  e: 1 discontinuity weird, use last fn (f3 usually)
       double precision function KinA3Pi(MA1)
       
       implicit none
@@ -1412,7 +1432,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -1458,7 +1478,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -1504,7 +1524,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -1550,7 +1570,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -1596,7 +1616,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -1642,7 +1662,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -1688,7 +1708,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -1729,7 +1749,7 @@ C       A -> bb decays
          if(MA1.lt.4d0)then
           aux=f2
          else
-          aux=0d0
+          aux=f2
          endif
         endif
        endif
@@ -1775,7 +1795,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -1820,7 +1840,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -1866,7 +1886,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -1912,7 +1932,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -1953,7 +1973,7 @@ C       A -> bb decays
          if(MA1.lt.4d0)then
           aux=f2
          else
-          aux=0d0
+          aux=f2
          endif
         endif
        endif
@@ -1998,7 +2018,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -2028,23 +2048,43 @@ C       A -> bb decays
      . -0.49440392d0*MA1**3+0.083445992d0*MA1**4-0.0059305000d0*MA1**5
       f3=0.67816973d0-0.21518244d0*MA1-1.6542307d0*MA1**2
      . +1.5548786d0*MA1**3-0.34729486d0*MA1**4
-
+! wolf KinAPiK0 f3 almost certainly not valid, for other channels that
+!  have a 0/C split, the functions are very similar, (small diff in value)
+!  but here in APiK0 the f2 is the f0 of APiKC, unknown f3?
+!  meaning the default of lt.1.46212->f1, lt.3->f0,lt.4->0 is nonsense
+!  wolf manually inserting f1 into these
+!  e: this results in a weird kink and PiK0 being too large,
+!     so am copying the associated fns from PiKC directly into if cases
+!  ee: Desmos shows that the nature of this f3 (downward mexican quartic near 1.2)
+!     matches APiKC's f2... so then the fn that should be f3 should match
+!     APiKC's f3, an upward parabola-quartic ~1... brief check says using this f3
+!     as f2 here works extremely well. Then taking f3 from APiKC is still pretty ok
       if(MA1.lt.MPI0+2d0*MK0)then
       aux=0d0
       else
        if(MA1.lt.1.19182d0)then
-       aux=f2
+!       aux=f2
+       aux=f3 !since it functions like ..KC's does
        else
         if(MA1.lt.1.46212d0)then
         aux=f1
         else
          if(MA1.lt.3d0)then
+!          aux=f0
+          f0=1.6184070d0-3.2969036d0*MA1+2.1105929d0*MA1**2
+     . -0.49440392d0*MA1**3+0.083445992d0*MA1**4-0.0059305000d0*MA1**5
           aux=f0
          else
           if(MA1.lt.4d0)then
+!           aux=f3
+           f3=0.55238932d0-1.4779014d0*MA1+0.84479081d0*MA1**2
+     . -0.045640920d0*MA1**3+0.0025019861d0*MA1**4
            aux=f3
           else
-           aux=0d0
+!           aux=0d0
+           f3=0.55238932d0-1.4779014d0*MA1+0.84479081d0*MA1**2
+     . -0.045640920d0*MA1**3+0.0025019861d0*MA1**4
+           aux=f3
           endif
          endif
         endif
@@ -2091,7 +2131,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -2137,7 +2177,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -2183,7 +2223,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -2229,7 +2269,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -2276,7 +2316,7 @@ C       A -> bb decays
           if(MA1.lt.4d0)then
            aux=f3
           else
-           aux=0d0
+           aux=f3
           endif
          endif
         endif
@@ -2340,7 +2380,7 @@ C       A -> bb decays
             if(MA1.lt.4d0)then
             aux=f5
             else
-            aux=0d0
+            aux=f5
             endif
            endif
           endif
